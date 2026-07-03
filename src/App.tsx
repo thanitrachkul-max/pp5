@@ -33,6 +33,9 @@ const Login = lazy(() =>
 const CurriculumPreviewPage = lazy(() =>
   import('./pages/admin/CurriculumPreviewPage').then((module) => ({ default: module.CurriculumPreviewPage })),
 );
+const Pap5CoverPreviewPage = lazy(() =>
+  import('./pages/teacher/Pap5CoverPreviewPage').then((module) => ({ default: module.Pap5CoverPreviewPage })),
+);
 
 function readPreviewMode(): string | null {
   return new URLSearchParams(window.location.search).get('preview');
@@ -77,15 +80,18 @@ function SupabaseConfigErrorScreen({ message }: { message: string }) {
 }
 
 function PreviewOnlyApp() {
+  const previewMode = readPreviewMode();
+
   return (
     <Suspense fallback={<RouteFallback />}>
-      <CurriculumPreviewPage />
+      {previewMode === 'pap5-cover' ? <Pap5CoverPreviewPage /> : <CurriculumPreviewPage />}
     </Suspense>
   );
 }
 
 export default function App() {
-  if (readPreviewMode() === 'curriculum') {
+  const previewMode = readPreviewMode();
+  if (previewMode === 'curriculum' || previewMode === 'pap5-cover') {
     return <PreviewOnlyApp />;
   }
 
@@ -103,7 +109,7 @@ function ConfiguredApp() {
   const [gradebookSession, setGradebookSession] = useState<GradebookSession | null>(null);
   const [openingGradebook, setOpeningGradebook] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [teacherDashboardKey, setTeacherDashboardKey] = useState(0);
+  const [teacherReturnPeriodKey, setTeacherReturnPeriodKey] = useState<string | null>(null);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'loading' | 'saving' | 'saved' | 'error'>('idle');
 
   const applyResolvedUser = useCallback((user: AppUser | null, preferAdminView: boolean) => {
@@ -113,6 +119,7 @@ function ConfiguredApp() {
     if (!activeUser) {
       setActiveView('teacher');
       setGradebookSession(null);
+      setTeacherReturnPeriodKey(null);
       return;
     }
 
@@ -221,6 +228,7 @@ function ConfiguredApp() {
   const handleLogin = (user: AppUser) => {
     setCurrentUser(user);
     setGradebookSession(null);
+    setTeacherReturnPeriodKey(null);
     setActiveView(canAccessAdminDashboard(user) ? 'admin' : 'teacher');
   };
 
@@ -230,6 +238,7 @@ function ConfiguredApp() {
     await signOut();
     setCurrentUser(null);
     setGradebookSession(null);
+    setTeacherReturnPeriodKey(null);
     setActiveView('teacher');
     setShowLogoutConfirm(false);
   };
@@ -248,13 +257,16 @@ function ConfiguredApp() {
   const handleOpenGradebook = async (
     assignment: TeacherAssignmentView,
     gradebookId: string,
-    options?: { readOnly?: boolean }
+    options?: { readOnly?: boolean; returnPeriodKey?: string | null }
   ) => {
     setOpeningGradebook(true);
     setSyncStatus('loading');
     try {
       const { loadGradebookSession } = await import('./lib/teacherGradebooks');
       const session = await loadGradebookSession(gradebookId, assignment);
+      setTeacherReturnPeriodKey(
+        options?.returnPeriodKey ?? `${assignment.academic_year_id}:${assignment.semester_number}`,
+      );
       setActiveView('teacher');
       setGradebookSession(options?.readOnly ? { ...session, readOnly: true } : session);
     } catch {
@@ -362,7 +374,6 @@ function ConfiguredApp() {
             currentUser={currentUser}
             onBack={() => {
               setGradebookSession(null);
-              setTeacherDashboardKey((key) => key + 1);
             }}
             onLogout={handleLogout}
             onSettings={openAdminView}
@@ -379,8 +390,8 @@ function ConfiguredApp() {
       {renderSyncStatus()}
       <Suspense fallback={<RouteFallback />}>
         <TeacherDashboard
-          key={teacherDashboardKey}
           currentUser={currentUser}
+          initialPeriodKey={teacherReturnPeriodKey}
           onOpenGradebook={handleOpenGradebook}
           onLogout={handleLogout}
           onSettings={openAdminView}

@@ -717,3 +717,127 @@ main table:not(.excel-table) tbody td {
     background-position: left center;
   }
 }
+
+@font-face {
+  font-family: "TH Sarabun PSK";
+  src: url("/fonts/Sarabun-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TH Sarabun PSK";
+  src: url("/fonts/Sarabun-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+.pap5-print-root {
+  display: none;
+}
+
+.pap5-cover-page,
+.pap5-cover-page * {
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.pap5-cover-summary,
+.pap5-cover-summary tr,
+.pap5-signatures {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+
+.pap5-preview-route-root .pap5-print-root {
+  display: block;
+  position: static;
+  width: auto;
+  min-height: 0;
+  background: transparent;
+}
+
+@media print {
+  .pap5-preview-toolbar {
+    display: none !important;
+  }
+}
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  html,
+  body,
+  #root {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .pap5-print-root,
+  .pap5-print-root * {
+    visibility: visible !important;
+  }
+
+  .pap5-print-root {
+    display: block !important;
+    position: absolute !important;
+    inset: 0 auto auto 0 !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+  }
+
+  .pap5-cover-shell-print {
+    display: block !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+  }
+
+  .pap5-cover-page {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    padding: 32px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: 0 !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+    --tw-shadow: 0 0 #0000 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-family: "TH Sarabun PSK", "Sarabun", sans-serif !important;
+  }
+
+  .pap5-cover-summary {
+    width: 90% !important;
+  }
+
+  .pap5-cover-page input,
+  .pap5-cover-page select,
+  .pap5-cover-page span,
+  .pap5-cover-page td,
+  .pap5-cover-page th {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

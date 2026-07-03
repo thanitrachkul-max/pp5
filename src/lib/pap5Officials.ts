@@ -8,7 +8,7 @@ export { LEARNING_AREAS, isWithinEntryWindow };
 export const formatThaiDateForDisplay = isoDateToDisplay;
 
 export const PAP5_OFFICIALS_MISSING_SCHEMA_MESSAGE =
-  "ฐานข้อมูลยังไม่มีตารางตั้งค่าผู้ลงนาม ปพ.5 กรุณารัน migration `supabase/migrations/0025_school_pap5_officials.sql` ใน Supabase SQL Editor";
+  "ฐานข้อมูลยังไม่มีตาราง/คอลัมน์ตั้งค่าผู้ลงนาม ปพ.5 กรุณารัน migration `supabase/migrations/0025_school_pap5_officials.sql` และ `supabase/migrations/0029_school_director_official.sql` ใน Supabase SQL Editor";
 
 export const PAP5_OFFICIALS_MIGRATION_HINT = PAP5_OFFICIALS_MISSING_SCHEMA_MESSAGE;
 
@@ -20,18 +20,27 @@ export type Pap5OfficialsSettings = {
   learningAreaHeads: Record<string, string | null>;
   headOfEvaluationId: string | null;
   deputyDirectorId: string | null;
+  schoolDirectorId: string | null;
 };
 
 export type Pap5OfficialNames = {
   headOfLearningArea: string;
   headOfEvaluation: string;
   deputyDirector: string;
+  schoolDirector: string;
 };
 
 type Pap5OfficialNamesRow = {
   head_of_learning_area: string | null;
   head_of_evaluation: string | null;
   deputy_director: string | null;
+  school_director?: string | null;
+};
+
+type Pap5OfficialsRow = {
+  head_of_evaluation_id: string | null;
+  deputy_director_id: string | null;
+  school_director_id?: string | null;
 };
 
 const KALASIN_PANYANUKUL_SCHOOL_NAME_PART = "กาฬสินธุ์ปัญญานุกูล";
@@ -92,6 +101,7 @@ function defaultOfficialNames(
       headOfLearningArea: "",
       headOfEvaluation: "",
       deputyDirector: "",
+      schoolDirector: "",
     };
   }
 
@@ -99,6 +109,7 @@ function defaultOfficialNames(
     headOfLearningArea: resolveDefaultLearningAreaHead(learningArea),
     headOfEvaluation: KALASIN_DEFAULT_HEAD_OF_EVALUATION,
     deputyDirector: KALASIN_DEFAULT_DEPUTY_DIRECTOR,
+    schoolDirector: "",
   };
 }
 
@@ -131,13 +142,15 @@ export function buildDefaultPap5Officials(profiles: TeacherProfile[]): Pap5Offic
     learningAreaHeads: blankLearningAreaHeads(),
     headOfEvaluationId: findTeacherId(profiles, "ประภาวดี", "ศรีทับ"),
     deputyDirectorId: findTeacherId(profiles, "อัจฉราภรณ์", "เศษวิ"),
+    schoolDirectorId: findTeacherId(profiles, "มีเกียรติ", "นาสมตรึก"),
   };
 }
 
 function isPap5SchemaError(error: unknown): boolean {
   return (
     isSchemaCacheErrorFor(error, "school_pap5_officials") ||
-    isSchemaCacheErrorFor(error, "school_learning_area_heads")
+    isSchemaCacheErrorFor(error, "school_learning_area_heads") ||
+    isSchemaCacheErrorFor(error, "school_director_id")
   );
 }
 
@@ -166,17 +179,24 @@ async function fetchProfileNames(profileIds: Array<string | null | undefined>): 
 }
 
 export async function loadPap5Officials(schoolId: string): Promise<Pap5OfficialsSettings> {
-  const [officialsResult, learningAreaHeadsResult] = await Promise.all([
-    supabase
+  let officialsResult = await supabase
+    .from("school_pap5_officials")
+    .select("head_of_evaluation_id, deputy_director_id, school_director_id")
+    .eq("school_id", schoolId)
+    .maybeSingle();
+
+  if (officialsResult.error && isSchemaCacheErrorFor(officialsResult.error, "school_director_id")) {
+    officialsResult = await supabase
       .from("school_pap5_officials")
       .select("head_of_evaluation_id, deputy_director_id")
       .eq("school_id", schoolId)
-      .maybeSingle(),
-    supabase
-      .from("school_learning_area_heads")
-      .select("learning_area, teacher_id")
-      .eq("school_id", schoolId),
-  ]);
+      .maybeSingle();
+  }
+
+  const learningAreaHeadsResult = await supabase
+    .from("school_learning_area_heads")
+    .select("learning_area, teacher_id")
+    .eq("school_id", schoolId);
 
   if (officialsResult.error) {
     throw isPap5SchemaError(officialsResult.error)
@@ -196,10 +216,13 @@ export async function loadPap5Officials(schoolId: string): Promise<Pap5Officials
     }
   }
 
+  const officialsRow = officialsResult.data as Pap5OfficialsRow | null;
+
   return {
     learningAreaHeads,
-    headOfEvaluationId: officialsResult.data?.head_of_evaluation_id ?? null,
-    deputyDirectorId: officialsResult.data?.deputy_director_id ?? null,
+    headOfEvaluationId: officialsRow?.head_of_evaluation_id ?? null,
+    deputyDirectorId: officialsRow?.deputy_director_id ?? null,
+    schoolDirectorId: officialsRow?.school_director_id ?? null,
   };
 }
 
@@ -216,6 +239,7 @@ export async function savePap5Officials(
         school_id: schoolId,
         head_of_evaluation_id: settings.headOfEvaluationId,
         deputy_director_id: settings.deputyDirectorId,
+        school_director_id: settings.schoolDirectorId,
         updated_at: updatedAt,
       },
       { onConflict: "school_id" },
@@ -273,6 +297,7 @@ async function loadPap5OfficialNames(
       headOfLearningArea: row?.head_of_learning_area ?? "",
       headOfEvaluation: row?.head_of_evaluation ?? "",
       deputyDirector: row?.deputy_director ?? "",
+      schoolDirector: row?.school_director ?? "",
     };
   }
 
@@ -286,12 +311,14 @@ async function loadPap5OfficialNames(
     headOfLearningAreaId,
     settings.headOfEvaluationId,
     settings.deputyDirectorId,
+    settings.schoolDirectorId,
   ]);
 
   return {
     headOfLearningArea: profileNames.get(headOfLearningAreaId ?? "") ?? "",
     headOfEvaluation: profileNames.get(settings.headOfEvaluationId ?? "") ?? "",
     deputyDirector: profileNames.get(settings.deputyDirectorId ?? "") ?? "",
+    schoolDirector: profileNames.get(settings.schoolDirectorId ?? "") ?? "",
   };
 }
 
@@ -310,6 +337,8 @@ function mergeOfficials(
       officialNames.headOfEvaluation || generalInfo.headOfEvaluation || defaults.headOfEvaluation,
     deputyDirector:
       officialNames.deputyDirector || generalInfo.deputyDirector || defaults.deputyDirector,
+    schoolDirector:
+      officialNames.schoolDirector || generalInfo.schoolDirector || defaults.schoolDirector,
   };
 }
 
@@ -322,8 +351,9 @@ export function applyPap5OfficialDisplayDefaults(
       headOfLearningArea: "",
       headOfEvaluation: "",
       deputyDirector: "",
+      schoolDirector: "",
     },
-    generalInfo.learningArea,
+    generalInfo.learningArea || "",
   );
 }
 
@@ -341,6 +371,7 @@ export async function mergePap5OfficialsIntoGeneralInfo(
         headOfLearningArea: "",
         headOfEvaluation: "",
         deputyDirector: "",
+        schoolDirector: "",
       }, learningArea);
     }
     throw error;

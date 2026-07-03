@@ -27,6 +27,15 @@ export default defineConfig({
   },
   server: {
     hmr: process.env.DISABLE_HMR !== 'true',
+    watch: {
+      ignored: [
+        '**/.git/**',
+        '**/dist/**',
+        '**/tmp/**',
+        '**/recovered-old-project/**',
+        '**/*.log',
+      ],
+    },
   },
   build: {
     rollupOptions: {

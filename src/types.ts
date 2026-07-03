@@ -33,6 +33,7 @@ export interface ScoreConfig {
 }
 
 export type UserRole = "super_admin" | "admin" | "teacher" | "executive";
+export type GradebookApprovalStatus = "pending" | "approved" | "revision_requested";
 
 export interface Profile {
   id: string;

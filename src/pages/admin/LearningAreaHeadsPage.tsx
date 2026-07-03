@@ -22,7 +22,12 @@ interface LearningAreaHeadsPageProps {
 
 function hasAnySavedOfficials(settings: Pap5OfficialsSettings): boolean {
   const hasAreaHead = Object.values(settings.learningAreaHeads).some(Boolean);
-  return hasAreaHead || Boolean(settings.headOfEvaluationId) || Boolean(settings.deputyDirectorId);
+  return (
+    hasAreaHead ||
+    Boolean(settings.headOfEvaluationId) ||
+    Boolean(settings.deputyDirectorId) ||
+    Boolean(settings.schoolDirectorId)
+  );
 }
 
 export const LearningAreaHeadsPage: React.FC<LearningAreaHeadsPageProps> = ({
@@ -63,10 +68,18 @@ export const LearningAreaHeadsPage: React.FC<LearningAreaHeadsPageProps> = ({
       setTeachers(loadedTeachers);
 
       let loadedSettings = await loadPap5Officials(currentUser.schoolId);
+      const defaultSettings = buildDefaultPap5Officials(loadedTeachers);
 
       if (!hasAnySavedOfficials(loadedSettings) && !readOnly && !initDefaultsRef.current) {
         initDefaultsRef.current = true;
-        loadedSettings = buildDefaultPap5Officials(loadedTeachers);
+        loadedSettings = defaultSettings;
+        await savePap5Officials(currentUser.schoolId, loadedSettings);
+      } else if (!loadedSettings.schoolDirectorId && defaultSettings.schoolDirectorId && !readOnly && !initDefaultsRef.current) {
+        initDefaultsRef.current = true;
+        loadedSettings = {
+          ...loadedSettings,
+          schoolDirectorId: defaultSettings.schoolDirectorId,
+        };
         await savePap5Officials(currentUser.schoolId, loadedSettings);
       }
 
@@ -252,6 +265,28 @@ export const LearningAreaHeadsPage: React.FC<LearningAreaHeadsPageProps> = ({
             disabled={readOnly}
             getLabel={teacherDisplayName}
             placeholder="— เลือกครู —"
+          />
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="text-lg font-bold text-slate-900">ผู้อำนวยการโรงเรียน</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          แสดงในหน้าปก ปพ.5 ทุกวิชาและทุกระดับชั้น
+        </p>
+
+        <div className="mt-4 max-w-xl">
+          <SearchableTeacherSelect
+            value={settings.schoolDirectorId ?? ''}
+            teachers={activeTeachers.filter((teacher) => teacher.role === 'executive')}
+            onChange={(teacherId) =>
+              setSettings((current) =>
+                current ? { ...current, schoolDirectorId: teacherId || null } : current,
+              )
+            }
+            disabled={readOnly}
+            getLabel={teacherDisplayName}
+            placeholder="— เลือกผู้บริหาร —"
           />
         </div>
       </section>

@@ -1,5 +1,7 @@
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
+import { applyPap5OfficialDisplayDefaults } from "../lib/pap5Officials";
+import type { AppData } from "../types";
 
 const DEFAULT_SCHOOL_NAME = "โรงเรียนกาฬสินธุ์ปัญญานุกูล จังหวัดกาฬสินธุ์";
 const DEFAULT_AGENCY_NAME = "สำนักบริหารงานการศึกษาพิเศษ";
@@ -10,7 +12,9 @@ export const exportToExcel = async (data: any) => {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "App";
   workbook.created = new Date();
-  const generalInfo = data.generalInfo ?? {};
+  const generalInfo = applyPap5OfficialDisplayDefaults(
+    (data.generalInfo ?? {}) as AppData["generalInfo"],
+  );
   const schoolName = generalInfo.schoolName || DEFAULT_SCHOOL_NAME;
   const agencyName = generalInfo.agencyName || DEFAULT_AGENCY_NAME;
   const logoUrl =
@@ -471,7 +475,7 @@ export const exportToExcel = async (data: any) => {
   sigRow++;
   sheet1.mergeCells(sigRow, 5, sigRow, 10);
   sheet1.getCell(sigRow, 5).value =
-    `( ${data.generalInfo.headOfLearningArea || ""} )`;
+    `( ${generalInfo.headOfLearningArea || ""} )`;
   sheet1.getCell(sigRow, 5).alignment = centerAlign;
 
   sigRow += 2;
@@ -485,7 +489,7 @@ export const exportToExcel = async (data: any) => {
   sigRow++;
   sheet1.mergeCells(sigRow, 5, sigRow, 10);
   sheet1.getCell(sigRow, 5).value =
-    `( ${data.generalInfo.headOfEvaluation || ""} )`;
+    `( ${generalInfo.headOfEvaluation || ""} )`;
   sheet1.getCell(sigRow, 5).alignment = centerAlign;
 
   sigRow += 2;
@@ -504,7 +508,7 @@ export const exportToExcel = async (data: any) => {
   sigRow++;
   sheet1.mergeCells(sigRow, 5, sigRow, 10);
   sheet1.getCell(sigRow, 5).value =
-    `( ${data.generalInfo.deputyDirector || ""} )`;
+    `( ${generalInfo.deputyDirector || ""} )`;
   sheet1.getCell(sigRow, 5).alignment = centerAlign;
 
   sigRow += 2;
@@ -520,7 +524,7 @@ export const exportToExcel = async (data: any) => {
   sigRow++;
   sheet1.mergeCells(sigRow, 5, sigRow, 10);
   sheet1.getCell(sigRow, 5).value =
-    `( ${data.generalInfo.schoolDirector || ""} )`;
+    `( ${generalInfo.schoolDirector || ""} )`;
   sheet1.getCell(sigRow, 5).alignment = centerAlign;
   sigRow++;
   sheet1.mergeCells(sigRow, 5, sigRow, 10);

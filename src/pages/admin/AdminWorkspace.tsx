@@ -205,7 +205,7 @@ export const AdminWorkspace: React.FC<AdminWorkspaceProps> = ({
   const [workspaceYearLabel, setWorkspaceYearLabel] = useState('');
   const [assignmentFilter, setAssignmentFilter] = useState<AdminTabNavigateOptions | null>(null);
   const readOnly = isAdminReadOnly(currentUser);
-  const isDeveloperAccount = currentUser.role === 'super_admin' || currentUser.username.trim().toLowerCase() === 'admin';
+  const isDeveloperAccount = currentUser.role === 'super_admin';
   const currentUserDisplayName = isDeveloperAccount ? 'ผู้พัฒนาระบบ' : currentUser.name;
   const currentUserRoleLabel = isDeveloperAccount ? 'ผู้พัฒนาระบบ' : ROLE_LABELS[currentUser.role];
   void onOpenTeacherView;

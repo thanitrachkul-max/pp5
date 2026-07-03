@@ -3,7 +3,7 @@ import {
   ArrowLeft,
   BookOpen,
   Calendar,
-  FileSpreadsheet,
+  FileText,
   LayoutDashboard,
   Loader2,
   LogOut,
@@ -11,6 +11,7 @@ import {
   Users,
 } from "lucide-react";
 import { GeneralInfoForm } from "../../components/GeneralInfoForm";
+import { Pap5CoverPreview } from "../../components/Pap5CoverPreview";
 import { StudentsForm } from "../../components/StudentsForm";
 import { ScoresForm } from "../../components/ScoresForm";
 import { AttributesForm } from "../../components/AttributesForm";
@@ -25,12 +26,10 @@ import { appDataToRow } from "../../lib/gradebookAdapter";
 import { applyPap5OfficialDisplayDefaults } from "../../lib/pap5Officials";
 import {
   computeGradebookStats,
-  isGradebookFullyComplete,
-  statsToGradebookStatus,
 } from "../../lib/gradebookStats";
 import { supabase } from "../../lib/supabase";
 import type { GradebookSession } from "../../lib/teacherGradebooks";
-import type { AppData, AppUser, Student } from "../../types";
+import type { AppData, AppUser, GradebookApprovalStatus, Student } from "../../types";
 
 const menuItems = [
   { id: "general", label: "ปก", surface: "document" },
@@ -113,8 +112,10 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
   onSyncStatusChange,
 }) => {
   const [data, setData] = useState<AppData>(session.data);
+  const [approvalStatus, setApprovalStatus] = useState<GradebookApprovalStatus | null>(session.approval_status);
   const [activeTab, setActiveTab] = useState("general");
-  const [exportingExcel, setExportingExcel] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const [printData, setPrintData] = useState<AppData | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestData = useRef(data);
   latestData.current = data;
@@ -128,6 +129,27 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
     activeTab === "general" ||
     activeTab === "instructions1" ||
     activeTab === "instructions2";
+  const approvalToolbarBadge = useMemo(() => {
+    if (approvalStatus === "approved") {
+      return {
+        label: "อนุมัติแล้ว",
+        className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+      };
+    }
+    if (approvalStatus === "revision_requested") {
+      return {
+        label: "รอแก้ไข",
+        className: "border-rose-200 bg-rose-50 text-rose-700",
+      };
+    }
+    if (approvalStatus === "pending") {
+      return {
+        label: "รออนุมัติ",
+        className: "border-blue-200 bg-blue-50 text-blue-700",
+      };
+    }
+    return null;
+  }, [approvalStatus]);
 
   const persist = useCallback(
     async (appData: AppData) => {
@@ -135,8 +157,12 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
       onSyncStatusChange?.("saving");
       try {
         const stats = computeGradebookStats(appData);
-        const fullyComplete = isGradebookFullyComplete(appData);
-        const status = statsToGradebookStatus(stats.completionPercent, stats.hasTeacherInput, fullyComplete);
+        const status =
+          session.gradebook_status === "completed"
+            ? "completed"
+            : stats.completionPercent > 0 || stats.hasTeacherInput
+              ? "in_progress"
+              : "not_started";
         const { error } = await supabase
           .from("gradebooks")
           .update({
@@ -282,17 +308,73 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
     onSettings();
   };
 
-  const handleExportExcel = useCallback(async () => {
-    setExportingExcel(true);
-    try {
-      const { exportToExcel } = await import("../../utils/excelExport");
-      await exportToExcel({
-        ...latestData.current,
-        generalInfo: applyPap5OfficialDisplayDefaults(latestData.current.generalInfo),
-      });
-    } finally {
-      setExportingExcel(false);
+  const handleExportPdf = useCallback(() => {
+    if (approvalStatus !== "approved") {
+      window.alert("ปพ.5 ยังไม่ได้รับการอนุมัติ");
+      return;
     }
+
+    setExportingPdf(true);
+    const preparedData = {
+      ...latestData.current,
+      generalInfo: applyPap5OfficialDisplayDefaults(latestData.current.generalInfo),
+    };
+    setPrintData(preparedData);
+
+    window.setTimeout(() => {
+      try {
+        window.print();
+      } catch {
+        setExportingPdf(false);
+      }
+    }, 120);
+  }, [approvalStatus]);
+
+  useEffect(() => {
+    setApprovalStatus(session.approval_status);
+  }, [session.approval_status]);
+
+  useEffect(() => {
+    const syncApprovalStatus = async () => {
+      const { data: row } = await supabase
+        .from("gradebooks")
+        .select("approval_status")
+        .eq("id", session.id)
+        .maybeSingle();
+
+      setApprovalStatus(
+        ((row?.approval_status as GradebookApprovalStatus | null | undefined) ?? null),
+      );
+    };
+
+    const channel = supabase
+      .channel(`gradebook-editor-approval-${session.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "gradebooks", filter: `id=eq.${session.id}` },
+        (payload) => {
+          const nextStatus = (payload.new as { approval_status?: GradebookApprovalStatus | null }).approval_status;
+          setApprovalStatus(nextStatus ?? null);
+        },
+      )
+      .subscribe();
+
+    const timer = window.setInterval(syncApprovalStatus, 5000);
+
+    return () => {
+      window.clearInterval(timer);
+      void supabase.removeChannel(channel);
+    };
+  }, [session.id]);
+
+  useEffect(() => {
+    const handleAfterPrint = () => {
+      setPrintData(null);
+      setExportingPdf(false);
+    };
+
+    window.addEventListener("afterprint", handleAfterPrint);
+    return () => window.removeEventListener("afterprint", handleAfterPrint);
   }, []);
 
   useEffect(() => {
@@ -360,15 +442,17 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 <span className="hidden sm:inline">กลับ</span>
               </button>
 
-              {session.readOnly ? (
-                <div className="flex h-10 shrink-0 items-center rounded-lg border border-amber-100 bg-amber-50 px-3 text-xs font-semibold text-amber-800 shadow-sm">
-                  ปีการศึกษาเก่า — ดูและดาวน์โหลด Excel ได้ แต่แก้ไขไม่ได้
-                </div>
-              ) : (
-                <div className="flex h-10 shrink-0 items-center gap-1.5 rounded-lg border border-blue-100 bg-blue-50 px-3 text-xs font-semibold text-blue-700 shadow-sm">
-                  <Loader2 className="h-3.5 w-3.5" /> บันทึกอัตโนมัติเมื่อแก้ไข
+              {approvalToolbarBadge && (
+                <div className={`flex h-10 shrink-0 items-center rounded-lg border px-3 text-xs font-bold shadow-sm ${approvalToolbarBadge.className}`}>
+                  {approvalToolbarBadge.label}
                 </div>
               )}
+
+              {session.readOnly ? (
+                <div className="flex h-10 shrink-0 items-center rounded-lg border border-amber-100 bg-amber-50 px-3 text-xs font-semibold text-amber-800 shadow-sm">
+                  ระบบปิดการแก้ไข — ดูและดาวน์โหลดไฟล์ได้ แต่แก้ไขไม่ได้
+                </div>
+              ) : null}
 
               <div className="flex h-10 min-w-[168px] items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3">
                 <div className="min-w-0 flex-1">
@@ -387,17 +471,17 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
 
               <button
                 type="button"
-                onClick={() => void handleExportExcel()}
-                disabled={exportingExcel}
-                className="btn !h-10 !rounded-lg !px-3 border border-emerald-600 bg-gradient-to-b from-emerald-500 to-emerald-600 text-white shadow-sm hover:from-emerald-600 hover:to-emerald-700"
-                title="ดาวน์โหลด Excel"
+                onClick={() => void handleExportPdf()}
+                disabled={exportingPdf}
+                className="btn !h-10 !rounded-lg !px-3 border border-blue-600 bg-gradient-to-b from-blue-500 to-blue-600 text-white shadow-sm hover:from-blue-600 hover:to-blue-700"
+                title="พิมพ์ / บันทึก ปพ.5"
               >
-                {exportingExcel ? (
+                {exportingPdf ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <FileSpreadsheet className="h-4 w-4" />
+                  <FileText className="h-4 w-4" />
                 )}
-                <span className="hidden sm:inline">Excel</span>
+                <span className="hidden sm:inline">พิมพ์ / บันทึก ปพ.5</span>
               </button>
 
               <div className="flex h-10 min-w-0 items-center rounded-lg border border-slate-200 bg-white pl-1 pr-2 shadow-sm">
@@ -451,6 +535,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
               <GeneralInfoForm
                 data={data.generalInfo}
                 appData={data}
+                approvalStatus={approvalStatus}
                 onChange={(generalInfo) =>
                   !session.readOnly && handleUpdate({ ...data, generalInfo })
                 }
@@ -534,6 +619,17 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
           </div>
         </div>
       </main>
+      {printData && (
+        <div className="pap5-print-root" aria-hidden="true">
+          <Pap5CoverPreview
+            data={printData.generalInfo}
+            appData={printData}
+            approvalStatus={approvalStatus}
+            mode="print"
+          />
+        </div>
+      )}
     </div>
   );
 };
+

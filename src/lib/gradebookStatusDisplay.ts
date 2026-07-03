@@ -4,7 +4,8 @@ export function resolveGradebookStatus(
   status: GradebookStatus | null | undefined,
   completionPercent: number,
 ): GradebookStatus {
-  if (status === 'completed' || completionPercent >= 100) return 'completed';
+  if (status === 'completed') return 'completed';
+  if (completionPercent >= 100) return 'completed';
   if (status === 'in_progress' || completionPercent > 0) return 'in_progress';
   return 'not_started';
 }
@@ -14,7 +15,7 @@ export function gradebookStatusLabel(
   completionPercent: number,
 ): string {
   const resolved = resolveGradebookStatus(status, completionPercent);
-  if (resolved === 'completed') return 'เรียบร้อยแล้ว';
+  if (resolved === 'completed') return 'ลงข้อมูลแล้ว';
   if (resolved === 'in_progress') return 'กำลังลงข้อมูล';
   return 'ยังไม่ลงข้อมูล';
 }

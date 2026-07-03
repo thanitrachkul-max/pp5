@@ -10,7 +10,7 @@ import { STUDENT_HOMEROOMS } from "../data/studentHomerooms";
 import { isSchemaCacheErrorFor } from "./dbErrors";
 import { isWithinEntryWindow } from "./thaiDate";
 import { mergePap5OfficialsIntoGeneralInfo } from "./pap5Officials";
-import type { AppData, AppUser, Student } from "../types";
+import type { AppData, AppUser, GradebookApprovalStatus, Student } from "../types";
 
 const DEFAULT_AGENCY_NAME = "สำนักบริหารงานการศึกษาพิเศษ";
 const DEFAULT_SCHOOL_NAME = "โรงเรียนกาฬสินธุ์ปัญญานุกูล จังหวัดกาฬสินธุ์";
@@ -170,11 +170,17 @@ export interface TeacherAssignmentView {
   gradebook_id: string | null;
   gradebook_status: "not_started" | "in_progress" | "completed" | null;
   completion_percent: number;
+  approval_status: GradebookApprovalStatus | null;
+  approval_reason: string | null;
+  approval_reason_seen_at: string | null;
 }
 
 export interface GradebookSession {
   id: string;
   teaching_assignment_id: string;
+  gradebook_status: "not_started" | "in_progress" | "completed";
+  approval_status: GradebookApprovalStatus | null;
+  approval_reason: string | null;
   readOnly: boolean;
   label: string;
   year_be: number;
@@ -194,6 +200,9 @@ type RawGradebook = {
   attributes: AppData["attributes"] | null;
   analytical: AppData["analytical"] | null;
   indicators: AppData["indicators"] | null;
+  approval_status?: GradebookApprovalStatus | null;
+  approval_reason?: string | null;
+  approval_reason_seen_at?: string | null;
 };
 
 type RawAssignment = {
@@ -238,7 +247,7 @@ type RawAssignment = {
   } | null;
 };
 
-const GRADEBOOK_STATUS_SELECT = `
+const GRADEBOOK_STATUS_SELECT_BASE = `
   id,
   teaching_assignment_id,
   status,
@@ -250,6 +259,13 @@ const GRADEBOOK_STATUS_SELECT = `
   attributes,
   analytical,
   indicators
+`;
+
+const GRADEBOOK_STATUS_SELECT_WITH_APPROVAL = `
+  ${GRADEBOOK_STATUS_SELECT_BASE},
+  approval_status,
+  approval_reason,
+  approval_reason_seen_at
 `;
 
 function parseCompletionPercent(stats: RawGradebook["stats"]): number {
@@ -289,8 +305,13 @@ function resolveGradebookStatus(gb: RawGradebook) {
       indicators: gb.indicators ?? undefined,
     });
   const completionPercent = Math.max(savedCompletion, liveCompletion);
-  const computedStatus = statsToGradebookStatus(completionPercent, hasTeacherInput, fullyComplete);
-  const gradebookStatus: TeacherAssignmentView["gradebook_status"] = computedStatus;
+  const draftStatus = statsToGradebookStatus(completionPercent, hasTeacherInput, fullyComplete);
+  const gradebookStatus: TeacherAssignmentView["gradebook_status"] =
+    gb.status === "completed"
+      ? "completed"
+      : draftStatus === "not_started"
+        ? "not_started"
+        : "in_progress";
 
   return { completionPercent, gradebookStatus };
 }
@@ -305,16 +326,25 @@ async function fetchGradebooksByAssignmentIds(
   const chunkSize = 40;
   for (let index = 0; index < assignmentIds.length; index += chunkSize) {
     const chunk = assignmentIds.slice(index, index + chunkSize);
-    const { data, error } = await supabase
+    let result: any = await supabase
       .from("gradebooks")
-      .select(GRADEBOOK_STATUS_SELECT)
+      .select(GRADEBOOK_STATUS_SELECT_WITH_APPROVAL)
       .eq("teacher_id", teacherId)
       .in("teaching_assignment_id", chunk)
       .is("deleted_at", null);
 
-    if (error) throw error;
+    if (result.error && isSchemaCacheErrorFor(result.error, "approval_status")) {
+      result = await supabase
+        .from("gradebooks")
+        .select(GRADEBOOK_STATUS_SELECT_BASE)
+        .eq("teacher_id", teacherId)
+        .in("teaching_assignment_id", chunk)
+        .is("deleted_at", null);
+    }
 
-    for (const row of (data ?? []) as unknown as RawGradebook[]) {
+    if (result.error) throw result.error;
+
+    for (const row of (result.data ?? []) as unknown as RawGradebook[]) {
       map.set(row.teaching_assignment_id, row);
     }
   }
@@ -439,6 +469,9 @@ export async function fetchTeacherAssignments(
       gradebook_id: gb?.id ?? null,
       gradebook_status: gb ? gradebookStatus : null,
       completion_percent: completionPercent,
+      approval_status: gb?.approval_status ?? null,
+      approval_reason: gb?.approval_reason ?? null,
+      approval_reason_seen_at: gb?.approval_reason_seen_at ?? null,
     });
   }
 
@@ -704,6 +737,14 @@ export async function loadGradebookSession(
   return {
     id: data.id,
     teaching_assignment_id: data.teaching_assignment_id,
+    gradebook_status:
+      data.status === "completed"
+        ? "completed"
+        : data.status === "in_progress"
+          ? "in_progress"
+          : "not_started",
+    approval_status: (data.approval_status as GradebookApprovalStatus | null | undefined) ?? null,
+    approval_reason: (data.approval_reason as string | null | undefined) ?? null,
     readOnly:
       !assignment.year_is_active ||
       !assignment.semester_grade_entry_enabled ||
@@ -717,6 +758,79 @@ export async function loadGradebookSession(
       students: mergeRosterWithSavedState(roster, appData.students, hasSavedRoster),
     },
   };
+}
+
+export async function submitGradebookPeriod(gradebookIds: string[], teacherId: string): Promise<void> {
+  const uniqueIds = Array.from(new Set(gradebookIds.filter(Boolean)));
+  if (uniqueIds.length === 0) {
+    throw new Error("ยังไม่มีสมุด ปพ.5 ที่พร้อมส่ง");
+  }
+
+  const payload = {
+    status: "completed",
+    approval_status: "pending",
+    approval_reason: null,
+    approval_reason_seen_at: null,
+    approval_reviewed_by: null,
+    approval_reviewed_at: null,
+    approval_resubmitted_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+
+  let result = await supabase
+    .from("gradebooks")
+    .update(payload)
+    .eq("teacher_id", teacherId)
+    .in("id", uniqueIds);
+
+  if (result.error && isSchemaCacheErrorFor(result.error, "approval_status")) {
+    result = await supabase
+      .from("gradebooks")
+      .update({
+        status: "completed",
+        updated_at: payload.updated_at,
+      })
+      .eq("teacher_id", teacherId)
+      .in("id", uniqueIds);
+  }
+
+  if (result.error) throw result.error;
+}
+
+export async function acknowledgeGradebookRevision(
+  gradebookId: string,
+  teacherId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("gradebooks")
+    .update({ approval_reason_seen_at: new Date().toISOString() })
+    .eq("id", gradebookId)
+    .eq("teacher_id", teacherId)
+    .eq("approval_status", "revision_requested");
+
+  if (error) throw error;
+}
+
+export async function resubmitGradebookRevision(
+  gradebookId: string,
+  teacherId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("gradebooks")
+    .update({
+      status: "completed",
+      approval_status: "pending",
+      approval_reason: null,
+      approval_reason_seen_at: null,
+      approval_reviewed_by: null,
+      approval_reviewed_at: null,
+      approval_resubmitted_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", gradebookId)
+    .eq("teacher_id", teacherId);
+
+  if (error) throw error;
 }
 
 export async function findPreviousYearGradebook(

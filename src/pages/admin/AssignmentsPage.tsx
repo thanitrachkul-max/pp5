@@ -19,11 +19,9 @@ import { SearchableTeacherSelect } from '../../components/SearchableTeacherSelec
 import { FilterBar, FilterClearButton, FilterSearch, FilterSelect } from '../../components/FilterBar';
 import { isSchemaCacheErrorFor } from '../../lib/dbErrors';
 import {
-  gradebookStatusClassName,
   gradebookStatusLabel,
   resolveGradebookStatus,
 } from '../../lib/gradebookStatusDisplay';
-import { progressTone } from '../../lib/progressTone';
 import { supabase } from '../../lib/supabase';
 import {
   parseAssignmentExcel,
@@ -42,6 +40,7 @@ import type {
   Profile,
   Semester,
   Subject,
+  GradebookApprovalStatus,
 } from '../../types';
 
 interface AssignmentsPageProps {
@@ -60,23 +59,37 @@ interface AddForm {
   hours_per_week: string;
   hours_per_semester: string;
   status: AssignmentStatus;
+  approval_status: GradebookApprovalStatus | '';
+  approval_reason: string;
 }
 
 type GradebookStatus = 'not_started' | 'in_progress' | 'completed';
 
 const ENTRY_WINDOW_MIGRATION_HINT =
   'ฐานข้อมูลยังไม่มีคอลัมน์กำหนดช่วงเวลา กรุณารัน migration `supabase/migrations/0018_assignment_entry_window.sql` ใน Supabase SQL Editor แล้วลองใหม่';
+const APPROVAL_MIGRATION_HINT =
+  'ฐานข้อมูลยังไม่มีคอลัมน์การอนุมัติ ปพ.5 กรุณารัน migration `supabase/migrations/0030_gradebook_approval_workflow.sql` ใน Supabase SQL Editor';
+const APPROVAL_POLICY_MIGRATION_HINT =
+  'ฐานข้อมูลยังไม่อนุญาตให้แอดมินบันทึกผลอนุมัติ ปพ.5 กรุณารัน migration `supabase/migrations/0033_gradebook_approval_admin_realtime.sql` ใน Supabase SQL Editor';
+const GRADEBOOK_RELATION_BASE = 'gradebooks(id, status, stats)';
+const GRADEBOOK_RELATION_WITH_APPROVAL = 'gradebooks(id, status, stats, approval_status, approval_reason, approval_reason_seen_at)';
 
 interface AssignmentGradebook {
   id: string;
   status: GradebookStatus;
   stats: Record<string, unknown> | null;
+  approval_status?: GradebookApprovalStatus | null;
+  approval_reason?: string | null;
+  approval_reason_seen_at?: string | null;
 }
 
 interface AssignmentWithProgress extends AssignmentRow {
   gradebooks?: AssignmentGradebook[] | AssignmentGradebook | null;
   gradebook_status: GradebookStatus | null;
   completion_percent: number;
+  approval_status: GradebookApprovalStatus | null;
+  approval_reason: string | null;
+  approval_reason_seen_at: string | null;
 }
 
 interface TeacherAssignmentSummary {
@@ -88,6 +101,22 @@ interface TeacherAssignmentSummary {
   classLevelNames: string[];
   completedCount: number;
   progress: number;
+  entryStatus: GradebookStatus;
+}
+
+interface ApprovalDialogState {
+  mode: 'approve' | 'reject';
+  gradebookIds: string[];
+  title: string;
+  description: string;
+}
+
+interface BulkApprovalEditState {
+  gradebookIds: string[];
+  title: string;
+  description: string;
+  status: GradebookApprovalStatus;
+  reason: string;
 }
 
 const emptyAddForm = (): AddForm => ({
@@ -97,6 +126,8 @@ const emptyAddForm = (): AddForm => ({
   hours_per_week: '',
   hours_per_semester: '',
   status: 'active',
+  approval_status: '',
+  approval_reason: '',
 });
 
 function isSubjectSchemaMismatch(err: unknown): boolean {
@@ -131,6 +162,123 @@ function averageProgress(assignments: AssignmentWithProgress[]): number {
   return Math.round(total / assignments.length);
 }
 
+function hasSubmittedGradebook(assignment: AssignmentWithProgress): boolean {
+  return assignment.gradebook_status === 'completed';
+}
+
+function hasAssignmentInput(assignment: AssignmentWithProgress): boolean {
+  return (
+    assignment.gradebook_status === 'completed' ||
+    assignment.gradebook_status === 'in_progress' ||
+    assignment.completion_percent > 0
+  );
+}
+
+function teacherEntryStatus(assignments: AssignmentWithProgress[]): GradebookStatus {
+  if (assignments.length === 0) return 'not_started';
+  if (assignments.every(hasSubmittedGradebook)) return 'completed';
+  if (assignments.some(hasAssignmentInput)) return 'in_progress';
+  return 'not_started';
+}
+
+function teacherEntryStatusLabel(status: GradebookStatus): string {
+  if (status === 'completed') return 'ส่งแล้ว';
+  if (status === 'in_progress') return 'ส่งบางส่วน';
+  return 'ยังไม่ได้ส่ง';
+}
+
+function teacherEntryStatusClassName(status: GradebookStatus): string {
+  if (status === 'completed') return 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200';
+  if (status === 'in_progress') return 'bg-orange-50 text-orange-700 ring-1 ring-orange-200';
+  return 'bg-slate-100 text-slate-500 ring-1 ring-slate-200';
+}
+
+function gradebookStatusTextClassName(status: GradebookStatus): string {
+  if (status === 'completed') return 'text-emerald-700';
+  if (status === 'in_progress') return 'text-orange-700';
+  return 'text-slate-500';
+}
+
+function submittedGradebooks(assignments: AssignmentWithProgress[]): AssignmentGradebook[] {
+  return assignments
+    .map((assignment) => normalizeGradebook(assignment.gradebooks))
+    .filter((gradebook): gradebook is AssignmentGradebook => Boolean(gradebook) && gradebook.status === 'completed');
+}
+
+function pendingApprovalGradebookIds(assignments: AssignmentWithProgress[]): string[] {
+  return Array.from(
+    new Set(
+      submittedGradebooks(assignments)
+        .filter((gradebook) => gradebook.approval_status === 'pending' || !gradebook.approval_status)
+        .map((gradebook) => gradebook.id),
+    ),
+  );
+}
+
+function submittedGradebookIdsForAssignments(assignments: AssignmentWithProgress[]): string[] {
+  return Array.from(new Set(submittedGradebooks(assignments).map((gradebook) => gradebook.id)));
+}
+
+function approvalSummary(assignments: AssignmentWithProgress[]) {
+  const submitted = submittedGradebooks(assignments);
+  const approved = submitted.filter((gradebook) => gradebook.approval_status === 'approved').length;
+  const revision = submitted.filter((gradebook) => gradebook.approval_status === 'revision_requested').length;
+  const pending = submitted.filter((gradebook) => gradebook.approval_status === 'pending' || !gradebook.approval_status).length;
+
+  if (submitted.length === 0) {
+    return {
+      label: 'รอส่ง',
+      className: 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
+      submitted: 0,
+      approved,
+      revision,
+      pending,
+    };
+  }
+
+  if (revision > 0) {
+    return {
+      label: 'รอแก้ไข',
+      className: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200',
+      submitted: submitted.length,
+      approved,
+      revision,
+      pending,
+    };
+  }
+
+  if (submitted.length < assignments.length) {
+    return {
+      label: 'รอส่ง',
+      className: 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
+      submitted: submitted.length,
+      approved,
+      revision,
+      pending,
+    };
+  }
+
+  if (approved === submitted.length) {
+    return {
+      label: 'อนุมัติแล้ว',
+      className: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+      submitted: submitted.length,
+      approved,
+      revision,
+      pending,
+    };
+  }
+
+  return {
+    label: 'รออนุมัติ',
+    className: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
+    submitted: submitted.length,
+    approved,
+    revision,
+    pending,
+  };
+}
+
 function getErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof Error) return err.message;
   if (err && typeof err === 'object' && 'message' in err) {
@@ -144,42 +292,6 @@ function isMissingEntryWindowColumn(err: unknown): boolean {
   return (
     isSchemaCacheErrorFor(err, 'entry_start_date') ||
     isSchemaCacheErrorFor(err, 'entry_end_date')
-  );
-}
-
-function AssignmentProgressBar({
-  progress,
-  showSubLabel,
-  completedCount,
-  totalCount,
-}: {
-  progress: number;
-  showSubLabel?: boolean;
-  completedCount?: number;
-  totalCount?: number;
-}) {
-  const meta = progressTone(progress);
-  const percentLabel = meta.isCompleted ? '100%' : meta.label;
-
-  return (
-    <div className="w-full">
-      <div className="grid w-full grid-cols-[minmax(0,1fr)_2.75rem] items-center gap-2">
-        <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
-          <div
-            className={`h-full rounded-full transition-all ${meta.barClassName}`}
-            style={{ width: `${meta.displayWidth}%` }}
-          />
-        </div>
-        <span className={`text-right text-xs font-extrabold tabular-nums ${meta.textClassName}`}>
-          {percentLabel}
-        </span>
-      </div>
-      {showSubLabel && (
-        <p className="mt-1 text-center text-[11px] font-semibold text-slate-500">
-          เสร็จแล้ว {completedCount ?? 0} / {totalCount ?? 0}
-        </p>
-      )}
-    </div>
   );
 }
 
@@ -213,7 +325,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
   const [message, setMessage] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [addForm, setAddForm] = useState<AddForm>(emptyAddForm());
-  const [editingAssignment, setEditingAssignment] = useState<AssignmentRow | null>(null);
+  const [editingAssignment, setEditingAssignment] = useState<AssignmentWithProgress | null>(null);
   const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState(false);
   const [reviewRows, setReviewRows] = useState<AssignmentReviewRow[] | null>(null);
@@ -233,6 +345,10 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
   const [selectedTeacherSummaryIds, setSelectedTeacherSummaryIds] = useState<Set<string>>(new Set());
   const [entryWindowSupported, setEntryWindowSupported] = useState(true);
   const [modalLevelFilter, setModalLevelFilter] = useState('');
+  const [approvalDialog, setApprovalDialog] = useState<ApprovalDialogState | null>(null);
+  const [approvalReason, setApprovalReason] = useState('');
+  const [bulkApprovalEdit, setBulkApprovalEdit] = useState<BulkApprovalEditState | null>(null);
+  const [approvalSaving, setApprovalSaving] = useState(false);
 
   const probeEntryWindowSupport = useCallback(async () => {
     const { error: probeError } = await supabase
@@ -304,12 +420,12 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     setClassrooms(classroomData ?? []);
   }, [currentUser.schoolId, selectedYearId]);
 
-  const loadAssignments = useCallback(async () => {
+  const loadAssignments = useCallback(async (showLoading = true) => {
     if (!selectedSemesterId || !currentUser.schoolId) return;
-    setLoading(true);
+    if (showLoading) setLoading(true);
     setError('');
     try {
-      const queryAssignments = (subjectColumns: string) =>
+      const queryAssignments = (subjectColumns: string, gradebookRelation: string) =>
         supabase
           .from('teaching_assignments')
           .select(`
@@ -317,18 +433,26 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
             profiles:teacher_id(id, full_name, title, username),
             subjects:subject_id(${subjectColumns}),
             classrooms:classroom_id(id, name, class_level_code),
-            gradebooks(id, status, stats)
+            ${gradebookRelation}
           `)
           .eq('school_id', currentUser.schoolId)
           .eq('semester_id', selectedSemesterId)
           .order('created_at', { ascending: false });
 
-      let { data, error: queryError } = await queryAssignments(
+      const runAssignmentQuery = async (subjectColumns: string) => {
+        let result = await queryAssignments(subjectColumns, GRADEBOOK_RELATION_WITH_APPROVAL);
+        if (result.error && isSchemaCacheErrorFor(result.error, 'approval_status')) {
+          result = await queryAssignments(subjectColumns, GRADEBOOK_RELATION_BASE);
+        }
+        return result;
+      };
+
+      let { data, error: queryError } = await runAssignmentQuery(
         'id, subject_code, subject_name, learning_area, default_class_level, hours_per_week, hours_total, semester_number',
       );
 
       if (queryError && isSubjectSchemaMismatch(queryError)) {
-        const fallback = await queryAssignments('id, subject_code, subject_name, learning_area, default_class_level');
+        const fallback = await runAssignmentQuery('id, subject_code, subject_name, learning_area, default_class_level');
         data = fallback.data;
         queryError = fallback.error;
       }
@@ -352,13 +476,16 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
           gradebooks: r.gradebooks,
           gradebook_status: gradebook?.status ?? null,
           completion_percent: completionFromStats(gradebook?.stats),
+          approval_status: gradebook?.approval_status ?? null,
+          approval_reason: gradebook?.approval_reason ?? null,
+          approval_reason_seen_at: gradebook?.approval_reason_seen_at ?? null,
         };
       });
       setAssignments(mapped);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'โหลดรายการมอบหมายไม่สำเร็จ');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   }, [selectedSemesterId, currentUser.schoolId]);
 
@@ -366,6 +493,29 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
   useEffect(() => { void loadSemesters(); }, [loadSemesters]);
   useEffect(() => { void loadLookups(); }, [loadLookups]);
   useEffect(() => { void loadAssignments(); }, [loadAssignments]);
+  useEffect(() => {
+    if (!selectedSemesterId) return undefined;
+
+    const syncAssignments = () => {
+      void loadAssignments(false);
+    };
+
+    const channel = supabase
+      .channel(`assignments-gradebooks-${selectedSemesterId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'gradebooks', filter: `semester_id=eq.${selectedSemesterId}` },
+        syncAssignments,
+      )
+      .subscribe();
+
+    const timer = window.setInterval(syncAssignments, 5000);
+
+    return () => {
+      window.clearInterval(timer);
+      void supabase.removeChannel(channel);
+    };
+  }, [loadAssignments, selectedSemesterId]);
 
   useEffect(() => {
     if (!showTeachTableUpload && !reviewRows) return undefined;
@@ -409,6 +559,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
         classLevelNames: [],
         completedCount: 0,
         progress: 0,
+        entryStatus: 'not_started',
       };
       existing.assignments.push(assignment);
       existing.teacher = existing.teacher ?? assignment.teacher;
@@ -422,9 +573,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     const subjectIds = unique(summary.assignments.map((assignment) => assignment.subject_id));
     const classroomNames = unique(summary.assignments.map((assignment) => assignment.classroom?.name));
     const classLevelNames = unique(summary.assignments.map((assignment) => assignment.classroom?.class_level_code));
-    const completedCount = summary.assignments.filter(
-      (assignment) => assignment.gradebook_status === 'completed' || assignment.completion_percent >= 100,
-    ).length;
+    const completedCount = summary.assignments.filter(hasSubmittedGradebook).length;
     return {
       ...summary,
       subjectCount: subjectIds.length,
@@ -432,6 +581,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
       classLevelNames,
       completedCount,
       progress: averageProgress(summary.assignments),
+      entryStatus: teacherEntryStatus(summary.assignments),
     };
   }).sort((a, b) => (a.teacher?.full_name ?? '').localeCompare(b.teacher?.full_name ?? '', 'th'));
   const selectedTeacherSummaryCount = selectedTeacherSummaryIds.size;
@@ -441,6 +591,11 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
   const selectedTeacherSummaryAssignmentIds = teacherSummaries
     .filter((summary) => selectedTeacherSummaryIds.has(summary.teacherId))
     .flatMap((summary) => summary.assignments.map((assignment) => assignment.id));
+  const selectedTeacherSummaryGradebookIds = submittedGradebookIdsForAssignments(
+    teacherSummaries
+      .filter((summary) => selectedTeacherSummaryIds.has(summary.teacherId))
+      .flatMap((summary) => summary.assignments),
+  );
   const allTeacherSummaryAssignmentIds = teacherSummaries
     .flatMap((summary) => summary.assignments.map((assignment) => assignment.id));
 
@@ -449,9 +604,18 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     : null;
   const selectedTeacher = selectedSummary?.teacher ?? teachers.find((teacher) => teacher.id === selectedTeacherId);
   const selectedAssignments = selectedSummary?.assignments ?? [];
+  const allPendingApprovalGradebookIds = pendingApprovalGradebookIds(assignments);
+  const selectedTeacherPendingApprovalGradebookIds = selectedTeacherId
+    ? pendingApprovalGradebookIds(assignments.filter((assignment) => assignment.teacher_id === selectedTeacherId))
+    : [];
+  const editingAssignmentGradebook = editingAssignment ? normalizeGradebook(editingAssignment.gradebooks) : null;
+  const canEditGradebookApprovalStatus = editingAssignmentGradebook?.status === 'completed';
   const selectedAssignmentIdsInView = selectedAssignments
     .filter((assignment) => selectedAssignmentIds.has(assignment.id))
     .map((assignment) => assignment.id);
+  const selectedAssignmentGradebookIds = submittedGradebookIdsForAssignments(
+    selectedAssignments.filter((assignment) => selectedAssignmentIds.has(assignment.id)),
+  );
   const selectedAssignmentCount = selectedAssignmentIdsInView.length;
   const allSelectedAssignmentsChecked =
     selectedAssignments.length > 0 &&
@@ -557,8 +721,9 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     setShowAddModal(true);
   };
 
-  const openEditModal = (assignment: AssignmentRow) => {
+  const openEditModal = (assignment: AssignmentWithProgress) => {
     setEditingAssignment(assignment);
+    const gradebook = normalizeGradebook(assignment.gradebooks);
     const classroomLevel = assignment.classroom?.class_level_code ?? classrooms.find((item) => item.id === assignment.classroom_id)?.class_level_code ?? '';
     setModalLevelFilter(classroomLevel);
     setAddForm({
@@ -568,6 +733,8 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
       hours_per_week: assignment.hours_per_week == null ? '' : String(assignment.hours_per_week),
       hours_per_semester: assignment.hours_per_semester == null ? '' : String(assignment.hours_per_semester),
       status: assignment.status,
+      approval_status: gradebook?.status === 'completed' ? gradebook.approval_status ?? 'pending' : '',
+      approval_reason: gradebook?.approval_reason ?? '',
     });
     setShowAddModal(true);
   };
@@ -615,6 +782,14 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
   const handleSaveAssignment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser.schoolId || !selectedSemesterId) return;
+
+    const editingGradebook = editingAssignment ? normalizeGradebook(editingAssignment.gradebooks) : null;
+    const nextApprovalStatus = addForm.approval_status;
+    const nextApprovalReason = addForm.approval_reason.trim();
+    if (editingGradebook && nextApprovalStatus === 'revision_requested' && !nextApprovalReason) {
+      setError('กรุณาระบุเหตุผลที่ให้แก้ไข ปพ.5');
+      return;
+    }
 
     setSaving(true);
     setError('');
@@ -664,6 +839,44 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
         }
         throw saveError;
       }
+
+      if (editingGradebook && nextApprovalStatus) {
+        const now = new Date().toISOString();
+        const approvalPayload =
+          nextApprovalStatus === 'revision_requested'
+            ? {
+                approval_status: nextApprovalStatus,
+                approval_reason: nextApprovalReason,
+                approval_reason_seen_at: null,
+                approval_reviewed_by: currentUser.id,
+                approval_reviewed_at: now,
+                updated_at: now,
+              }
+            : {
+                approval_status: nextApprovalStatus,
+                approval_reason: null,
+                approval_reason_seen_at: null,
+                approval_reviewed_by: nextApprovalStatus === 'approved' ? currentUser.id : null,
+                approval_reviewed_at: nextApprovalStatus === 'approved' ? now : null,
+                updated_at: now,
+              };
+
+        const { error: gradebookStatusError } = await supabase
+          .from('gradebooks')
+          .update(approvalPayload)
+          .eq('id', editingGradebook.id);
+
+        if (gradebookStatusError) {
+          if (isSchemaCacheErrorFor(gradebookStatusError, 'approval_status')) {
+            throw new Error(APPROVAL_MIGRATION_HINT);
+          }
+          if (gradebookStatusError.code === '42501') {
+            throw new Error(APPROVAL_POLICY_MIGRATION_HINT);
+          }
+          throw gradebookStatusError;
+        }
+      }
+
       closeAssignmentModal();
       setMessage(editingAssignment ? 'บันทึกการแก้ไขแล้ว' : 'เพิ่มรายการมอบหมายแล้ว');
       await loadAssignments();
@@ -758,6 +971,232 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
       allTeacherSummaryAssignmentIds,
       `ลบรายการมอบหมายทั้งหมดในตารางนี้ ${allTeacherSummaryAssignmentIds.length} รายการ?`,
     );
+  };
+
+  const openApprovalDialog = (
+    mode: ApprovalDialogState['mode'],
+    gradebookIds: string[],
+    title: string,
+    description: string,
+  ) => {
+    const uniqueIds = Array.from(new Set(gradebookIds));
+    if (uniqueIds.length === 0) {
+      setError('ยังไม่มี ปพ.5 ที่ครูส่งแล้วสำหรับอนุมัติ');
+      return;
+    }
+    setError('');
+    setApprovalReason('');
+    setApprovalDialog({ mode, gradebookIds: uniqueIds, title, description });
+  };
+
+  const openBulkApprovalEditDialog = (gradebookIds: string[], title: string, description: string) => {
+    const uniqueIds = Array.from(new Set(gradebookIds));
+    if (uniqueIds.length === 0) {
+      setError('ไม่มี ปพ.5 ที่ส่งแล้วในรายการที่เลือก');
+      return;
+    }
+    setError('');
+    setBulkApprovalEdit({
+      gradebookIds: uniqueIds,
+      title,
+      description,
+      status: 'pending',
+      reason: '',
+    });
+  };
+
+  const applyGradebookApprovalStatusToAssignments = (
+    gradebookIds: string[],
+    nextApprovalStatus: GradebookApprovalStatus,
+    nextApprovalReason: string | null,
+  ) => {
+    const updatedGradebookIds = new Set(gradebookIds);
+    setAssignments((current) =>
+      current.map((assignment) => {
+        const gradebook = normalizeGradebook(assignment.gradebooks);
+        if (!gradebook || !updatedGradebookIds.has(gradebook.id)) return assignment;
+
+        const updateGradebook = (item: AssignmentGradebook): AssignmentGradebook =>
+          updatedGradebookIds.has(item.id)
+            ? {
+                ...item,
+                approval_status: nextApprovalStatus,
+                approval_reason: nextApprovalReason,
+                approval_reason_seen_at: null,
+              }
+            : item;
+
+        return {
+          ...assignment,
+          gradebooks: Array.isArray(assignment.gradebooks)
+            ? assignment.gradebooks.map(updateGradebook)
+            : updateGradebook(gradebook),
+          approval_status: nextApprovalStatus,
+          approval_reason: nextApprovalReason,
+          approval_reason_seen_at: null,
+        };
+      }),
+    );
+  };
+
+  const handleBulkApprovalEditSave = async () => {
+    if (!bulkApprovalEdit) return;
+    const reason = bulkApprovalEdit.reason.trim();
+    if (bulkApprovalEdit.status === 'revision_requested' && !reason) {
+      setError('กรุณาระบุเหตุผลที่ให้แก้ไข ปพ.5');
+      return;
+    }
+
+    setApprovalSaving(true);
+    setError('');
+    setMessage('');
+    try {
+      const now = new Date().toISOString();
+      const nextApprovalReason = bulkApprovalEdit.status === 'revision_requested' ? reason : null;
+      const payload =
+        bulkApprovalEdit.status === 'revision_requested'
+          ? {
+              approval_status: bulkApprovalEdit.status,
+              approval_reason: nextApprovalReason,
+              approval_reason_seen_at: null,
+              approval_reviewed_by: currentUser.id,
+              approval_reviewed_at: now,
+              updated_at: now,
+            }
+          : {
+              approval_status: bulkApprovalEdit.status,
+              approval_reason: null,
+              approval_reason_seen_at: null,
+              approval_reviewed_by: bulkApprovalEdit.status === 'approved' ? currentUser.id : null,
+              approval_reviewed_at: bulkApprovalEdit.status === 'approved' ? now : null,
+              updated_at: now,
+            };
+
+      const { error: updateError } = await supabase
+        .from('gradebooks')
+        .update(payload)
+        .in('id', bulkApprovalEdit.gradebookIds);
+
+      if (updateError) {
+        if (isSchemaCacheErrorFor(updateError, 'approval_status')) {
+          throw new Error(APPROVAL_MIGRATION_HINT);
+        }
+        if (updateError.code === '42501') {
+          throw new Error(APPROVAL_POLICY_MIGRATION_HINT);
+        }
+        throw updateError;
+      }
+
+      applyGradebookApprovalStatusToAssignments(
+        bulkApprovalEdit.gradebookIds,
+        bulkApprovalEdit.status,
+        nextApprovalReason,
+      );
+      setMessage(`แก้ไขสถานะ ปพ.5 แล้ว ${bulkApprovalEdit.gradebookIds.length} รายการ`);
+      setBulkApprovalEdit(null);
+      window.setTimeout(() => {
+        void loadAssignments(false);
+      }, 500);
+    } catch (err) {
+      setError(getErrorMessage(err, 'แก้ไขสถานะ ปพ.5 ไม่สำเร็จ'));
+    } finally {
+      setApprovalSaving(false);
+    }
+  };
+
+  const handleApprovalSave = async () => {
+    if (!approvalDialog) return;
+    const reason = approvalReason.trim();
+    if (approvalDialog.mode === 'reject' && !reason) {
+      setError('กรุณาระบุเหตุผลที่ไม่อนุมัติ');
+      return;
+    }
+
+    setApprovalSaving(true);
+    setError('');
+    setMessage('');
+    try {
+      const now = new Date().toISOString();
+      const nextApprovalStatus: GradebookApprovalStatus =
+        approvalDialog.mode === 'approve' ? 'approved' : 'revision_requested';
+      const nextApprovalReason = approvalDialog.mode === 'approve' ? null : reason;
+      const payload =
+        approvalDialog.mode === 'approve'
+          ? {
+              approval_status: nextApprovalStatus,
+              approval_reason: null,
+              approval_reason_seen_at: null,
+              approval_reviewed_by: currentUser.id,
+              approval_reviewed_at: now,
+              updated_at: now,
+            }
+          : {
+              approval_status: nextApprovalStatus,
+              approval_reason: nextApprovalReason,
+              approval_reason_seen_at: null,
+              approval_reviewed_by: currentUser.id,
+              approval_reviewed_at: now,
+              updated_at: now,
+            };
+
+      const { error: approvalError } = await supabase
+        .from('gradebooks')
+        .update(payload)
+        .in('id', approvalDialog.gradebookIds);
+
+      if (approvalError) {
+        if (isSchemaCacheErrorFor(approvalError, 'approval_status')) {
+          throw new Error(APPROVAL_MIGRATION_HINT);
+        }
+        if (approvalError.code === '42501') {
+          throw new Error(APPROVAL_POLICY_MIGRATION_HINT);
+        }
+        throw approvalError;
+      }
+
+      const updatedGradebookIds = new Set(approvalDialog.gradebookIds);
+      setAssignments((current) =>
+        current.map((assignment) => {
+          const gradebook = normalizeGradebook(assignment.gradebooks);
+          if (!gradebook || !updatedGradebookIds.has(gradebook.id)) return assignment;
+
+          const updateGradebook = (item: AssignmentGradebook): AssignmentGradebook =>
+            updatedGradebookIds.has(item.id)
+              ? {
+                  ...item,
+                  approval_status: nextApprovalStatus,
+                  approval_reason: nextApprovalReason,
+                  approval_reason_seen_at: null,
+                }
+              : item;
+
+          return {
+            ...assignment,
+            gradebooks: Array.isArray(assignment.gradebooks)
+              ? assignment.gradebooks.map(updateGradebook)
+              : updateGradebook(gradebook),
+            approval_status: nextApprovalStatus,
+            approval_reason: nextApprovalReason,
+            approval_reason_seen_at: null,
+          };
+        }),
+      );
+      setApprovalDialog(null);
+      setApprovalReason('');
+      setSelectedTeacherSummaryIds(new Set());
+      setMessage(
+        approvalDialog.mode === 'approve'
+          ? `อนุมัติ ปพ.5 แล้ว ${approvalDialog.gradebookIds.length} รายการ`
+          : `ส่งกลับให้แก้ไขแล้ว ${approvalDialog.gradebookIds.length} รายการ`,
+      );
+      window.setTimeout(() => {
+        void loadAssignments(false);
+      }, 500);
+    } catch (err) {
+      setError(getErrorMessage(err, 'บันทึกการอนุมัติไม่สำเร็จ'));
+    } finally {
+      setApprovalSaving(false);
+    }
   };
 
   const toggleAssignmentStatus = async (assignment: AssignmentRow) => {
@@ -1054,6 +1493,104 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     return `${items.slice(0, 4).join(', ')} +${items.length - 4}`;
   };
 
+  const renderAssignmentApprovalStatus = (assignment: AssignmentWithProgress) => {
+    const gradebook = normalizeGradebook(assignment.gradebooks);
+    const statusClass = (className: string) =>
+      `inline-flex items-center justify-center text-xs font-extrabold ${className}`;
+
+    if (!gradebook) {
+      return (
+        <span className={statusClass('text-slate-500')}>
+          ยังไม่ได้ส่ง
+        </span>
+      );
+    }
+
+    if (assignment.gradebook_status !== 'completed') {
+      if (assignment.completion_percent >= 100) {
+        return (
+          <span className={statusClass('text-amber-700')}>
+            รอครูส่ง ปพ.5
+          </span>
+        );
+      }
+
+      const displayStatus = resolveGradebookStatus(
+        assignment.gradebook_status,
+        assignment.completion_percent,
+      );
+      return (
+        <span className={statusClass(gradebookStatusTextClassName(displayStatus))}>
+          {gradebookStatusLabel(displayStatus, assignment.completion_percent)}
+        </span>
+      );
+    }
+
+    if (assignment.approval_status === 'approved') {
+      return (
+        <span className={statusClass('text-emerald-700')}>
+          อนุมัติแล้ว
+        </span>
+      );
+    }
+
+    if (assignment.approval_status === 'revision_requested') {
+      return (
+        <span className={statusClass('text-rose-700')}>
+          รอแก้ไข
+        </span>
+      );
+    }
+
+    return (
+      <span className={statusClass('text-blue-700')}>
+        รออนุมัติ
+      </span>
+    );
+  };
+
+  const renderAssignmentApprovalActions = (assignment: AssignmentWithProgress) => {
+    const gradebook = normalizeGradebook(assignment.gradebooks);
+    if (!gradebook || assignment.gradebook_status !== 'completed' || assignment.approval_status === 'approved' || assignment.approval_status === 'revision_requested') {
+      return <span className="text-xs font-semibold text-slate-300">-</span>;
+    }
+
+    return (
+      <div className="flex flex-wrap justify-center gap-1.5">
+        <button
+          type="button"
+          onClick={() =>
+            openApprovalDialog(
+              'approve',
+              [gradebook.id],
+              'อนุมัติ ปพ.5',
+              `ต้องการอนุมัติ ปพ.5 รายวิชา ${assignment.subject?.subject_name ?? 'นี้'} ใช่หรือไม่?`,
+            )
+          }
+          disabled={approvalSaving}
+          className="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          อนุมัติ
+        </button>
+        <button
+          type="button"
+          onClick={() =>
+            openApprovalDialog(
+              'reject',
+              [gradebook.id],
+              'ไม่อนุมัติ ปพ.5',
+              `ไม่อนุมัติ ปพ.5 รายวิชา ${assignment.subject?.subject_name ?? 'นี้'} ใช่หรือไม่?`,
+            )
+          }
+          disabled={approvalSaving}
+          className="rounded-lg bg-rose-50 px-2.5 py-1.5 text-xs font-bold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          ไม่อนุมัติ
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       {drilldownLabel && onDrilldownBack ? (
@@ -1101,6 +1638,22 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
           >
             <Plus className="w-4 h-4 mr-2" /> เพิ่มรายการ
           </button>
+          <button
+            type="button"
+            onClick={() =>
+              openApprovalDialog(
+                'approve',
+                allPendingApprovalGradebookIds,
+                'อนุมัติทั้งหมด',
+                `ต้องการอนุมัติ ปพ.5 ที่รออนุมัติทั้งหมด ${allPendingApprovalGradebookIds.length} รายการใช่หรือไม่?`,
+              )
+            }
+            disabled={approvalSaving || allPendingApprovalGradebookIds.length === 0}
+            className="btn border border-emerald-600 bg-gradient-to-b from-emerald-500 to-emerald-600 text-white shadow-sm hover:from-emerald-600 hover:to-emerald-700"
+          >
+            {approvalSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+            อนุมัติทั้งหมด
+          </button>
         </div>
       </div>
       )}
@@ -1128,6 +1681,22 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
             >
               <Plus className="mr-2 h-4 w-4" />
               เพิ่มรายการให้ครูคนนี้
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                openApprovalDialog(
+                  'approve',
+                  selectedTeacherPendingApprovalGradebookIds,
+                  'อนุมัติ ปพ.5 ทุกวิชา',
+                  `ต้องการอนุมัติ ปพ.5 ที่รออนุมัติของครูคนนี้ ${selectedTeacherPendingApprovalGradebookIds.length} รายการใช่หรือไม่?`,
+                )
+              }
+              disabled={approvalSaving || selectedTeacherPendingApprovalGradebookIds.length === 0}
+              className="btn border border-emerald-600 bg-gradient-to-b from-emerald-500 to-emerald-600 text-white shadow-sm hover:from-emerald-600 hover:to-emerald-700"
+            >
+              {approvalSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+              อนุมัติ ปพ.5 ทุกวิชา
             </button>
           </div>
         </div>
@@ -1222,6 +1791,21 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
+                  onClick={() =>
+                    openBulkApprovalEditDialog(
+                      selectedAssignmentGradebookIds,
+                      'แก้ไขสถานะ ปพ.5',
+                      `แก้ไขสถานะ ปพ.5 ของรายการที่เลือก ${selectedAssignmentGradebookIds.length} รายการ`,
+                    )
+                  }
+                  disabled={approvalSaving || selectedAssignmentGradebookIds.length === 0}
+                  className="inline-flex items-center rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Edit3 className="mr-1 h-3.5 w-3.5" />
+                  แก้ไขสถานะ ปพ.5
+                </button>
+                <button
+                  type="button"
                   onClick={() => void deleteSelectedAssignments()}
                   disabled={saving || selectedAssignmentCount === 0}
                   className="inline-flex items-center rounded-lg bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
@@ -1242,7 +1826,20 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
             </div>
             ) : null}
             <div className="overflow-x-auto">
-            <table className="w-full min-w-[1120px] text-sm">
+            <table className="w-full min-w-[1120px] table-fixed text-sm">
+              <colgroup>
+                <col style={{ width: '4%' }} />
+                <col style={{ width: '4.5%' }} />
+                <col style={{ width: '6.3%' }} />
+                <col style={{ width: '6.3%' }} />
+                <col style={{ width: '18.9%' }} />
+                <col style={{ width: '13.5%' }} />
+                <col style={{ width: '8.1%' }} />
+                <col style={{ width: '7.2%' }} />
+                <col style={{ width: '10%' }} />
+                <col style={{ width: '12.2%' }} />
+                <col style={{ width: '9%' }} />
+              </colgroup>
               <thead className="border-b border-slate-200 bg-slate-50 text-slate-500">
                 <tr>
                   <th className="px-4 py-3 text-center font-semibold">
@@ -1262,15 +1859,12 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                   <th className="px-4 py-3 text-center font-semibold">ระดับชั้น/ห้อง</th>
                   <th className="px-4 py-3 text-center font-semibold">ชม.เรียน/สัปดาห์/ภาค</th>
                   <th className="px-4 py-3 text-center font-semibold">สถานะ</th>
+                  <th className="px-4 py-3 text-center font-semibold">การดำเนินการ</th>
                   <th className="px-4 py-3 text-center font-semibold">จัดการ</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {selectedAssignments.map((assignment, index) => {
-                  const displayStatus = resolveGradebookStatus(
-                    assignment.gradebook_status,
-                    assignment.completion_percent,
-                  );
                   return (
                   <tr key={assignment.id} className="transition-colors hover:bg-slate-50/70">
                     <td className="px-4 py-4 text-center">
@@ -1290,29 +1884,30 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                     <td className="px-4 py-4 text-center font-semibold text-slate-700">{subjectLevelLabel(assignment)}</td>
                     <td className="px-4 py-4 text-center font-mono font-semibold text-slate-700">{hoursLabel(assignment)}</td>
                     <td className="px-4 py-4 text-center">
-                      <span
-                        className={`inline-flex min-w-[108px] items-center justify-center rounded-lg px-2.5 py-1.5 text-xs font-bold ${gradebookStatusClassName(displayStatus)}`}
-                      >
-                        {gradebookStatusLabel(displayStatus, assignment.completion_percent)}
-                      </span>
+                      {renderAssignmentApprovalStatus(assignment)}
+                    </td>
+                    <td className="px-2 py-4 text-center">
+                      {renderAssignmentApprovalActions(assignment)}
                     </td>
                     <td className="px-4 py-4 text-center">
                       <div className="flex justify-center gap-2">
                         <button
                           type="button"
                           onClick={() => openEditModal(assignment)}
-                          className="inline-flex items-center rounded-lg bg-blue-50 px-2.5 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100"
+                          aria-label="แก้ไข"
+                          title="แก้ไข"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100"
                         >
-                          <Edit3 className="mr-1 h-3.5 w-3.5" />
-                          แก้ไข
+                          <Edit3 className="h-3.5 w-3.5" />
                         </button>
                         <button
                           type="button"
                           onClick={() => void handleDelete(assignment.id)}
-                          className="inline-flex items-center rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-bold text-red-600 hover:bg-red-100"
+                          aria-label="ลบ"
+                          title="ลบ"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-100"
                         >
-                          <Trash2 className="mr-1 h-3.5 w-3.5" />
-                          ลบ
+                          <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     </td>
@@ -1331,6 +1926,21 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                 เลือกแล้ว {selectedTeacherSummaryCount} / {teacherSummaries.length} รายการ
               </p>
               <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    openBulkApprovalEditDialog(
+                      selectedTeacherSummaryGradebookIds,
+                      'แก้ไขสถานะ ปพ.5',
+                      `แก้ไขสถานะ ปพ.5 ของครูที่เลือก ${selectedTeacherSummaryGradebookIds.length} รายการ`,
+                    )
+                  }
+                  disabled={approvalSaving || selectedTeacherSummaryGradebookIds.length === 0}
+                  className="inline-flex items-center rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Edit3 className="mr-1 h-3.5 w-3.5" />
+                  แก้ไขสถานะ ปพ.5
+                </button>
                 <button
                   type="button"
                   onClick={() => void deleteSelectedTeacherSummaries()}
@@ -1353,7 +1963,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
             </div>
             ) : null}
             <div className="overflow-x-auto">
-            <table className="w-full min-w-[980px] text-sm">
+            <table className="w-full min-w-[1160px] text-sm">
               <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
                   <th className="px-5 py-3 text-center font-semibold text-slate-600">
@@ -1370,11 +1980,14 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                   <th className="text-center px-5 py-3 font-semibold text-slate-600">จำนวนวิชา</th>
                   <th className="text-center px-5 py-3 font-semibold text-slate-600">ชั้นเรียนที่สอน</th>
                   <th className="text-center px-5 py-3 font-semibold text-slate-600">สถานะ</th>
+                  <th className="text-center px-5 py-3 font-semibold text-slate-600">การอนุมัติ</th>
                   <th className="text-center px-5 py-3 font-semibold text-slate-600">จัดการ</th>
                 </tr>
               </thead>
               <tbody>
-                {teacherSummaries.map((summary, index) => (
+                {teacherSummaries.map((summary, index) => {
+                  const approval = approvalSummary(summary.assignments);
+                  return (
                   <tr
                     key={summary.teacherId}
                     className="cursor-pointer border-b border-slate-50 transition-colors hover:bg-slate-50/70"
@@ -1400,15 +2013,24 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                       </span>
                     </td>
                     <td className="px-5 py-4 text-center text-slate-700">{compactList(summary.classLevelNames)}</td>
-                    <td className="px-5 py-4">
-                      <div className="mx-auto w-[280px] max-w-full">
-                        <AssignmentProgressBar
-                          progress={summary.progress}
-                          showSubLabel
-                          completedCount={summary.completedCount}
-                          totalCount={summary.assignments.length}
-                        />
+                    <td className="px-5 py-4 text-center">
+                      <div className="flex flex-col items-center gap-1.5">
+                        <span
+                          className={`inline-flex min-w-[132px] items-center justify-center rounded-lg px-3 py-1.5 text-xs font-extrabold ${teacherEntryStatusClassName(summary.entryStatus)}`}
+                        >
+                          {teacherEntryStatusLabel(summary.entryStatus)}
+                        </span>
+                        <span className="text-[11px] font-semibold text-slate-400">
+                          ส่งแล้ว {summary.completedCount} / {summary.assignments.length} · {summary.progress}%
+                        </span>
                       </div>
+                    </td>
+                    <td className="px-5 py-4 text-center">
+                      <span
+                        className={`inline-flex min-w-[112px] items-center justify-center rounded-lg px-3 py-1.5 text-xs font-extrabold ${approval.className}`}
+                      >
+                        {approval.label}
+                      </span>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex justify-end gap-2">
@@ -1440,13 +2062,154 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                       </div>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
           </div>
         )}
       </div>
+
+      <footer className="pb-2 pt-4 text-center">
+        <p className="text-sm font-semibold text-slate-500">KSP GradeBook V 1.0</p>
+        <p className="mt-0.5 text-xs text-slate-400">โรงเรียนกาฬสินธุ์ปัญญานุกูล จังหวัดกาฬสินธุ์</p>
+      </footer>
+
+      {approvalDialog && createPortal((
+        <div className="fixed inset-0 z-[280] grid place-items-center bg-slate-900/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-extrabold text-slate-900">{approvalDialog.title}</h3>
+                <p className="mt-1 text-sm text-slate-500">{approvalDialog.description}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setApprovalDialog(null)}
+                className="text-slate-400 hover:text-slate-600"
+                disabled={approvalSaving}
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {approvalDialog.mode === 'reject' && (
+              <div className="mb-5">
+                <label className="mb-1.5 block text-sm font-bold text-slate-700">เหตุผลที่ไม่อนุมัติ</label>
+                <textarea
+                  value={approvalReason}
+                  onChange={(event) => setApprovalReason(event.target.value)}
+                  rows={5}
+                  className="w-full resize-none rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-[3px] focus:ring-blue-100"
+                  placeholder="ระบุข้อแก้ไขที่ต้องการแจ้งครู..."
+                />
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setApprovalDialog(null)}
+                className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50"
+                disabled={approvalSaving}
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleApprovalSave()}
+                disabled={approvalSaving}
+                className={`inline-flex items-center rounded-xl px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60 ${
+                  approvalDialog.mode === 'approve'
+                    ? 'bg-emerald-600 hover:bg-emerald-700'
+                    : 'bg-rose-600 hover:bg-rose-700'
+                }`}
+              >
+                {approvalSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {approvalDialog.mode === 'approve' ? 'อนุมัติ' : 'บันทึกไม่อนุมัติ'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ), document.body)}
+
+      {bulkApprovalEdit && createPortal((
+        <div className="fixed inset-0 z-[280] grid place-items-center bg-slate-900/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-extrabold text-slate-900">{bulkApprovalEdit.title}</h3>
+                <p className="mt-1 text-sm text-slate-500">{bulkApprovalEdit.description}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setBulkApprovalEdit(null)}
+                className="text-slate-400 hover:text-slate-600"
+                disabled={approvalSaving}
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1.5 block text-sm font-bold text-slate-700">สถานะ ปพ.5</label>
+                <select
+                  value={bulkApprovalEdit.status}
+                  onChange={(event) =>
+                    setBulkApprovalEdit((current) =>
+                      current ? { ...current, status: event.target.value as GradebookApprovalStatus } : current,
+                    )
+                  }
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5"
+                >
+                  <option value="pending">รออนุมัติ</option>
+                  <option value="approved">อนุมัติแล้ว</option>
+                  <option value="revision_requested">รอแก้ไข</option>
+                </select>
+              </div>
+
+              {bulkApprovalEdit.status === 'revision_requested' && (
+                <div>
+                  <label className="mb-1.5 block text-sm font-bold text-slate-700">เหตุผลที่ให้แก้ไข</label>
+                  <textarea
+                    value={bulkApprovalEdit.reason}
+                    onChange={(event) =>
+                      setBulkApprovalEdit((current) =>
+                        current ? { ...current, reason: event.target.value } : current,
+                      )
+                    }
+                    rows={5}
+                    className="w-full resize-none rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-[3px] focus:ring-blue-100"
+                    placeholder="ระบุเหตุผลเพื่อให้ครูเห็นในหน้าส่งแก้ไข..."
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setBulkApprovalEdit(null)}
+                className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50"
+                disabled={approvalSaving}
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleBulkApprovalEditSave()}
+                disabled={approvalSaving}
+                className="inline-flex items-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-60"
+              >
+                {approvalSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                บันทึก
+              </button>
+            </div>
+          </div>
+        </div>
+      ), document.body)}
 
       {showAddModal && createPortal((
         <div className="fixed inset-0 z-[260] grid place-items-center bg-slate-900/50 p-4 backdrop-blur-sm">
@@ -1548,6 +2311,37 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                   <option value="pending">ปิดไว้ก่อน</option>
                 </select>
               </div>
+              {editingAssignment && canEditGradebookApprovalStatus && (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <label className="block text-sm font-medium text-slate-700 mb-1">สถานะ ปพ.5</label>
+                  <select
+                    value={addForm.approval_status}
+                    onChange={(e) =>
+                      setAddForm((f) => ({
+                        ...f,
+                        approval_status: e.target.value as GradebookApprovalStatus,
+                      }))
+                    }
+                    className="w-full px-3 py-2.5 border border-slate-300 rounded-xl bg-white"
+                  >
+                    <option value="pending">รออนุมัติ</option>
+                    <option value="approved">อนุมัติแล้ว</option>
+                    <option value="revision_requested">รอแก้ไข</option>
+                  </select>
+                  {addForm.approval_status === 'revision_requested' && (
+                    <div className="mt-3">
+                      <label className="block text-sm font-medium text-slate-700 mb-1">เหตุผลที่ให้แก้ไข</label>
+                      <textarea
+                        value={addForm.approval_reason}
+                        onChange={(e) => setAddForm((f) => ({ ...f, approval_reason: e.target.value }))}
+                        rows={3}
+                        className="w-full resize-none rounded-xl border border-slate-300 px-3 py-2.5"
+                        placeholder="ระบุเหตุผลเพื่อให้ครูเห็นในหน้าส่งแก้ไข"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"

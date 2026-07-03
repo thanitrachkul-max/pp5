@@ -43,17 +43,17 @@ const emptyForm = (): TeacherFormState => ({
 const roleGroups: RoleGroup[] = [
   {
     key: 'developers',
-    title: 'ผู้พัฒนาระบบ',
+    title: 'ผู้พัฒนาและผู้ดูแลระบบ',
     description: 'บัญชีผู้พัฒนาระบบสำหรับดูแลระบบหลัก',
     icon: ShieldCheck,
     roles: ['super_admin'],
   },
   {
     key: 'admins',
-    title: 'ผู้ดูแลระบบ (admin)',
+    title: 'ผู้ดูแลระบบ (Admin)',
     description: 'จัดการข้อมูลระบบและข้อมูลวิชาการ',
     icon: ShieldCheck,
-    roles: ['super_admin', 'admin'],
+    roles: ['admin'],
   },
   {
     key: 'executives',
@@ -80,21 +80,14 @@ const executiveNameOrder = [
 ];
 
 function displayName(teacher: TeacherRow): string {
-  if (isMainAdminAccount(teacher) || teacher.role === 'super_admin') return 'ผู้พัฒนาระบบ';
   return [teacher.title, teacher.full_name].filter(Boolean).join(' ');
 }
 
-function isMainAdminAccount(teacher: TeacherRow): boolean {
-  return (teacher.username ?? '').trim().toLowerCase() === 'admin';
-}
-
 function displayGroupKey(teacher: TeacherRow): string {
+  if (teacher.role === 'super_admin') return 'developers';
+  if (teacher.role === 'admin') return 'admins';
   if (teacher.role === 'teacher') return 'teachers';
   if (teacher.role === 'executive') return 'executives';
-  if (isMainAdminAccount(teacher) || teacher.role === 'super_admin') return 'developers';
-  if (teacher.role === 'admin' || teacher.role === 'super_admin') {
-    return isMainAdminAccount(teacher) ? 'admins' : 'executives';
-  }
   return 'teachers';
 }
 
@@ -107,7 +100,6 @@ function roleBadgeClass(role: UserRole): string {
 
 function displayedRoleLabel(teacher: TeacherRow, groupKey: string): string {
   if (groupKey === 'executives') return 'บริหาร';
-  if (groupKey === 'developers' || isMainAdminAccount(teacher) || teacher.role === 'super_admin') return 'ผู้พัฒนาระบบ';
   return ROLE_LABELS[teacher.role];
 }
 
@@ -146,7 +138,7 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
   const roleOptions = useMemo(() => {
     const options: Array<{ value: UserRole; label: string }> = [
       { value: 'teacher', label: 'ผู้ใช้งาน (ครู)' },
-      { value: 'admin', label: 'ผู้ดูแลระบบ (admin)' },
+      { value: 'admin', label: 'ผู้ดูแลระบบ (Admin)' },
       { value: 'executive', label: 'ผู้บริหาร' },
     ];
 
@@ -417,11 +409,14 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
           <tbody className="divide-y divide-slate-100">
             {rows.map((teacher) => {
               const canEditRow = canWrite && (teacher.role !== 'super_admin' || canEditSuperAdmin);
+              const canViewCredentials = canEditSuperAdmin || teacher.role !== 'super_admin';
 
               return (
                 <tr key={teacher.id} className="transition-colors hover:bg-slate-50/70">
                   <td className="px-5 py-4 font-semibold text-slate-950">{displayName(teacher)}</td>
-                  <td className="px-5 py-4 text-center font-mono text-slate-700">{teacher.username ?? '—'}</td>
+                  <td className="px-5 py-4 text-center font-mono text-slate-700">
+                    {canViewCredentials ? teacher.username ?? '—' : 'ซ่อน'}
+                  </td>
                   <td className="px-5 py-4 text-center">
                     <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-bold ${displayedRoleBadgeClass(teacher, groupKey)}`}>
                       {displayedRoleLabel(teacher, groupKey)}

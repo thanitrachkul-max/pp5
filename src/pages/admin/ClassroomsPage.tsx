@@ -2,12 +2,12 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { SearchableTeacherSelect } from '../../components/SearchableTeacherSelect';
 import { FilterBar, FilterClearButton, FilterSelect } from '../../components/FilterBar';
 import { createPortal } from 'react-dom';
-import { AlertCircle, FileSpreadsheet, Loader2, RefreshCw, School, Users, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Edit3, FileSpreadsheet, Loader2, Plus, RefreshCw, School, Trash2, Users, X } from 'lucide-react';
 import { STUDENT_HOMEROOMS } from '../../data/studentHomerooms';
 import { getErrorMessage, isSchemaCacheErrorFor } from '../../lib/dbErrors';
 import { filterHomeroomEligibleTeachers, collectHomeroomDuplicateFixes, buildUniqueHomeroomDisplayValues, type HomeroomField } from '../../lib/homeroomTeachers';
 import { supabase } from '../../lib/supabase';
-import type { AcademicYear, AppUser, Classroom, Profile } from '../../types';
+import type { AcademicYear, AppUser, ClassLevel, Classroom, Profile } from '../../types';
 
 interface ClassroomsPageProps {
   currentUser: AppUser;
@@ -24,6 +24,24 @@ interface HomeroomUpdate {
   classroomId: string;
   field: HomeroomField;
   teacherId: string | null;
+}
+
+interface ClassroomFormState {
+  classLevelCode: string;
+  roomNumber: string;
+}
+
+interface PendingClassroomCreate {
+  classLevelCode: string;
+  roomNumber: number;
+  name: string;
+}
+
+interface PendingClassroomDelete {
+  id: string;
+  classLevelCode: string;
+  roomNumber: number;
+  name: string;
 }
 
 type HomeroomDialogState =
@@ -49,6 +67,8 @@ const HOMEROOM_FIELDS: HomeroomField[] = [
   'homeroom_teacher_3_id',
 ];
 
+const DEFAULT_CLASS_LEVEL_OPTIONS = ['ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6'];
+
 const HOMEROOM_FIELD_LABEL: Record<HomeroomField, string> = {
   homeroom_teacher_id: 'ครูประจำชั้น 1',
   homeroom_teacher_2_id: 'ครูประจำชั้น 2',
@@ -60,6 +80,17 @@ const HOMEROOM_3_MIGRATION_HINT =
 
 function teacherLabel(teacher: Profile): string {
   return [teacher.title, teacher.full_name].filter(Boolean).join(' ');
+}
+
+function createEmptyClassroomForm(classLevelCode = ''): ClassroomFormState {
+  return {
+    classLevelCode,
+    roomNumber: '',
+  };
+}
+
+function buildClassroomName(classLevelCode: string, roomNumber: number): string {
+  return `${classLevelCode}/${roomNumber}`;
 }
 
 function normalizeTeacherName(value: string): string {
@@ -108,6 +139,7 @@ function homeroomMigrationMessage(error: unknown, field: HomeroomField): string 
 export const ClassroomsPage: React.FC<ClassroomsPageProps> = ({ currentUser, initialYearId }) => {
   const [years, setYears] = useState<AcademicYear[]>([]);
   const [selectedYearId, setSelectedYearId] = useState(initialYearId ?? '');
+  const [classLevels, setClassLevels] = useState<ClassLevel[]>([]);
   const [teachers, setTeachers] = useState<Profile[]>([]);
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
   const [loading, setLoading] = useState(true);
@@ -118,11 +150,15 @@ export const ClassroomsPage: React.FC<ClassroomsPageProps> = ({ currentUser, ini
   const [classroomFilter, setClassroomFilter] = useState('');
   const [homeroomTeacherFilter, setHomeroomTeacherFilter] = useState('');
   const [dialog, setDialog] = useState<HomeroomDialogState | null>(null);
+  const [showClassroomManager, setShowClassroomManager] = useState(false);
+  const [classroomForm, setClassroomForm] = useState<ClassroomFormState>(() => createEmptyClassroomForm());
+  const [pendingClassroomCreate, setPendingClassroomCreate] = useState<PendingClassroomCreate | null>(null);
+  const [pendingClassroomDelete, setPendingClassroomDelete] = useState<PendingClassroomDelete | null>(null);
   const [homeroomTeacher3Supported, setHomeroomTeacher3Supported] = useState(true);
 
   const loadMeta = useCallback(async () => {
     if (!currentUser.schoolId) return;
-    const [{ data: yearData }, { data: teacherData }] = await Promise.all([
+    const [{ data: yearData }, { data: teacherData }, { data: classLevelData }] = await Promise.all([
       supabase
         .from('academic_years')
         .select('*')
@@ -134,10 +170,15 @@ export const ClassroomsPage: React.FC<ClassroomsPageProps> = ({ currentUser, ini
         .eq('school_id', currentUser.schoolId)
         .eq('is_active', true)
         .order('full_name'),
+      supabase
+        .from('class_levels')
+        .select('*')
+        .order('sequence'),
     ]);
 
     setYears(yearData ?? []);
     setTeachers(teacherData ?? []);
+    setClassLevels(classLevelData ?? []);
 
     const preferred = initialYearId ? yearData?.find((y) => y.id === initialYearId) : undefined;
     const active = preferred ?? yearData?.find((y) => y.is_active) ?? yearData?.[0];
@@ -221,6 +262,14 @@ export const ClassroomsPage: React.FC<ClassroomsPageProps> = ({ currentUser, ini
   }, [loadClassrooms]);
 
   const selectedYear = years.find((y) => y.id === selectedYearId);
+
+  const classLevelOptions = useMemo(() => {
+    const options = classLevels.length > 0
+      ? classLevels.map((level) => level.code)
+      : DEFAULT_CLASS_LEVEL_OPTIONS;
+    const usedCodes = classrooms.map((classroom) => classroom.class_level_code);
+    return Array.from(new Set([...options, ...usedCodes]));
+  }, [classLevels, classrooms]);
 
   const homeroomTeachers = useMemo(
     () => filterHomeroomEligibleTeachers(teachers),
@@ -521,6 +570,122 @@ export const ClassroomsPage: React.FC<ClassroomsPageProps> = ({ currentUser, ini
     setHomeroomTeacherFilter('');
   };
 
+  const openClassroomManager = () => {
+    setError('');
+    setMessage('');
+    setClassroomForm(createEmptyClassroomForm(classroomForm.classLevelCode || classLevelOptions[0] || ''));
+    setShowClassroomManager(true);
+  };
+
+  const handleCreateClassroom = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!currentUser.schoolId || !selectedYearId) {
+      setError('ไม่พบข้อมูลโรงเรียนหรือปีการศึกษาที่ใช้งาน');
+      return;
+    }
+
+    const classLevelCode = classroomForm.classLevelCode.trim();
+    const roomNumber = Number(classroomForm.roomNumber);
+    if (!classLevelCode || !Number.isInteger(roomNumber) || roomNumber <= 0) {
+      setError('กรุณาเลือกชั้นเรียนและระบุเลขห้องให้ถูกต้อง');
+      return;
+    }
+
+    const name = buildClassroomName(classLevelCode, roomNumber);
+    const alreadyExists = classrooms.some(
+      (classroom) => classroom.class_level_code === classLevelCode && classroom.room_number === roomNumber,
+    );
+    if (alreadyExists) {
+      setError(`มีห้อง ${name} ในปีการศึกษานี้แล้ว`);
+      return;
+    }
+
+    setPendingClassroomCreate({
+      classLevelCode,
+      roomNumber,
+      name,
+    });
+  };
+
+  const confirmCreateClassroom = async () => {
+    if (!pendingClassroomCreate || !currentUser.schoolId || !selectedYearId) {
+      setPendingClassroomCreate(null);
+      setError('ไม่พบข้อมูลโรงเรียนหรือปีการศึกษาที่ใช้งาน');
+      return;
+    }
+
+    const { classLevelCode, roomNumber, name } = pendingClassroomCreate;
+    setSaving(true);
+    setError('');
+    setMessage('');
+    try {
+      const { error: insertError } = await supabase
+        .from('classrooms')
+        .insert({
+          school_id: currentUser.schoolId,
+          academic_year_id: selectedYearId,
+          class_level_code: classLevelCode,
+          room_number: roomNumber,
+          name,
+        });
+
+      if (insertError) {
+        if (insertError.code === '23505') {
+          throw new Error(`มีห้อง ${name} ในปีการศึกษานี้แล้ว`);
+        }
+        throw insertError;
+      }
+
+      setClassroomForm(createEmptyClassroomForm(classLevelCode));
+      await loadClassrooms();
+      setPendingClassroomCreate(null);
+      setShowClassroomManager(false);
+      setMessage(`เพิ่มห้อง ${name} แล้ว`);
+    } catch (err) {
+      setPendingClassroomCreate(null);
+      setError(getErrorMessage(err, 'เพิ่มห้องเรียนไม่สำเร็จ'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteClassroom = (classroom: Classroom) => {
+    setError('');
+    setMessage('');
+    setPendingClassroomDelete({
+      id: classroom.id,
+      classLevelCode: classroom.class_level_code,
+      roomNumber: classroom.room_number,
+      name: classroom.name,
+    });
+  };
+
+  const confirmDeleteClassroom = async () => {
+    if (!pendingClassroomDelete) return;
+
+    const classroom = pendingClassroomDelete;
+    setSaving(true);
+    setError('');
+    setMessage('');
+    try {
+      const { error: deleteError } = await supabase
+        .from('classrooms')
+        .delete()
+        .eq('id', classroom.id);
+
+      if (deleteError) throw deleteError;
+
+      await loadClassrooms();
+      setPendingClassroomDelete(null);
+      setMessage(`ลบห้อง ${classroom.name} แล้ว`);
+    } catch (err) {
+      setPendingClassroomDelete(null);
+      setError(getErrorMessage(err, 'ลบห้องเรียนไม่สำเร็จ'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const assignedTeacherIds = useMemo(() => {
     const ids = new Set<string>();
     classrooms.forEach((classroom) => {
@@ -567,6 +732,14 @@ export const ClassroomsPage: React.FC<ClassroomsPageProps> = ({ currentUser, ini
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={openClassroomManager}
+            className="btn btn-secondary"
+          >
+            <Edit3 className="mr-2 h-4 w-4" />
+            แก้ไขข้อมูลห้องเรียน
+          </button>
           <button
             type="button"
             onClick={() => void loadClassrooms()}
@@ -694,6 +867,235 @@ export const ClassroomsPage: React.FC<ClassroomsPageProps> = ({ currentUser, ini
           </>
         )}
       </section>
+
+      {showClassroomManager && createPortal(
+        <div className="fixed inset-0 z-[200] overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-sm">
+          <div className="mx-auto my-8 w-full max-w-3xl rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">แก้ไขข้อมูลห้องเรียน</h3>
+                <p className="mt-1 text-sm text-slate-500">
+                  เพิ่มหรือลบห้องเรียนของปีการศึกษา {selectedYear?.year_be ?? '-'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowClassroomManager(false)}
+                className="text-slate-400 hover:text-slate-600"
+                aria-label="ปิด"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {error && (
+              <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <p>{error}</p>
+              </div>
+            )}
+
+            <form
+              onSubmit={(event) => void handleCreateClassroom(event)}
+              className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[minmax(0,1fr)_140px_auto] md:items-end"
+            >
+              <label className="block">
+                <span className="mb-1 block text-xs font-semibold text-slate-500">ชั้นเรียน</span>
+                <select
+                  value={classroomForm.classLevelCode}
+                  onChange={(event) =>
+                    setClassroomForm((prev) => ({ ...prev, classLevelCode: event.target.value }))
+                  }
+                  className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  disabled={saving}
+                >
+                  {classLevelOptions.map((classLevelCode) => (
+                    <option key={classLevelCode} value={classLevelCode}>
+                      {classLevelCode}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-xs font-semibold text-slate-500">เลขห้อง</span>
+                <input
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={classroomForm.roomNumber}
+                  onChange={(event) =>
+                    setClassroomForm((prev) => ({ ...prev, roomNumber: event.target.value }))
+                  }
+                  className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  disabled={saving}
+                  placeholder="1"
+                />
+              </label>
+              <button
+                type="submit"
+                className="btn btn-primary h-11 justify-center"
+                disabled={saving || classLevelOptions.length === 0}
+              >
+                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
+                เพิ่มห้องเรียน
+              </button>
+            </form>
+
+            <div className="mt-5 overflow-hidden rounded-xl border border-slate-200">
+              <div className="max-h-[50vh] overflow-y-auto">
+                <table className="w-full min-w-[560px] text-sm">
+                  <thead className="sticky top-0 border-b border-slate-200 bg-slate-50 text-slate-600">
+                    <tr>
+                      <th className="px-4 py-3 text-left font-semibold">ห้องเรียน</th>
+                      <th className="px-4 py-3 text-center font-semibold">ชั้นเรียน</th>
+                      <th className="px-4 py-3 text-center font-semibold">เลขห้อง</th>
+                      <th className="px-4 py-3 text-center font-semibold">จัดการ</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {classrooms.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="px-4 py-8 text-center text-slate-400">
+                          ยังไม่มีข้อมูลห้องเรียน
+                        </td>
+                      </tr>
+                    ) : (
+                      classrooms.map((classroom) => (
+                        <tr key={classroom.id} className="hover:bg-slate-50/70">
+                          <td className="px-4 py-3 font-bold text-slate-900">{classroom.name}</td>
+                          <td className="px-4 py-3 text-center text-slate-600">{classroom.class_level_code}</td>
+                          <td className="px-4 py-3 text-center text-slate-600">{classroom.room_number}</td>
+                          <td className="px-4 py-3 text-center">
+                            <button
+                              type="button"
+                              onClick={() => void handleDeleteClassroom(classroom)}
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                              disabled={saving}
+                              aria-label={`ลบห้อง ${classroom.name}`}
+                              title={`ลบห้อง ${classroom.name}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )}
+
+      {pendingClassroomCreate && createPortal(
+        <div className="fixed inset-0 z-[240] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-white/70 bg-white p-6 text-center shadow-2xl">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+              <CheckCircle2 className="h-7 w-7" />
+            </div>
+            <h3 className="mt-4 text-xl font-extrabold text-slate-900">ยืนยันเพิ่มห้องเรียน</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              ต้องการเพิ่มห้องเรียนนี้เข้าสู่ปีการศึกษา {selectedYear?.year_be ?? '-'} ใช่ไหม
+            </p>
+
+            <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm font-semibold text-slate-500">ห้องเรียน</span>
+                <span className="text-lg font-extrabold text-slate-900">{pendingClassroomCreate.name}</span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-xl bg-white p-3">
+                  <p className="text-xs font-semibold text-slate-400">ชั้นเรียน</p>
+                  <p className="mt-1 font-bold text-slate-800">{pendingClassroomCreate.classLevelCode}</p>
+                </div>
+                <div className="rounded-xl bg-white p-3">
+                  <p className="text-xs font-semibold text-slate-400">เลขห้อง</p>
+                  <p className="mt-1 font-bold text-slate-800">{pendingClassroomCreate.roomNumber}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setPendingClassroomCreate(null)}
+                className="btn btn-secondary justify-center"
+                disabled={saving}
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={() => void confirmCreateClassroom()}
+                className="btn btn-primary justify-center"
+                disabled={saving}
+              >
+                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
+                ยืนยันเพิ่ม
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )}
+
+      {pendingClassroomDelete && createPortal(
+        <div className="fixed inset-0 z-[240] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-white/70 bg-white p-6 text-center shadow-2xl">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-600">
+              <Trash2 className="h-7 w-7" />
+            </div>
+            <h3 className="mt-4 text-xl font-extrabold text-slate-900">ยืนยันลบห้องเรียน</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              ต้องการลบห้องเรียนนี้ออกจากปีการศึกษา {selectedYear?.year_be ?? '-'} ใช่ไหม
+            </p>
+
+            <div className="mt-5 rounded-2xl border border-red-100 bg-red-50/70 p-4 text-left">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm font-semibold text-red-500">ห้องเรียนที่จะลบ</span>
+                <span className="text-lg font-extrabold text-red-700">{pendingClassroomDelete.name}</span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-xl bg-white p-3">
+                  <p className="text-xs font-semibold text-slate-400">ชั้นเรียน</p>
+                  <p className="mt-1 font-bold text-slate-800">{pendingClassroomDelete.classLevelCode}</p>
+                </div>
+                <div className="rounded-xl bg-white p-3">
+                  <p className="text-xs font-semibold text-slate-400">เลขห้อง</p>
+                  <p className="mt-1 font-bold text-slate-800">{pendingClassroomDelete.roomNumber}</p>
+                </div>
+              </div>
+              <div className="mt-3 flex items-start gap-2 rounded-xl bg-white px-3 py-2 text-xs leading-5 text-red-600">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>ข้อมูลนักเรียนหรือรายการมอบหมายที่ผูกกับห้องนี้อาจถูกลบตามไปด้วย</span>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setPendingClassroomDelete(null)}
+                className="btn btn-secondary justify-center"
+                disabled={saving}
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={() => void confirmDeleteClassroom()}
+                className="inline-flex h-11 items-center justify-center rounded-lg bg-red-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={saving}
+              >
+                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                ยืนยันลบ
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )}
 
       {dialog && createPortal(
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
