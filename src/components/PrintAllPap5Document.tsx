@@ -9,24 +9,11 @@ import { Pap5CoverPreview } from "./Pap5CoverPreview";
 import { ScoresForm } from "./ScoresForm";
 import { StudentsForm } from "./StudentsForm";
 import type { AppData, GradebookApprovalStatus } from "../types";
+import { getAttendancePrintMonthRanges } from "../utils/pap5PrintLayout";
 
 interface PrintAllPap5DocumentProps {
   data: AppData;
   approvalStatus?: GradebookApprovalStatus | null;
-}
-
-export function getAttendanceMonthRanges(generalInfo: AppData["generalInfo"]) {
-  if (generalInfo.semester === "2") {
-    return [
-      { label: "ต.ค. - ธ.ค.", months: [10, 11, 12] },
-      { label: "ม.ค. - มี.ค.", months: [1, 2, 3] },
-    ];
-  }
-
-  return [
-    { label: "พ.ค. - ก.ค.", months: [5, 6, 7] },
-    { label: "ส.ค. - ก.ย.", months: [8, 9] },
-  ];
 }
 
 const noop = () => {};
@@ -151,7 +138,7 @@ export function PrintAllPap5Document({
   data,
   approvalStatus = null,
 }: PrintAllPap5DocumentProps) {
-  const attendanceRanges = getAttendanceMonthRanges(data.generalInfo);
+  const attendanceRanges = getAttendancePrintMonthRanges(data.generalInfo);
 
   return (
     <div className="print-document pap5-original-print-document">
@@ -183,14 +170,13 @@ export function Pap5SingleOriginalPrintPage({
   approvalStatus?: GradebookApprovalStatus | null;
   pageId: string;
 }) {
-  const attendanceRanges = getAttendanceMonthRanges(data.generalInfo);
+  const attendanceRanges = getAttendancePrintMonthRanges(data.generalInfo);
+  const attendancePage = attendanceRanges.find((range) => range.id === pageId);
   const page =
     pageId === "cover" ? (
       <CoverOriginalPrintPage data={data} approvalStatus={approvalStatus} />
-    ) : pageId === "attendance-1" ? (
-      <AttendanceOriginalPrintPage data={data} months={attendanceRanges[0].months} />
-    ) : pageId === "attendance-2" ? (
-      <AttendanceOriginalPrintPage data={data} months={attendanceRanges[1].months} />
+    ) : attendancePage ? (
+      <AttendanceOriginalPrintPage data={data} months={attendancePage.months} />
     ) : pageId === "scores" ? (
       <ScoreOriginalPrintPage data={data} />
     ) : pageId === "attributes-1-4" ? (

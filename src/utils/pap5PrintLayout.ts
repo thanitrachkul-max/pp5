@@ -22,6 +22,12 @@ export interface AttendancePrintChunk {
   dates: AttendancePrintDate[];
 }
 
+export interface AttendancePrintMonthRange {
+  id: string;
+  label: string;
+  months: number[];
+}
+
 const THAI_MONTHS_SHORT = [
   "ม.ค.",
   "ก.พ.",
@@ -49,6 +55,18 @@ const SEMESTER_TWO_CHUNK_MONTHS = [
   [[10, 11, 12], [1, 2, 3]],
   [[10, 11], [12, 1], [2, 3]],
   [[10], [11, 12], [1, 2], [3]],
+];
+
+const SEMESTER_ONE_PRINT_MONTH_RANGES: AttendancePrintMonthRange[] = [
+  { id: "attendance-1", label: "เวลาเรียน พฤษภาคม - มิถุนายน", months: [5, 6] },
+  { id: "attendance-2", label: "เวลาเรียน กรกฎาคม - สิงหาคม", months: [7, 8] },
+  { id: "attendance-3", label: "เวลาเรียน กันยายน", months: [9] },
+];
+
+const SEMESTER_TWO_PRINT_MONTH_RANGES: AttendancePrintMonthRange[] = [
+  { id: "attendance-1", label: "เวลาเรียน ตุลาคม - พฤศจิกายน", months: [10, 11] },
+  { id: "attendance-2", label: "เวลาเรียน ธันวาคม - มกราคม", months: [12, 1] },
+  { id: "attendance-3", label: "เวลาเรียน กุมภาพันธ์ - มีนาคม", months: [2, 3] },
 ];
 
 function numberFromText(value: unknown): number {
@@ -168,21 +186,24 @@ export function getAttendancePrintChunks(data: AppData): AttendancePrintChunk[] 
   return chunks.length ? chunks : fallbackSplitDates(dates, chunkCount);
 }
 
+export function getAttendancePrintMonthRanges(
+  generalInfo: AppData["generalInfo"],
+): AttendancePrintMonthRange[] {
+  return generalInfo.semester === "2"
+    ? SEMESTER_TWO_PRINT_MONTH_RANGES
+    : SEMESTER_ONE_PRINT_MONTH_RANGES;
+}
+
 export function getPap5PrintPageSpecs(data: AppData): Pap5PrintPageSpec[] {
-  const isSecondSemester = data.generalInfo.semester === "2";
+  const attendanceSpecs = getAttendancePrintMonthRanges(data.generalInfo).map((range) => ({
+    id: range.id,
+    orientation: "landscape" as const,
+    label: range.label,
+  }));
 
   return [
     { id: "cover", orientation: "portrait", label: "ปก" },
-    {
-      id: "attendance-1",
-      orientation: "landscape",
-      label: isSecondSemester ? "เวลาเรียน ต.ค.-ธ.ค." : "เวลาเรียน พ.ค.-ก.ค.",
-    },
-    {
-      id: "attendance-2",
-      orientation: "landscape",
-      label: isSecondSemester ? "เวลาเรียน ม.ค.-มี.ค." : "เวลาเรียน ส.ค.-ก.ย.",
-    },
+    ...attendanceSpecs,
     { id: "scores", orientation: "landscape", label: "คะแนนตามตัวชี้วัด" },
     { id: "attributes-1-4", orientation: "landscape", label: "คุณลักษณะ 1-4" },
     { id: "attributes-5-8", orientation: "landscape", label: "คุณลักษณะ 5-8" },

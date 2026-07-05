@@ -27,7 +27,7 @@ import {
   computeGradebookStats,
 } from "../../lib/gradebookStats";
 import { supabase } from "../../lib/supabase";
-import { openPap5PdfPreview } from "../../utils/pap5PdfPreview";
+import { openPap5PrintDialog } from "../../utils/pap5PrintDialog";
 import type { GradebookSession } from "../../lib/teacherGradebooks";
 import type { AppData, AppUser, GradebookApprovalStatus, Student } from "../../types";
 
@@ -316,6 +316,12 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
       return;
     }
 
+    const printWindow = window.open("about:blank", "_blank");
+    if (!printWindow) {
+      setPdfPreviewError("เบราว์เซอร์บล็อกหน้าต่างพิมพ์ กรุณาอนุญาต Pop-up แล้วลองอีกครั้ง");
+      return;
+    }
+
     setExportingPdf(true);
     try {
       await flushPendingSave();
@@ -323,13 +329,15 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
         ...latestData.current,
         generalInfo: applyPap5OfficialDisplayDefaults(latestData.current.generalInfo),
       };
-      await openPap5PdfPreview({
+      openPap5PrintDialog({
         id: session.id,
         data: preparedData,
         approvalStatus,
+        targetWindow: printWindow,
       });
     } catch (error) {
-      setPdfPreviewError(error instanceof Error ? error.message : "ไม่สามารถสร้างไฟล์ PDF ได้");
+      printWindow.close();
+      setPdfPreviewError(error instanceof Error ? error.message : "ไม่สามารถเปิดหน้าพิมพ์ได้");
     } finally {
       setExportingPdf(false);
     }
