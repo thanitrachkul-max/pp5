@@ -80,6 +80,8 @@ interface Props {
   generalInfo: AppData["generalInfo"];
   attendance?: AppData["attendance"];
   rosterLocked?: boolean;
+  printMode?: boolean;
+  printDateMonths?: number[];
   onChange: (data: AppData["students"]) => void;
   onAttendanceChange?: (attendance: AppData["attendance"]) => void;
   onPersistStudentEdit?: (student: Student, previousStudent?: Student) => Promise<void>;
@@ -90,6 +92,8 @@ export const StudentsForm: React.FC<Props> = ({
   generalInfo,
   attendance,
   rosterLocked = false,
+  printMode = false,
+  printDateMonths,
   onChange,
   onAttendanceChange,
   onPersistStudentEdit,
@@ -464,11 +468,21 @@ export const StudentsForm: React.FC<Props> = ({
       }
       return true;
     } catch (error) {
-      window.alert(
-        error instanceof Error
-          ? error.message
-          : "ไม่สามารถบันทึกข้อมูลนักเรียนไปยังข้อมูลวิชาการได้",
-      );
+      setConfirmDialog({
+        isOpen: true,
+        title: "บันทึกข้อมูลไม่สำเร็จ",
+        message:
+          error instanceof Error
+            ? error.message
+            : "ไม่สามารถบันทึกข้อมูลนักเรียนไปยังข้อมูลวิชาการได้",
+        confirmLabel: "ปิด",
+        tone: "warning",
+        onConfirm: () =>
+          setConfirmDialog((prev) => ({
+            ...prev,
+            isOpen: false,
+          })),
+      });
       return false;
     } finally {
       setSavingStudentId(null);
@@ -655,9 +669,6 @@ export const StudentsForm: React.FC<Props> = ({
     setEditModalMode(null);
   };
 
-  // Generate 20 weeks
-  const weeks = Array.from({ length: 20 }, (_, i) => i + 1);
-
   const { dates, holidays, thaiMonths, thaiMonthsShort } = useMemo(() => {
     const academicYearStr = generalInfo.academicYear || "2568";
     const semester = generalInfo.semester || "1";
@@ -732,7 +743,22 @@ export const StudentsForm: React.FC<Props> = ({
     };
   }, [generalInfo.academicYear, generalInfo.semester]);
 
-  const confirmationDialogPortal = confirmDialog.isOpen
+  const displayDates = useMemo(() => {
+    if (!printDateMonths?.length) return dates;
+    const monthSet = new Set(printDateMonths);
+    return dates.filter((date) => monthSet.has(date.getMonth() + 1));
+  }, [dates, printDateMonths]);
+
+  const displayWeeks = useMemo(
+    () =>
+      Array.from(
+        { length: Math.max(1, Math.ceil(displayDates.length / 5)) },
+        (_, i) => i + 1,
+      ),
+    [displayDates.length],
+  );
+
+  const confirmationDialogPortal = !printMode && confirmDialog.isOpen
     ? createPortal(
         <div className="fixed inset-0 z-[120] grid min-h-dvh place-items-center bg-slate-900/55 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md overflow-hidden rounded-xl bg-white shadow-2xl">
@@ -850,7 +876,7 @@ export const StudentsForm: React.FC<Props> = ({
                 >
                   สัปดาห์ที่
                 </th>
-                {weeks.map((w) => (
+                {displayWeeks.map((w) => (
                   <th key={w} colSpan={5} className="bg-orange-excel">
                     {w}
                   </th>
@@ -871,8 +897,8 @@ export const StudentsForm: React.FC<Props> = ({
                 >
                   เดือน
                 </th>
-                {weeks.map((w) => {
-                  const weekDates = dates.slice((w - 1) * 5, w * 5);
+                {displayWeeks.map((w) => {
+                  const weekDates = displayDates.slice((w - 1) * 5, w * 5);
                   if (weekDates.length === 0)
                     return (
                       <th
@@ -882,7 +908,7 @@ export const StudentsForm: React.FC<Props> = ({
                       ></th>
                     );
                   const startMonth = weekDates[0].getMonth();
-                  const endMonth = weekDates[4].getMonth();
+                  const endMonth = weekDates[weekDates.length - 1].getMonth();
                   const monthText =
                     startMonth === endMonth
                       ? thaiMonths[startMonth]
@@ -907,8 +933,8 @@ export const StudentsForm: React.FC<Props> = ({
                 >
                   วันที่
                 </th>
-                {weeks.map((w) => {
-                  const weekDates = dates.slice((w - 1) * 5, w * 5);
+                {displayWeeks.map((w) => {
+                  const weekDates = displayDates.slice((w - 1) * 5, w * 5);
                   return (
                     <React.Fragment key={`days-${w}`}>
                       {weekDates.map((date, i) => {
@@ -942,8 +968,8 @@ export const StudentsForm: React.FC<Props> = ({
                 >
                   ชั่วโมงที่
                 </th>
-                {weeks.map((w) => {
-                  const weekDates = dates.slice((w - 1) * 5, w * 5);
+                {displayWeeks.map((w) => {
+                  const weekDates = displayDates.slice((w - 1) * 5, w * 5);
                   return (
                     <React.Fragment key={`hours-${w}`}>
                       {weekDates.map((date, i) => {
@@ -1035,7 +1061,7 @@ export const StudentsForm: React.FC<Props> = ({
                         className="bg-slate-50 sticky z-10 border-r-2 border-r-slate-400"
                         style={fixedWidthStyle(WEEK_LABEL_WIDTH, WEEK_LABEL_LEFT)}
                       ></td>
-                      {dates.map((date, i) => {
+                      {displayDates.map((date, i) => {
                         const monthStr = String(date.getMonth() + 1).padStart(
                           2,
                           "0",
@@ -1106,7 +1132,7 @@ export const StudentsForm: React.FC<Props> = ({
               ) : (
                 <tr>
                   <td
-                    colSpan={dates.length + 8}
+                    colSpan={displayDates.length + 8}
                     className="text-center py-8 text-slate-500 bg-white"
                   >
                     {rosterLocked
@@ -1120,24 +1146,27 @@ export const StudentsForm: React.FC<Props> = ({
         </div>
         </div>
 
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <button
-            type="button"
-            onClick={() => setEditModalMode("students")}
-            className="rounded-lg bg-blue-600 px-6 py-3 text-lg font-bold text-white shadow transition hover:bg-blue-700"
-          >
-            แก้ไขรายชื่อนักเรียน
-          </button>
-          <button
-            type="button"
-            onClick={() => setEditModalMode("attendance")}
-            className="rounded-lg bg-slate-900 px-6 py-3 text-lg font-bold text-white shadow transition hover:bg-slate-800"
-          >
-            ระบบช่วยลงเวลาเรียน
-          </button>
-        </div>
+        {!printMode && (
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => setEditModalMode("students")}
+              className="rounded-lg bg-blue-600 px-6 py-3 text-lg font-bold text-white shadow transition hover:bg-blue-700"
+            >
+              แก้ไขรายชื่อนักเรียน
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditModalMode("attendance")}
+              className="rounded-lg bg-slate-900 px-6 py-3 text-lg font-bold text-white shadow transition hover:bg-slate-800"
+            >
+              ระบบช่วยลงเวลาเรียน
+            </button>
+          </div>
+        )}
 
-        {editModalMode &&
+        {!printMode &&
+          editModalMode &&
           typeof document !== "undefined" &&
           createPortal(
             <div className="fixed inset-0 z-[70] overflow-y-auto bg-slate-900/50 px-4 py-8 backdrop-blur-sm sm:py-10">

@@ -36,9 +36,16 @@ const CurriculumPreviewPage = lazy(() =>
 const Pap5CoverPreviewPage = lazy(() =>
   import('./pages/teacher/Pap5CoverPreviewPage').then((module) => ({ default: module.Pap5CoverPreviewPage })),
 );
+const Pap5PrintRoutePage = lazy(() =>
+  import('./pages/teacher/Pap5PrintRoutePage').then((module) => ({ default: module.Pap5PrintRoutePage })),
+);
 
 function readPreviewMode(): string | null {
   return new URLSearchParams(window.location.search).get('preview');
+}
+
+function isPap5PrintRoute(): boolean {
+  return window.location.pathname.startsWith('/print/pap5/');
 }
 
 function shouldOpenAdminFromUrl(): boolean {
@@ -91,6 +98,14 @@ function PreviewOnlyApp() {
 
 export default function App() {
   const previewMode = readPreviewMode();
+  if (isPap5PrintRoute()) {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <Pap5PrintRoutePage />
+      </Suspense>
+    );
+  }
+
   if (previewMode === 'curriculum' || previewMode === 'pap5-cover') {
     return <PreviewOnlyApp />;
   }

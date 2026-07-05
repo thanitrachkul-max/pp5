@@ -8,6 +8,7 @@ interface Props {
   data: AppData['indicators'];
   scoreConfig?: AppData['scoreConfig'];
   generalInfo?: AppData['generalInfo'];
+  printMode?: boolean;
   onChange: (data: AppData['indicators']) => void;
 }
 
@@ -40,7 +41,7 @@ function findLegacyDescription(code: string): string {
   return '';
 }
 
-export const IndicatorsForm: React.FC<Props> = ({ data, scoreConfig, generalInfo, onChange }) => {
+export const IndicatorsForm: React.FC<Props> = ({ data, scoreConfig, generalInfo, printMode = false, onChange }) => {
   const [autoFilling, setAutoFilling] = useState(false);
 
   const handleAutoFill = useCallback(async () => {
@@ -102,6 +103,7 @@ export const IndicatorsForm: React.FC<Props> = ({ data, scoreConfig, generalInfo
 
   // Auto-fill on mount if empty or if existing rows only have codes without details.
   useEffect(() => {
+    if (printMode) return;
     if (scoreConfig && scoreConfig.units.length > 0 && (data.length === 0 || data.some(ind => ind.id && !ind.description.trim()))) {
       void handleAutoFill();
     }
@@ -128,21 +130,23 @@ export const IndicatorsForm: React.FC<Props> = ({ data, scoreConfig, generalInfo
       <div className="w-full bg-white p-4" style={{ minHeight: 'calc(100vh - 240px)', fontFamily: 'Sarabun' }}>
         <div className="flex justify-between items-center mb-2">
           <h2 className="text-xl font-bold">ตัวชี้วัด</h2>
-          <div className="flex gap-2">
-            <button
-              onClick={handleAutoFill}
-              disabled={autoFilling}
-              className="flex items-center gap-1 px-4 py-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 text-sm font-medium transition-colors"
-              title="ดึงข้อมูลจากเมนูคะแนนรายตัวชี้วัด"
-            >
-              <RefreshCw size={16} className={autoFilling ? 'animate-spin' : ''} />
-              {autoFilling ? 'กำลังดึงข้อมูล...' : 'ดึงข้อมูลอัตโนมัติ'}
-            </button>
-            <button onClick={handleAdd} className="flex items-center gap-1 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm font-medium transition-colors">
-              <Plus size={16} />
-              เพิ่มตัวชี้วัด
-            </button>
-          </div>
+          {!printMode && (
+            <div className="flex gap-2">
+              <button
+                onClick={handleAutoFill}
+                disabled={autoFilling}
+                className="flex items-center gap-1 px-4 py-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 text-sm font-medium transition-colors"
+                title="ดึงข้อมูลจากเมนูคะแนนรายตัวชี้วัด"
+              >
+                <RefreshCw size={16} className={autoFilling ? 'animate-spin' : ''} />
+                {autoFilling ? 'กำลังดึงข้อมูล...' : 'ดึงข้อมูลอัตโนมัติ'}
+              </button>
+              <button onClick={handleAdd} className="flex items-center gap-1 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm font-medium transition-colors">
+                <Plus size={16} />
+                เพิ่มตัวชี้วัด
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="mx-auto w-[75%] min-w-[720px] overflow-x-auto border-4 border-slate-500 p-1">
@@ -184,13 +188,15 @@ export const IndicatorsForm: React.FC<Props> = ({ data, scoreConfig, generalInfo
                     />
                   </td>
                   <td className="border border-slate-300 text-center align-middle">
-                    <button
-                      onClick={() => handleRemove(index)}
-                      className="text-red-500 hover:text-red-700 p-1.5 rounded hover:bg-red-50 transition-colors"
-                      title="ลบตัวชี้วัด"
-                    >
-                      <Trash2 size={16} className="mx-auto" />
-                    </button>
+                    {!printMode && (
+                      <button
+                        onClick={() => handleRemove(index)}
+                        className="text-red-500 hover:text-red-700 p-1.5 rounded hover:bg-red-50 transition-colors"
+                        title="ลบตัวชี้วัด"
+                      >
+                        <Trash2 size={16} className="mx-auto" />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

@@ -738,6 +738,181 @@ main table:not(.excel-table) tbody td {
   display: none;
 }
 
+.print-document {
+  display: block;
+  background: #ffffff;
+  color: #0f172a;
+  font-family: "TH Sarabun PSK", "Sarabun", sans-serif;
+}
+
+.print-page {
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.print-page-content {
+  transform-origin: top left;
+}
+
+.pap5-pdf-route-root {
+  min-height: 100vh;
+  background: #ffffff;
+  color: #0f172a;
+  font-family: "TH Sarabun PSK", "Sarabun", sans-serif;
+}
+
+.pdf-print-page {
+  background: #ffffff;
+  box-sizing: border-box;
+  overflow: hidden;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.pdf-print-page.portrait {
+  width: 210mm;
+  height: 297mm;
+  padding: 8mm;
+}
+
+.pdf-print-page.landscape {
+  width: 297mm;
+  height: 210mm;
+  padding: 6mm;
+}
+
+.pdf-page-heading {
+  margin: 0 0 3mm;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.18;
+}
+
+.pdf-subheading {
+  margin: -1mm 0 2mm;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pdf-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 8.2px;
+  line-height: 1.12;
+}
+
+.pdf-table th,
+.pdf-table td {
+  border: 0.5px solid #475569;
+  padding: 1.2px 1.6px;
+  text-align: center;
+  vertical-align: middle;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.pdf-table th {
+  background: #ffedd5;
+  font-weight: 700;
+}
+
+.pdf-table .text-left {
+  text-align: left;
+}
+
+.pdf-table .col-no {
+  width: 7mm;
+}
+
+.pdf-table .col-code {
+  width: 18mm;
+}
+
+.pdf-table .col-citizen {
+  width: 25mm;
+}
+
+.pdf-table .col-name {
+  width: 38mm;
+}
+
+.attendance-print-table {
+  font-size: 7.4px;
+}
+
+.attendance-print-table .col-code {
+  width: 16mm;
+}
+
+.attendance-print-table .col-citizen {
+  width: 22mm;
+}
+
+.attendance-print-table .col-name {
+  width: 34mm;
+}
+
+.attendance-print-table .col-total,
+.attendance-print-table .col-percent,
+.attendance-print-table .col-result {
+  width: 9mm;
+}
+
+.attendance-print-table .hour-cell {
+  font-size: 6.8px;
+}
+
+.score-print-table {
+  font-size: 6.7px;
+}
+
+.score-print-table .col-code {
+  width: 15mm;
+}
+
+.score-print-table .col-citizen {
+  width: 21mm;
+}
+
+.score-print-table .col-name {
+  width: 32mm;
+}
+
+.attribute-print-table,
+.analytical-print-table {
+  font-size: 8.4px;
+}
+
+.indicator-meta-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1.2fr 0.8fr;
+  gap: 2mm;
+  margin-bottom: 3mm;
+  font-size: 11px;
+}
+
+.indicators-print-table {
+  font-size: 10.5px;
+  line-height: 1.22;
+}
+
+.indicators-print-table .indicator-code {
+  width: 40mm;
+}
+
+.pass-text {
+  color: #047857;
+  font-weight: 700;
+}
+
+.fail-text {
+  color: #dc2626;
+  font-weight: 700;
+}
+
 .pap5-cover-page,
 .pap5-cover-page * {
   print-color-adjust: exact;
@@ -765,20 +940,58 @@ main table:not(.excel-table) tbody td {
     display: none !important;
   }
 }
-@page {
+
+@page pap5-cover {
   size: A4 portrait;
   margin: 0;
 }
 
+@page pap5-portrait {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@page pap5-landscape {
+  size: A4 landscape;
+  margin: 0;
+}
+
+@page portraitPage {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@page landscapePage {
+  size: A4 landscape;
+  margin: 0;
+}
+
+/* Chrome print preview can still force one orientation for the whole job in some versions. */
 @media print {
   html,
   body,
   #root {
-    width: 210mm;
-    min-height: 297mm;
     margin: 0 !important;
     padding: 0 !important;
     background: #ffffff !important;
+  }
+
+  body {
+    margin: 0 !important;
+    background: #ffffff !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .no-print,
+  .app-header,
+  .sidebar,
+  .tab-bar,
+  .toolbar,
+  button {
+    display: none !important;
   }
 
   body * {
@@ -786,7 +999,9 @@ main table:not(.excel-table) tbody td {
   }
 
   .pap5-print-root,
-  .pap5-print-root * {
+  .pap5-print-root *,
+  .pap5-pdf-route-root,
+  .pap5-pdf-route-root * {
     visibility: visible !important;
   }
 
@@ -794,15 +1009,239 @@ main table:not(.excel-table) tbody td {
     display: block !important;
     position: absolute !important;
     inset: 0 auto auto 0 !important;
-    width: 210mm !important;
-    min-height: 297mm !important;
+    width: auto !important;
+    min-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: visible !important;
     background: #ffffff !important;
   }
 
-  .pap5-cover-shell-print {
+  .print-document {
+    display: block !important;
+    background: #ffffff !important;
+  }
+
+  .pap5-pdf-route-root {
+    display: block !important;
+    width: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
+  .print-page {
+    display: block !important;
+    position: relative !important;
+    margin: 0 !important;
+    break-after: page;
+    page-break-after: always;
+    box-sizing: border-box;
+    background: #ffffff !important;
+    overflow: hidden !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .print-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .print-page.portrait {
+    page: portraitPage;
+    width: 210mm !important;
+    height: 297mm !important;
+    min-height: 297mm !important;
+  }
+
+  .print-page.landscape {
+    page: landscapePage;
+    width: 297mm !important;
+    height: 210mm !important;
+    min-height: 210mm !important;
+  }
+
+  .cover-print-page {
+    page: portraitPage;
+    height: 297mm !important;
+    padding: 0 !important;
+  }
+
+  .table-print-page {
+    page: landscapePage;
+    height: 210mm !important;
+    padding: 6mm !important;
+  }
+
+  .original-tab-print-page {
+    page: landscapePage;
+    width: 297mm !important;
+    height: 210mm !important;
+    padding: 0 !important;
+  }
+
+  .explanation-print-page {
+    page: portraitPage;
+    height: 297mm !important;
+    padding: 0 !important;
+  }
+
+  .print-page-content {
+    display: block !important;
+    transform-origin: top left !important;
+  }
+
+  .cover-print-page .print-page-content {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    transform: none !important;
+  }
+
+  .table-print-page .print-page-content {
+    width: 297mm !important;
+    transform: none !important;
+  }
+
+  .explanation-print-page .print-page-content {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    transform: none !important;
+  }
+
+  .pap5-original-print-document .original-tab-print-page > div {
+    width: 297mm !important;
+    height: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    background: #ffffff !important;
+  }
+
+  .pap5-original-print-document .original-tab-print-page > div > div {
+    width: 297mm !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 4mm !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  .pap5-original-print-document .original-tab-print-page .excel-scroll-area {
+    max-width: none !important;
+    overflow: visible !important;
+  }
+
+  .pap5-original-print-document .original-tab-print-page .excel-scroll-content {
+    display: block !important;
+    transform: none !important;
+    transform-origin: top left !important;
+  }
+
+  .pap5-original-print-document .original-tab-print-page table {
+    border-collapse: collapse !important;
+    font-size: 8px !important;
+    line-height: 1.05 !important;
+  }
+
+  .pap5-original-print-document .original-tab-print-page th,
+  .pap5-original-print-document .original-tab-print-page td {
+    padding: 1px 2px !important;
+  }
+
+  .pap5-original-print-document .original-tab-print-page .sticky {
+    position: static !important;
+  }
+
+  .pap5-original-print-document .original-tab-print-page [style*="24px"] {
+    width: 3mm !important;
+    min-width: 3mm !important;
+    max-width: 3mm !important;
+  }
+
+  .pap5-original-print-document .original-tab-print-page [style*="41px"],
+  .pap5-original-print-document .original-tab-print-page [style*="48px"] {
+    width: 7mm !important;
+    min-width: 7mm !important;
+    max-width: 7mm !important;
+  }
+
+  .pap5-original-print-document .original-tab-print-page [style*="64px"] {
+    width: 8mm !important;
+    min-width: 8mm !important;
+    max-width: 8mm !important;
+  }
+
+  .pap5-original-print-document .original-tab-print-page [style*="72px"],
+  .pap5-original-print-document .original-tab-print-page [style*="84px"] {
+    width: 10mm !important;
+    min-width: 10mm !important;
+    max-width: 10mm !important;
+  }
+
+  .pap5-original-print-document .original-tab-print-page [style*="109px"],
+  .pap5-original-print-document .original-tab-print-page [style*="112px"],
+  .pap5-original-print-document .original-tab-print-page [style*="128px"] {
+    width: 17mm !important;
+    min-width: 17mm !important;
+    max-width: 17mm !important;
+  }
+
+  .pap5-original-print-document .original-tab-print-page [style*="136px"],
+  .pap5-original-print-document .original-tab-print-page [style*="150px"],
+  .pap5-original-print-document .original-tab-print-page [style*="153px"],
+  .pap5-original-print-document .original-tab-print-page [style*="180px"] {
+    width: 24mm !important;
+    min-width: 24mm !important;
+    max-width: 24mm !important;
+  }
+
+  .pap5-original-print-document .original-tab-print-page [style*="248px"],
+  .pap5-original-print-document .original-tab-print-page [style*="292px"] {
+    width: 38mm !important;
+    min-width: 38mm !important;
+    max-width: 38mm !important;
+  }
+
+  .pap5-original-print-document .original-tab-print-page input,
+  .pap5-original-print-document .original-tab-print-page textarea {
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    color: inherit !important;
+  }
+
+  .pap5-original-print-document .original-tab-print-page input {
+    min-width: 0 !important;
+  }
+
+  .pap5-original-print-document .explanation-print-page > div {
+    width: 210mm !important;
+    height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    background: #ffffff !important;
+  }
+
+  .pap5-original-print-document .explanation-print-page > div > div {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    padding: 10mm !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: 0 !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+    --tw-shadow: 0 0 #0000 !important;
+    background: #ffffff !important;
+  }
+
+  .cover-print-page .pap5-cover-shell-print {
     display: block !important;
     width: 210mm !important;
     min-height: 297mm !important;
@@ -812,7 +1251,7 @@ main table:not(.excel-table) tbody td {
     background: #ffffff !important;
   }
 
-  .pap5-cover-page {
+  .cover-print-page .pap5-cover-page {
     width: 210mm !important;
     min-height: 297mm !important;
     margin: 0 !important;
@@ -828,6 +1267,155 @@ main table:not(.excel-table) tbody td {
     font-family: "TH Sarabun PSK", "Sarabun", sans-serif !important;
   }
 
+  .explanation-print-page .print-page-content > div {
+    display: block !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+  }
+
+  .explanation-print-page .print-page-content > div > div {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    padding: 10mm !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: 0 !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+    --tw-shadow: 0 0 #0000 !important;
+    background: #ffffff !important;
+    font-family: "TH Sarabun PSK", "Sarabun", sans-serif !important;
+  }
+
+  .explanation-print-page .print-page-content > div > div > div {
+    font-size: 12px !important;
+    line-height: 1.25 !important;
+  }
+
+  .pap5-preview-route-root .pap5-print-root {
+    page: pap5-cover;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    overflow: hidden !important;
+  }
+
+  .pap5-preview-route-root .pap5-print-root > .pap5-cover-shell-print {
+    display: block !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+    transform-origin: top left !important;
+    background: #ffffff !important;
+  }
+
+  .pap5-preview-route-root .pap5-cover-page {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    padding: 32px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: 0 !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+    --tw-shadow: 0 0 #0000 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-family: "TH Sarabun PSK", "Sarabun", sans-serif !important;
+  }
+
+  .pap5-pdf-route-root .pdf-print-page.portrait {
+    width: 210mm !important;
+    height: 297mm !important;
+    min-height: 297mm !important;
+    padding: 8mm !important;
+  }
+
+  .pap5-pdf-route-root .pdf-print-page.landscape {
+    width: 297mm !important;
+    height: 210mm !important;
+    min-height: 210mm !important;
+    padding: 6mm !important;
+  }
+
+  .pap5-pdf-route-root .cover-print-page {
+    page: pap5-cover;
+    padding: 0 !important;
+  }
+
+  .pap5-pdf-route-root .table-print-page {
+    page: pap5-landscape;
+  }
+
+  .pap5-pdf-route-root .explanation-print-page {
+    page: pap5-portrait;
+    padding: 0 !important;
+  }
+
+  .pap5-pdf-route-root .cover-print-page .pap5-cover-shell-print {
+    display: block !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+  }
+
+  .pap5-pdf-route-root .cover-print-page .pap5-cover-page {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    padding: 32px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: 0 !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+    --tw-shadow: 0 0 #0000 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-family: "TH Sarabun PSK", "Sarabun", sans-serif !important;
+  }
+
+  .pap5-pdf-route-root .explanation-print-page > div {
+    display: block !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+  }
+
+  .pap5-pdf-route-root .explanation-print-page > div > div {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    padding: 10mm !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: 0 !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+    --tw-shadow: 0 0 #0000 !important;
+    background: #ffffff !important;
+    font-family: "TH Sarabun PSK", "Sarabun", sans-serif !important;
+  }
+
+  .pap5-pdf-route-root .explanation-print-page > div > div > div {
+    font-size: 12px !important;
+    line-height: 1.25 !important;
+  }
+
   .pap5-cover-summary {
     width: 90% !important;
   }
@@ -839,5 +1427,62 @@ main table:not(.excel-table) tbody td {
   .pap5-cover-page th {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+  }
+
+  .print-document table {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-document .signature-block,
+  .print-document .approval-block,
+  .print-document .pap5-signatures {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-document button,
+  .print-document [role="button"],
+  .print-document .fixed,
+  .print-document .modal,
+  .print-document [class*="Modal"] {
+    display: none !important;
+  }
+
+  .print-document .overflow-auto,
+  .print-document .overflow-x-auto,
+  .print-document .overflow-y-auto,
+  .print-document .excel-scroll-area,
+  .print-document .excel-scroll-content {
+    overflow: visible !important;
+    max-width: none !important;
+  }
+
+  .print-document .sticky {
+    position: static !important;
+  }
+
+  .print-document input,
+  .print-document textarea,
+  .print-document select {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: inherit !important;
+    opacity: 1 !important;
+    -webkit-text-fill-color: currentColor !important;
+  }
+
+  .print-document textarea {
+    resize: none !important;
+  }
+
+  .print-document .rounded-2xl,
+  .print-document .rounded-lg {
+    border-radius: 0 !important;
+  }
+
+  .print-document [class*="shadow-"] {
+    box-shadow: none !important;
   }
 }

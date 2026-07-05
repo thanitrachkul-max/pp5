@@ -37,7 +37,7 @@ begin
       and t.relname = 'subjects'
       and c.contype = 'u'
       and (
-        select array_agg(a.attname order by a.attname)
+        select array_agg(a.attname::text order by a.attname::text)
         from unnest(c.conkey) key(attnum)
         join pg_attribute a on a.attrelid = t.oid and a.attnum = key.attnum
       ) = array['default_class_level','school_id','subject_code']

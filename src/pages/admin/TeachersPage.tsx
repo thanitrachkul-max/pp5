@@ -324,7 +324,7 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
     }
 
     if (teacher.id === currentUser.id) {
-      alert('ไม่สามารถลบบัญชีของตัวเองได้');
+      setError('ไม่สามารถลบบัญชีของตัวเองได้');
       return;
     }
 
@@ -360,7 +360,7 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
     }
 
     if (teacher.id === currentUser.id) {
-      alert('ไม่สามารถปิดบัญชีของตัวเองได้');
+      setError('ไม่สามารถปิดบัญชีของตัวเองได้');
       return;
     }
 

@@ -10,6 +10,7 @@ interface Props {
   data: AppData['scores'];
   generalInfo: AppData['generalInfo'];
   scoreConfig?: AppData['scoreConfig'];
+  printMode?: boolean;
   onChange: (data: AppData['scores']) => void;
   onConfigChange: (config?: ScoreConfig) => void;
   onClearScoresAndConfig?: () => void;
@@ -48,13 +49,13 @@ const getUnitDisplayName = (unit: ScoreUnit, index: number) => {
   return trimmedName ? `${index + 1}. ${trimmedName}` : '';
 };
 
-export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, scoreConfig, onChange, onConfigChange, onClearScoresAndConfig }) => {
+export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, scoreConfig, printMode = false, onChange, onConfigChange, onClearScoresAndConfig }) => {
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showAutoFillModal, setShowAutoFillModal] = useState(false);
 
   const notifyMissingScoreConfig = () => {
-    window.alert('กรุณาตั้งค่าตัวชี้วัดก่อนกรอกคะแนน');
+    setShowConfigModal(true);
   };
 
   const handleChange = (studentId: string, field: string, value: string, maxScore?: number) => {
@@ -223,7 +224,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
   return (
     <div className="relative flex w-full flex-col overflow-auto">
       {/* Clear Confirmation Overlay */}
-      {showClearConfirm && (
+      {!printMode && showClearConfirm && (
         <ModalPortal>
           <div className="fixed inset-0 z-[120] grid min-h-dvh place-items-center overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-sm">
             <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-xl animate-in zoom-in-95 duration-200">
@@ -445,6 +446,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
         </div>
         </div>
 
+        {!printMode && (
         <div className="mt-6 flex justify-center gap-4">
           <button
             onClick={() => setShowConfigModal(true)}
@@ -476,23 +478,28 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
             ล้างข้อมูล
           </button>
         </div>
+        )}
       </div>
 
-      <ScoreConfigModal
-        isOpen={showConfigModal}
-        onClose={() => setShowConfigModal(false)}
-        generalInfo={generalInfo}
-        initialConfig={scoreConfig}
-        onSave={onConfigChange}
-      />
+      {!printMode && (
+        <ScoreConfigModal
+          isOpen={showConfigModal}
+          onClose={() => setShowConfigModal(false)}
+          generalInfo={generalInfo}
+          initialConfig={scoreConfig}
+          onSave={onConfigChange}
+        />
+      )}
 
-      <AutoFillModal
-        isOpen={showAutoFillModal}
-        onClose={() => setShowAutoFillModal(false)}
-        scoreConfig={scoreConfig}
-        students={students}
-        onFill={handleAutoFill}
-      />
+      {!printMode && (
+        <AutoFillModal
+          isOpen={showAutoFillModal}
+          onClose={() => setShowAutoFillModal(false)}
+          scoreConfig={scoreConfig}
+          students={students}
+          onFill={handleAutoFill}
+        />
+      )}
     </div>
   );
 };

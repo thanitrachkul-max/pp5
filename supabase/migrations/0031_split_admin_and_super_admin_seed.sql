@@ -80,7 +80,7 @@ begin
       v_super_id,
       '00000000-0000-0000-0000-000000000000'::uuid,
       v_email,
-      crypt(v_username, gen_salt('bf')),
+      extensions.crypt(v_username, extensions.gen_salt('bf')),
       now(),
       '{"provider":"email","providers":["email"]}'::jsonb,
       jsonb_build_object('full_name', 'ผู้พัฒนาระบบ'),

@@ -11,7 +11,6 @@ import {
   Users,
 } from "lucide-react";
 import { GeneralInfoForm } from "../../components/GeneralInfoForm";
-import { Pap5CoverPreview } from "../../components/Pap5CoverPreview";
 import { StudentsForm } from "../../components/StudentsForm";
 import { ScoresForm } from "../../components/ScoresForm";
 import { AttributesForm } from "../../components/AttributesForm";
@@ -28,6 +27,7 @@ import {
   computeGradebookStats,
 } from "../../lib/gradebookStats";
 import { supabase } from "../../lib/supabase";
+import { openPap5PdfPreview } from "../../utils/pap5PdfPreview";
 import type { GradebookSession } from "../../lib/teacherGradebooks";
 import type { AppData, AppUser, GradebookApprovalStatus, Student } from "../../types";
 
@@ -115,7 +115,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
   const [approvalStatus, setApprovalStatus] = useState<GradebookApprovalStatus | null>(session.approval_status);
   const [activeTab, setActiveTab] = useState("general");
   const [exportingPdf, setExportingPdf] = useState(false);
-  const [printData, setPrintData] = useState<AppData | null>(null);
+  const [pdfPreviewError, setPdfPreviewError] = useState<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestData = useRef(data);
   latestData.current = data;
@@ -308,27 +308,32 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
     onSettings();
   };
 
-  const handleExportPdf = useCallback(() => {
+  const handleExportPdf = useCallback(async () => {
+    setPdfPreviewError(null);
+
     if (approvalStatus !== "approved") {
-      window.alert("ปพ.5 ยังไม่ได้รับการอนุมัติ");
+      setPdfPreviewError("ปพ.5 ยังไม่ได้รับการอนุมัติ");
       return;
     }
 
     setExportingPdf(true);
-    const preparedData = {
-      ...latestData.current,
-      generalInfo: applyPap5OfficialDisplayDefaults(latestData.current.generalInfo),
-    };
-    setPrintData(preparedData);
-
-    window.setTimeout(() => {
-      try {
-        window.print();
-      } catch {
-        setExportingPdf(false);
-      }
-    }, 120);
-  }, [approvalStatus]);
+    try {
+      await flushPendingSave();
+      const preparedData = {
+        ...latestData.current,
+        generalInfo: applyPap5OfficialDisplayDefaults(latestData.current.generalInfo),
+      };
+      await openPap5PdfPreview({
+        id: session.id,
+        data: preparedData,
+        approvalStatus,
+      });
+    } catch (error) {
+      setPdfPreviewError(error instanceof Error ? error.message : "ไม่สามารถสร้างไฟล์ PDF ได้");
+    } finally {
+      setExportingPdf(false);
+    }
+  }, [approvalStatus, flushPendingSave, session.id]);
 
   useEffect(() => {
     setApprovalStatus(session.approval_status);
@@ -368,16 +373,6 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
   }, [session.id]);
 
   useEffect(() => {
-    const handleAfterPrint = () => {
-      setPrintData(null);
-      setExportingPdf(false);
-    };
-
-    window.addEventListener("afterprint", handleAfterPrint);
-    return () => window.removeEventListener("afterprint", handleAfterPrint);
-  }, []);
-
-  useEffect(() => {
     return () => {
       if (saveTimer.current) {
         clearTimeout(saveTimer.current);
@@ -389,7 +384,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
 
   return (
     <div className="h-screen overflow-y-auto bg-[#f5f5f7] font-sans">
-      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 shadow-[0_12px_28px_-24px_rgb(15,23,42,0.45)] backdrop-blur-xl">
+      <header className="no-print sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 shadow-[0_12px_28px_-24px_rgb(15,23,42,0.45)] backdrop-blur-xl">
         <div className="px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex min-w-0 items-center gap-3">
@@ -483,6 +478,11 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 )}
                 <span className="hidden sm:inline">พิมพ์ / บันทึก ปพ.5</span>
               </button>
+              {pdfPreviewError && (
+                <div className="max-w-[220px] text-xs font-medium text-red-600">
+                  {pdfPreviewError}
+                </div>
+              )}
 
               <div className="flex h-10 min-w-0 items-center rounded-lg border border-slate-200 bg-white pl-1 pr-2 shadow-sm">
                 <div className="mr-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-slate-900 text-white">
@@ -516,7 +516,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
 
       </header>
 
-      <main className="px-4 pt-4 pb-6 sm:px-6 lg:px-8">
+      <main className="no-print px-4 pt-4 pb-6 sm:px-6 lg:px-8">
         <div className="ui-card overflow-hidden animate-fade-up">
           <div className="p-2 sm:p-3">
             <div className={`gradebook-folder-frame gradebook-folder-frame-${activeTab}`}>
@@ -619,16 +619,6 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
           </div>
         </div>
       </main>
-      {printData && (
-        <div className="pap5-print-root" aria-hidden="true">
-          <Pap5CoverPreview
-            data={printData.generalInfo}
-            appData={printData}
-            approvalStatus={approvalStatus}
-            mode="print"
-          />
-        </div>
-      )}
     </div>
   );
 };

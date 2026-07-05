@@ -8,6 +8,7 @@ interface Props {
   students: AppData['students'];
   data: AppData['analytical'];
   generalInfo: AppData['generalInfo'];
+  printMode?: boolean;
   onChange: (data: AppData['analytical']) => void;
 }
 
@@ -20,7 +21,7 @@ function buildReportTitle(generalInfo: AppData['generalInfo']) {
   ].filter(Boolean).join(' ');
 }
 
-export const AnalyticalForm: React.FC<Props> = ({ students, data, generalInfo, onChange }) => {
+export const AnalyticalForm: React.FC<Props> = ({ students, data, generalInfo, printMode = false, onChange }) => {
   const [showAutoFillModal, setShowAutoFillModal] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
@@ -105,7 +106,7 @@ export const AnalyticalForm: React.FC<Props> = ({ students, data, generalInfo, o
   return (
     <div className="relative w-full overflow-auto">
       {/* Clear Confirmation Overlay */}
-      {showClearConfirm && (
+      {!printMode && showClearConfirm && (
         <ModalPortal>
           <div className="fixed inset-0 z-[120] grid min-h-dvh place-items-center overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-sm">
             <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-xl animate-in zoom-in-95 duration-200">
@@ -207,6 +208,7 @@ export const AnalyticalForm: React.FC<Props> = ({ students, data, generalInfo, o
         </div>
         </div>
 
+        {!printMode && (
         <div className="mt-6 flex flex-wrap justify-center gap-4">
           <button
             type="button"
@@ -224,14 +226,17 @@ export const AnalyticalForm: React.FC<Props> = ({ students, data, generalInfo, o
             ล้างคะแนน
           </button>
         </div>
+        )}
       </div>
       
-      <AutoFillAttributesModal
-        isOpen={showAutoFillModal}
-        onClose={() => setShowAutoFillModal(false)}
-        students={students}
-        onFill={handleAutoFill}
-      />
+      {!printMode && (
+        <AutoFillAttributesModal
+          isOpen={showAutoFillModal}
+          onClose={() => setShowAutoFillModal(false)}
+          students={students}
+          onFill={handleAutoFill}
+        />
+      )}
     </div>
   );
 };

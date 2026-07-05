@@ -887,9 +887,8 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({ curren
             <button
               type="button"
               className="btn btn-grey-3d"
-              onClick={() => {
-                window.alert('ฟังก์ชันดูรายละเอียดเล่ม ปพ.5 จะพร้อมใช้งานในเร็วๆ นี้');
-              }}
+              disabled
+              title="ฟังก์ชันดูรายละเอียดเล่ม ปพ.5 จะพร้อมใช้งานในเร็วๆ นี้"
             >
               <Eye className="h-4 w-4" />
               ดูรายละเอียด
@@ -897,9 +896,8 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({ curren
             <button
               type="button"
               className="btn btn-grey-3d"
-              onClick={() => {
-                window.alert('ฟังก์ชันดาวน์โหลด PDF เล่ม ปพ.5 จะพร้อมใช้งานในเร็วๆ นี้');
-              }}
+              disabled
+              title="ฟังก์ชันดาวน์โหลด PDF เล่ม ปพ.5 จะพร้อมใช้งานในเร็วๆ นี้"
             >
               <Download className="h-4 w-4" />
               ดาวน์โหลด PDF

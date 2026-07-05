@@ -1,4 +1,3 @@
-import { Printer } from "lucide-react";
 import { Pap5CoverPreview } from "../../components/Pap5CoverPreview";
 import type { AppData } from "../../types";
 
@@ -115,16 +114,6 @@ const sampleData: AppData = {
 export function Pap5CoverPreviewPage() {
   return (
     <main className="pap5-preview-route-root min-h-screen bg-slate-100 py-6">
-      <div className="pap5-preview-toolbar fixed right-5 top-5 z-50">
-        <button
-          type="button"
-          onClick={() => window.print()}
-          className="btn border border-blue-600 bg-blue-600 text-white shadow-sm hover:bg-blue-700"
-        >
-          <Printer className="h-4 w-4" />
-          พิมพ์ / บันทึก PDF
-        </button>
-      </div>
       <div className="pap5-print-root">
         <Pap5CoverPreview
           data={sampleData.generalInfo}
