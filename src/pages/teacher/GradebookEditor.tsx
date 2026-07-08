@@ -1,12 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  AlertCircle,
   ArrowLeft,
   BookOpen,
   Calendar,
+  CheckCircle2,
   FileText,
   LayoutDashboard,
   Loader2,
   LogOut,
+  Printer,
   UserRound,
   Users,
 } from "lucide-react";
@@ -20,6 +23,7 @@ import { IndicatorsForm } from "../../components/IndicatorsForm";
 import { Instructions1Form } from "../../components/Instructions1Form";
 import { Instructions2Form } from "../../components/Instructions2Form";
 import { FolderTabs } from "../../components/FolderTabs";
+import { ModalPortal } from "../../components/ModalPortal";
 import { isAdmin } from "../../lib/auth";
 import { appDataToRow } from "../../lib/gradebookAdapter";
 import { applyPap5OfficialDisplayDefaults } from "../../lib/pap5Officials";
@@ -27,6 +31,7 @@ import {
   computeGradebookStats,
 } from "../../lib/gradebookStats";
 import { supabase } from "../../lib/supabase";
+import { downloadPap5Pdf } from "../../utils/pap5PdfPreview";
 import { openPap5PrintDialog } from "../../utils/pap5PrintDialog";
 import type { GradebookSession } from "../../lib/teacherGradebooks";
 import type { AppData, AppUser, GradebookApprovalStatus, Student } from "../../types";
@@ -103,6 +108,12 @@ interface GradebookEditorProps {
   onSyncStatusChange?: (status: "idle" | "saving" | "saved" | "error") => void;
 }
 
+type PdfDownloadStatus = {
+  variant: "preparing" | "success" | "error";
+  title: string;
+  message: string;
+};
+
 export const GradebookEditor: React.FC<GradebookEditorProps> = ({
   session,
   currentUser,
@@ -114,9 +125,13 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
   const [data, setData] = useState<AppData>(session.data);
   const [approvalStatus, setApprovalStatus] = useState<GradebookApprovalStatus | null>(session.approval_status);
   const [activeTab, setActiveTab] = useState("general");
+  const [renderedTab, setRenderedTab] = useState("general");
   const [exportingPdf, setExportingPdf] = useState(false);
+  const [printingPap5, setPrintingPap5] = useState(false);
   const [pdfPreviewError, setPdfPreviewError] = useState<string | null>(null);
+  const [pdfDownloadStatus, setPdfDownloadStatus] = useState<PdfDownloadStatus | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tabSwitchFrame = useRef<number | null>(null);
   const latestData = useRef(data);
   latestData.current = data;
   const gradebookStats = useMemo(() => computeGradebookStats(data), [data]);
@@ -308,6 +323,24 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
     onSettings();
   };
 
+  const handleTabChange = useCallback(
+    (nextTab: string) => {
+      setActiveTab(nextTab);
+
+      if (tabSwitchFrame.current !== null) {
+        window.cancelAnimationFrame(tabSwitchFrame.current);
+      }
+
+      tabSwitchFrame.current = window.requestAnimationFrame(() => {
+        tabSwitchFrame.current = window.requestAnimationFrame(() => {
+          setRenderedTab(nextTab);
+          tabSwitchFrame.current = null;
+        });
+      });
+    },
+    [],
+  );
+
   const handleExportPdf = useCallback(async () => {
     setPdfPreviewError(null);
 
@@ -316,13 +349,56 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
       return;
     }
 
-    const printWindow = window.open("about:blank", "_blank");
-    if (!printWindow) {
+    setExportingPdf(true);
+    setPdfDownloadStatus({
+      variant: "preparing",
+      title: "กำลังเตรียมเอกสาร ปพ.5",
+      message: "ระบบกำลังจัดหน้าเอกสารและสร้างไฟล์ PDF กรุณารอสักครู่",
+    });
+    try {
+      await flushPendingSave();
+      const preparedData = {
+        ...latestData.current,
+        generalInfo: applyPap5OfficialDisplayDefaults(latestData.current.generalInfo),
+      };
+      await downloadPap5Pdf({
+        id: session.id,
+        data: preparedData,
+        approvalStatus,
+      });
+      setPdfDownloadStatus({
+        variant: "success",
+        title: "ดาวน์โหลด ปพ.5 สำเร็จ",
+        message: "ไฟล์ PDF ถูกส่งไปยังรายการดาวน์โหลดของเบราว์เซอร์แล้ว",
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "ไม่สามารถบันทึกไฟล์ PDF ได้";
+      setPdfPreviewError(message);
+      setPdfDownloadStatus({
+        variant: "error",
+        title: "ดาวน์โหลด ปพ.5 ไม่สำเร็จ",
+        message,
+      });
+    } finally {
+      setExportingPdf(false);
+    }
+  }, [approvalStatus, flushPendingSave, session.id]);
+
+  const handlePrintPap5 = useCallback(async () => {
+    setPdfPreviewError(null);
+
+    if (approvalStatus !== "approved") {
+      setPdfPreviewError("ปพ.5 ยังไม่ได้รับการอนุมัติ");
+      return;
+    }
+
+    const targetWindow = window.open("about:blank", "_blank");
+    if (!targetWindow) {
       setPdfPreviewError("เบราว์เซอร์บล็อกหน้าต่างพิมพ์ กรุณาอนุญาต Pop-up แล้วลองอีกครั้ง");
       return;
     }
 
-    setExportingPdf(true);
+    setPrintingPap5(true);
     try {
       await flushPendingSave();
       const preparedData = {
@@ -333,13 +409,17 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
         id: session.id,
         data: preparedData,
         approvalStatus,
-        targetWindow: printWindow,
+        targetWindow,
       });
     } catch (error) {
-      printWindow.close();
-      setPdfPreviewError(error instanceof Error ? error.message : "ไม่สามารถเปิดหน้าพิมพ์ได้");
+      try {
+        targetWindow.close();
+      } catch {
+        // The user-facing error below is enough if the browser refuses to close the tab.
+      }
+      setPdfPreviewError(error instanceof Error ? error.message : "ไม่สามารถเปิดหน้าพิมพ์ ปพ.5 ได้");
     } finally {
-      setExportingPdf(false);
+      setPrintingPap5(false);
     }
   }, [approvalStatus, flushPendingSave, session.id]);
 
@@ -382,6 +462,10 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
 
   useEffect(() => {
     return () => {
+      if (tabSwitchFrame.current !== null) {
+        window.cancelAnimationFrame(tabSwitchFrame.current);
+        tabSwitchFrame.current = null;
+      }
       if (saveTimer.current) {
         clearTimeout(saveTimer.current);
         saveTimer.current = null;
@@ -392,6 +476,46 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
 
   return (
     <div className="h-screen overflow-y-auto bg-[#f5f5f7] font-sans">
+      {pdfDownloadStatus && (
+        <ModalPortal>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/35 px-4 backdrop-blur-sm">
+            <div
+              className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-6 text-center shadow-[0_24px_60px_-28px_rgba(15,23,42,0.6)]"
+              role="status"
+              aria-live="polite"
+            >
+              <div
+                className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full ${
+                  pdfDownloadStatus.variant === "success"
+                    ? "bg-emerald-50 text-emerald-600"
+                    : pdfDownloadStatus.variant === "error"
+                      ? "bg-rose-50 text-rose-600"
+                      : "bg-blue-50 text-blue-600"
+                }`}
+              >
+                {pdfDownloadStatus.variant === "success" ? (
+                  <CheckCircle2 className="h-8 w-8" />
+                ) : pdfDownloadStatus.variant === "error" ? (
+                  <AlertCircle className="h-8 w-8" />
+                ) : (
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                )}
+              </div>
+              <h2 className="text-lg font-extrabold text-slate-950">{pdfDownloadStatus.title}</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{pdfDownloadStatus.message}</p>
+              {pdfDownloadStatus.variant !== "preparing" && (
+                <button
+                  type="button"
+                  onClick={() => setPdfDownloadStatus(null)}
+                  className="btn btn-secondary mt-5 !h-10 !px-5"
+                >
+                  ปิด
+                </button>
+              )}
+            </div>
+          </div>
+        </ModalPortal>
+      )}
       <header className="no-print sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 shadow-[0_12px_28px_-24px_rgb(15,23,42,0.45)] backdrop-blur-xl">
         <div className="px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
@@ -429,6 +553,25 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                       {learningArea}
                     </span>
                   )}
+                  {approvalToolbarBadge && (
+                    <span className={`inline-flex h-8 shrink-0 items-center rounded-lg border px-3 text-xs font-bold shadow-sm ${approvalToolbarBadge.className}`}>
+                      {approvalToolbarBadge.label}
+                    </span>
+                  )}
+                  <span className="inline-flex h-8 w-[176px] shrink-0 items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3">
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center justify-between gap-3 text-[11px] font-bold text-slate-500">
+                        <span>ความครบถ้วน</span>
+                        <span className="text-slate-900">{completionPercent}%</span>
+                      </span>
+                      <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-slate-200">
+                        <span
+                          className="block h-full rounded-full bg-blue-600 transition-all"
+                          style={{ width: `${completionPercent}%` }}
+                        />
+                      </span>
+                    </span>
+                  </span>
                 </div>
               </div>
 
@@ -438,18 +581,12 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
               <button
                 type="button"
                 onClick={() => void handleBack()}
-                className="flex h-10 items-center gap-2 rounded-lg border border-slate-800 bg-slate-950 px-3 text-sm font-bold text-white shadow-sm transition hover:border-slate-900 hover:bg-slate-800"
-                title="กลับ"
+                className="flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-extrabold text-slate-700 shadow-[0_2px_6px_rgba(15,23,42,0.18)] ring-1 ring-slate-100 transition hover:bg-slate-50 hover:text-slate-950"
+                title="กลับตารางปี/ภาคเรียน"
               >
                 <ArrowLeft className="h-[18px] w-[18px]" />
-                <span className="hidden sm:inline">กลับ</span>
+                <span>กลับตารางปี/ภาคเรียน</span>
               </button>
-
-              {approvalToolbarBadge && (
-                <div className={`flex h-10 shrink-0 items-center rounded-lg border px-3 text-xs font-bold shadow-sm ${approvalToolbarBadge.className}`}>
-                  {approvalToolbarBadge.label}
-                </div>
-              )}
 
               {session.readOnly ? (
                 <div className="flex h-10 shrink-0 items-center rounded-lg border border-amber-100 bg-amber-50 px-3 text-xs font-semibold text-amber-800 shadow-sm">
@@ -457,34 +594,34 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 </div>
               ) : null}
 
-              <div className="flex h-10 min-w-[168px] items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-3 text-[11px] font-bold text-slate-500">
-                    <span>ความครบถ้วน</span>
-                    <span className="text-slate-900">{completionPercent}%</span>
-                  </div>
-                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-200">
-                    <div
-                      className="h-full rounded-full bg-blue-600 transition-all"
-                      style={{ width: `${completionPercent}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={() => void handlePrintPap5()}
+                disabled={printingPap5}
+                className="btn !h-10 !rounded-lg !px-3 border border-slate-800 bg-slate-950 text-white shadow-sm hover:border-slate-900 hover:bg-slate-800"
+                title="พิมพ์ ปพ.5"
+              >
+                {printingPap5 ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Printer className="h-4 w-4" />
+                )}
+                <span className="hidden sm:inline">พิมพ์ ปพ.5</span>
+              </button>
 
               <button
                 type="button"
                 onClick={() => void handleExportPdf()}
                 disabled={exportingPdf}
                 className="btn !h-10 !rounded-lg !px-3 border border-blue-600 bg-gradient-to-b from-blue-500 to-blue-600 text-white shadow-sm hover:from-blue-600 hover:to-blue-700"
-                title="พิมพ์ / บันทึก ปพ.5"
+                title="บันทึก ปพ.5 เป็น PDF"
               >
                 {exportingPdf ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <FileText className="h-4 w-4" />
                 )}
-                <span className="hidden sm:inline">พิมพ์ / บันทึก ปพ.5</span>
+                <span className="hidden sm:inline">บันทึก PDF ปพ.5</span>
               </button>
               {pdfPreviewError && (
                 <div className="max-w-[220px] text-xs font-medium text-red-600">
@@ -531,15 +668,16 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
               <FolderTabs
                 menuItems={menuItems}
                 activeId={activeTab}
-                onChange={setActiveTab}
+                onChange={handleTabChange}
               />
               <div
                 className={`gradebook-folder-content ${
                   isDocumentPreviewTab ? "gradebook-folder-content-document" : ""
                 }`}
               >
+                <div key={renderedTab} className="gradebook-paper-turn">
 
-            {activeTab === "general" && (
+            {renderedTab === "general" && (
               <GeneralInfoForm
                 data={data.generalInfo}
                 appData={data}
@@ -549,7 +687,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 }
               />
             )}
-            {activeTab === "students" && (
+            {renderedTab === "students" && (
               <StudentsForm
                 data={data.students}
                 generalInfo={data.generalInfo}
@@ -563,7 +701,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 onPersistStudentEdit={handlePersistStudentEdit}
               />
             )}
-            {activeTab === "scores" && (
+            {renderedTab === "scores" && (
               <ScoresForm
                 students={data.students}
                 data={data.scores}
@@ -580,7 +718,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 }
               />
             )}
-            {activeTab === "attributes1_4" && (
+            {renderedTab === "attributes1_4" && (
               <AttributesForm
                 students={data.students}
                 data={data.attributes}
@@ -590,7 +728,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 }
               />
             )}
-            {activeTab === "attributes5_8" && (
+            {renderedTab === "attributes5_8" && (
               <Attributes5_8Form
                 students={data.students}
                 data={data.attributes}
@@ -600,7 +738,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 }
               />
             )}
-            {activeTab === "analytical" && (
+            {renderedTab === "analytical" && (
               <AnalyticalForm
                 students={data.students}
                 data={data.analytical}
@@ -610,7 +748,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 }
               />
             )}
-            {activeTab === "indicators" && (
+            {renderedTab === "indicators" && (
               <IndicatorsForm
                 data={data.indicators}
                 scoreConfig={data.scoreConfig}
@@ -620,8 +758,9 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 }
               />
             )}
-            {activeTab === "instructions1" && <Instructions1Form />}
-            {activeTab === "instructions2" && <Instructions2Form />}
+            {renderedTab === "instructions1" && <Instructions1Form />}
+            {renderedTab === "instructions2" && <Instructions2Form />}
+                </div>
               </div>
             </div>
           </div>

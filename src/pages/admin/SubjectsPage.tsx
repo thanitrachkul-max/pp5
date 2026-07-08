@@ -570,69 +570,69 @@ export const SubjectsPage: React.FC<SubjectsPageProps> = ({ currentUser }) => {
               </div>
             ) : null}
             <div className="overflow-x-auto">
-            <table className="w-full min-w-[1320px] table-fixed border-collapse text-sm">
-              <thead className="border-b border-slate-200 bg-slate-50 text-slate-500">
-                <tr>
-                  <th className="w-14 px-3 py-3 text-center align-middle font-semibold">
-                    <input
-                      type="checkbox"
-                      checked={allFilteredSelected}
-                      onChange={toggleAllFiltered}
-                      className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                      aria-label={allFilteredSelected ? 'ยกเลิกเลือกทั้งหมด' : 'เลือกทั้งหมด'}
-                    />
-                  </th>
-                  <th className="w-28 px-3 py-3 text-center align-middle font-semibold whitespace-nowrap">รหัสวิชา</th>
-                  <th className="w-28 px-3 py-3 text-center align-middle font-semibold whitespace-nowrap">ภาคเรียนที่</th>
-                  <th className="w-72 px-3 py-3 text-center align-middle font-semibold whitespace-nowrap">ชื่อวิชา</th>
-                  <th className="w-64 px-3 py-3 text-center align-middle font-semibold whitespace-nowrap">กลุ่มสาระ</th>
-                  <th className="w-28 px-3 py-3 text-center align-middle font-semibold whitespace-nowrap">ระดับชั้น</th>
-                  <th className="w-32 px-3 py-3 text-center align-middle font-semibold whitespace-nowrap">ชม./สัปดาห์</th>
-                  <th className="w-28 px-3 py-3 text-center align-middle font-semibold whitespace-nowrap">ชม./ภาค</th>
-                  <th className="sticky right-0 z-40 w-40 bg-slate-50 px-3 py-3 text-center align-middle font-semibold whitespace-nowrap shadow-[-4px_0_8px_rgba(15,23,42,0.06)]">จัดการ</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filtered.map((s) => (
-                  <tr key={s.id} className="group transition-colors hover:bg-slate-50/70">
-                    <td className="px-3 py-3.5 text-center">
+              <table className="w-full min-w-[1320px] table-fixed border-collapse text-sm">
+                <thead className="border-b border-slate-200 bg-slate-50 text-slate-500">
+                  <tr>
+                    <th className="w-14 px-3 py-3 text-center align-middle font-semibold">
                       <input
                         type="checkbox"
-                        checked={selectedSubjectIds.has(s.id)}
-                        onChange={() => toggleSubjectSelection(s.id)}
+                        checked={allFilteredSelected}
+                        onChange={toggleAllFiltered}
                         className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                        aria-label={`เลือกรายวิชา ${s.subject_code}`}
+                        aria-label={allFilteredSelected ? 'ยกเลิกเลือกทั้งหมด' : 'เลือกทั้งหมด'}
                       />
-                    </td>
-                    <td className="truncate px-3 py-3.5 text-center font-mono font-semibold text-slate-800">{s.subject_code}</td>
-                    <td className="truncate px-3 py-3.5 text-center text-slate-600">{semesterLabel(s)}</td>
-                    <td className="truncate px-3 py-3.5 text-center font-medium text-slate-900" title={s.subject_name}>{s.subject_name}</td>
-                    <td className="truncate px-3 py-3.5 text-center text-slate-600" title={s.learning_area}>{s.learning_area}</td>
-                    <td className="truncate px-3 py-3.5 text-center text-slate-600">{subjectLevelValue(s) || '—'}</td>
-                    <td className="px-3 py-3.5 text-center text-slate-600">{subjectHoursPerWeek(s) ?? '—'}</td>
-                    <td className="px-3 py-3.5 text-center text-slate-600">{subjectHoursTotal(s) ?? '—'}</td>
-                    <td className="sticky right-0 z-20 bg-white px-3 py-4 text-center shadow-[-4px_0_8px_rgba(15,23,42,0.06)] group-hover:bg-slate-50/70">
-                      <div className="flex justify-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => openEdit(s)}
-                          className="inline-flex items-center px-3 py-1.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg"
-                        >
-                          <Pencil className="w-3.5 h-3.5 mr-1" /> แก้ไข
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDeleteTarget(s)}
-                          className="inline-flex items-center px-3 py-1.5 text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 rounded-lg"
-                        >
-                          <Trash2 className="w-3.5 h-3.5 mr-1" /> ลบ
-                        </button>
-                      </div>
-                    </td>
+                    </th>
+                    <th className="w-28 px-3 py-3 text-center align-middle font-semibold whitespace-nowrap">รหัสวิชา</th>
+                    <th className="w-28 px-3 py-3 text-center align-middle font-semibold whitespace-nowrap">ภาคเรียนที่</th>
+                    <th className="w-72 px-3 py-3 text-center align-middle font-semibold whitespace-nowrap">ชื่อวิชา</th>
+                    <th className="w-64 px-3 py-3 text-center align-middle font-semibold whitespace-nowrap">กลุ่มสาระ</th>
+                    <th className="w-28 px-3 py-3 text-center align-middle font-semibold whitespace-nowrap">ระดับชั้น</th>
+                    <th className="w-32 px-3 py-3 text-center align-middle font-semibold whitespace-nowrap">ชม./สัปดาห์</th>
+                    <th className="w-28 px-3 py-3 text-center align-middle font-semibold whitespace-nowrap">ชม./ภาค</th>
+                    <th className="w-40 px-3 py-3 text-center align-middle font-semibold whitespace-nowrap">จัดการ</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filtered.map((s) => (
+                    <tr key={s.id} className="group transition-colors hover:bg-slate-50/70">
+                      <td className="px-3 py-3.5 text-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedSubjectIds.has(s.id)}
+                          onChange={() => toggleSubjectSelection(s.id)}
+                          className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                          aria-label={`เลือกรายวิชา ${s.subject_code}`}
+                        />
+                      </td>
+                      <td className="truncate px-3 py-3.5 text-center font-mono font-semibold text-slate-800">{s.subject_code}</td>
+                      <td className="truncate px-3 py-3.5 text-center text-slate-600">{semesterLabel(s)}</td>
+                      <td className="truncate px-3 py-3.5 text-center font-medium text-slate-900" title={s.subject_name}>{s.subject_name}</td>
+                      <td className="truncate px-3 py-3.5 text-center text-slate-600" title={s.learning_area}>{s.learning_area}</td>
+                      <td className="truncate px-3 py-3.5 text-center text-slate-600">{subjectLevelValue(s) || '—'}</td>
+                      <td className="px-3 py-3.5 text-center text-slate-600">{subjectHoursPerWeek(s) ?? '—'}</td>
+                      <td className="px-3 py-3.5 text-center text-slate-600">{subjectHoursTotal(s) ?? '—'}</td>
+                      <td className="px-3 py-3.5 text-center">
+                        <div className="flex justify-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openEdit(s)}
+                            className="inline-flex items-center px-3 py-1.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg"
+                          >
+                            <Pencil className="w-3.5 h-3.5 mr-1" /> แก้ไข
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteTarget(s)}
+                            className="inline-flex items-center px-3 py-1.5 text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 rounded-lg"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 mr-1" /> ลบ
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}

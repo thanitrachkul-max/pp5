@@ -128,8 +128,8 @@ export const IndicatorsForm: React.FC<Props> = ({ data, scoreConfig, generalInfo
   return (
     <div className="w-full overflow-auto">
       <div className="w-full bg-white p-4" style={{ minHeight: 'calc(100vh - 240px)', fontFamily: 'Sarabun' }}>
-        <div className="flex justify-between items-center mb-2">
-          <h2 className="text-xl font-bold">ตัวชี้วัด</h2>
+        <div className={printMode ? "indicator-print-heading" : "flex justify-between items-center mb-2"}>
+          <h2 className="text-xl font-bold">{printMode ? "ตัวชี้วัดประจำรายวิชา" : "ตัวชี้วัด"}</h2>
           {!printMode && (
             <div className="flex gap-2">
               <button
@@ -149,8 +149,8 @@ export const IndicatorsForm: React.FC<Props> = ({ data, scoreConfig, generalInfo
           )}
         </div>
 
-        <div className="mx-auto w-[75%] min-w-[720px] overflow-x-auto border-4 border-slate-500 p-1">
-          <table className="excel-table w-full border-collapse text-sm">
+        <div className="indicator-print-table-frame mx-auto w-[75%] min-w-[720px] overflow-x-auto border-4 border-slate-500 p-1">
+          <table className="indicator-print-table excel-table w-full border-collapse text-sm">
             <thead>
               <tr>
                 <th colSpan={6} className="bg-orange-excel text-center py-1.5 font-bold border border-slate-300">

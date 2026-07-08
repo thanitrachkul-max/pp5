@@ -33,6 +33,12 @@ const CITIZEN_ID_LEFT = STUDENT_NO_WIDTH + STUDENT_CODE_WIDTH;
 const STUDENT_NAME_LEFT = CITIZEN_ID_LEFT + CITIZEN_ID_WIDTH;
 const WEEK_LABEL_LEFT = STUDENT_NAME_LEFT + STUDENT_NAME_WIDTH;
 
+function dateKeyForDate(date: Date) {
+  const monthStr = String(date.getMonth() + 1).padStart(2, "0");
+  const dayStr = String(date.getDate()).padStart(2, "0");
+  return `${monthStr}-${dayStr}`;
+}
+
 function defaultStudyPeriod(generalInfo: AppData["generalInfo"]) {
   const yearStr =
     generalInfo.academicYear || new Date().getFullYear().toString();
@@ -82,6 +88,7 @@ interface Props {
   rosterLocked?: boolean;
   printMode?: boolean;
   printDateMonths?: number[];
+  printFillToWeeks?: number;
   onChange: (data: AppData["students"]) => void;
   onAttendanceChange?: (attendance: AppData["attendance"]) => void;
   onPersistStudentEdit?: (student: Student, previousStudent?: Student) => Promise<void>;
@@ -94,6 +101,7 @@ export const StudentsForm: React.FC<Props> = ({
   rosterLocked = false,
   printMode = false,
   printDateMonths,
+  printFillToWeeks,
   onChange,
   onAttendanceChange,
   onPersistStudentEdit,
@@ -743,11 +751,38 @@ export const StudentsForm: React.FC<Props> = ({
     };
   }, [generalInfo.academicYear, generalInfo.semester]);
 
-  const displayDates = useMemo(() => {
+  const selectedPrintDates = useMemo(() => {
     if (!printDateMonths?.length) return dates;
     const monthSet = new Set(printDateMonths);
     return dates.filter((date) => monthSet.has(date.getMonth() + 1));
   }, [dates, printDateMonths]);
+
+  const printDataDateKeys = useMemo(
+    () => new Set(selectedPrintDates.map(dateKeyForDate)),
+    [selectedPrintDates],
+  );
+
+  const displayDates = useMemo(() => {
+    if (!printMode || !printFillToWeeks || selectedPrintDates.length === 0) {
+      return selectedPrintDates;
+    }
+
+    const targetDateCount = printFillToWeeks * 5;
+    if (selectedPrintDates.length >= targetDateCount) {
+      return selectedPrintDates;
+    }
+
+    const filledDates = [...selectedPrintDates];
+    const cursor = new Date(selectedPrintDates[selectedPrintDates.length - 1]);
+
+    while (filledDates.length < targetDateCount) {
+      cursor.setDate(cursor.getDate() + 1);
+      if (cursor.getDay() === 0 || cursor.getDay() === 6) continue;
+      filledDates.push(new Date(cursor));
+    }
+
+    return filledDates;
+  }, [printFillToWeeks, printMode, selectedPrintDates]);
 
   const displayWeeks = useMemo(
     () =>
@@ -757,6 +792,25 @@ export const StudentsForm: React.FC<Props> = ({
       ),
     [displayDates.length],
   );
+  const showAttendanceSummaryColumns = !printMode;
+  const studentNoWidth = printMode ? 52 : STUDENT_NO_WIDTH;
+  const studentCodeLeft = studentNoWidth;
+  const citizenIdLeft = studentCodeLeft + STUDENT_CODE_WIDTH;
+  const studentNameLeft = citizenIdLeft + CITIZEN_ID_WIDTH;
+  const weekLabelLeft = studentNameLeft + STUDENT_NAME_WIDTH;
+  const dayCellWidth = printMode ? 34 : DAY_CELL_WIDTH;
+  const weekLabelWidth = printMode ? 76 : WEEK_LABEL_WIDTH;
+  const studentNoStyle = fixedWidthStyle(studentNoWidth);
+  const studentCodeStyle = fixedWidthStyle(STUDENT_CODE_WIDTH, studentCodeLeft);
+  const citizenIdStyle = fixedWidthStyle(CITIZEN_ID_WIDTH, citizenIdLeft);
+  const studentNameStyle = fixedWidthStyle(STUDENT_NAME_WIDTH, studentNameLeft);
+  const dayCellStyle = fixedWidthStyle(dayCellWidth);
+  const weekLabelStyle = fixedWidthStyle(weekLabelWidth, weekLabelLeft);
+  const isPrintFillerDate = (date: Date) =>
+    printMode && Boolean(printFillToWeeks) && !printDataDateKeys.has(dateKeyForDate(date));
+  const weekDatesFor = (week: number) =>
+    Array.from({ length: 5 }, (_, index) => displayDates[(week - 1) * 5 + index] ?? null);
+  const displayGridDates = displayWeeks.flatMap((week) => weekDatesFor(week));
 
   const confirmationDialogPortal = !printMode && confirmDialog.isOpen
     ? createPortal(
@@ -844,35 +898,37 @@ export const StudentsForm: React.FC<Props> = ({
               <tr>
                 <th
                   rowSpan={4}
-                  className="bg-orange-excel sticky left-0 z-20"
-                  style={fixedWidthStyle(STUDENT_NO_WIDTH)}
+                  className="attendance-student-no-header bg-orange-excel sticky left-0 z-20"
+                  style={studentNoStyle}
                 >
                   เลขที่
                 </th>
                 <th
                   rowSpan={4}
                   className="bg-orange-excel sticky z-20"
-                  style={fixedWidthStyle(STUDENT_CODE_WIDTH, STUDENT_CODE_LEFT)}
+                  style={studentCodeStyle}
                 >
                   เลขประจำตัว
                 </th>
                 <th
                   rowSpan={4}
                   className="bg-orange-excel sticky z-20"
-                  style={fixedWidthStyle(CITIZEN_ID_WIDTH, CITIZEN_ID_LEFT)}
+                  style={citizenIdStyle}
                 >
-                  เลขประจำตัวประชาชน
+                  เลขประจำตัว
+                  <br />
+                  ประชาชน
                 </th>
                 <th
                   rowSpan={4}
                   className="bg-orange-excel sticky z-20"
-                  style={fixedWidthStyle(STUDENT_NAME_WIDTH, STUDENT_NAME_LEFT)}
+                  style={studentNameStyle}
                 >
                   ชื่อ - สกุล
                 </th>
                 <th
                   className="bg-orange-excel sticky z-20 border-r-2 border-r-slate-400"
-                  style={fixedWidthStyle(WEEK_LABEL_WIDTH, WEEK_LABEL_LEFT)}
+                  style={weekLabelStyle}
                 >
                   สัปดาห์ที่
                 </th>
@@ -881,24 +937,28 @@ export const StudentsForm: React.FC<Props> = ({
                     {w}
                   </th>
                 ))}
-                <th colSpan={2} className="bg-orange-excel">
-                  รวมเวลาเรียนตลอดปี
-                </th>
-                <th rowSpan={4} className="bg-orange-excel" style={fixedWidthStyle(RESULT_CELL_WIDTH)}>
-                  สรุปผล
-                  <br />
-                  การประเมิน
-                </th>
+                {showAttendanceSummaryColumns && (
+                  <>
+                    <th colSpan={2} className="bg-orange-excel">
+                      รวมเวลาเรียนตลอดปี
+                    </th>
+                    <th rowSpan={4} className="bg-orange-excel" style={fixedWidthStyle(RESULT_CELL_WIDTH)}>
+                      สรุปผล
+                      <br />
+                      การประเมิน
+                    </th>
+                  </>
+                )}
               </tr>
               <tr>
                 <th
                   className="bg-orange-excel sticky z-20 border-r-2 border-r-slate-400"
-                  style={fixedWidthStyle(WEEK_LABEL_WIDTH, WEEK_LABEL_LEFT)}
+                  style={weekLabelStyle}
                 >
                   เดือน
                 </th>
                 {displayWeeks.map((w) => {
-                  const weekDates = displayDates.slice((w - 1) * 5, w * 5);
+                  const weekDates = weekDatesFor(w).filter((date): date is Date => Boolean(date));
                   if (weekDates.length === 0)
                     return (
                       <th
@@ -923,33 +983,38 @@ export const StudentsForm: React.FC<Props> = ({
                     </th>
                   );
                 })}
-                <th className="bg-orange-excel" style={fixedWidthStyle(SUMMARY_CELL_WIDTH)}>ชั่วโมง</th>
-                <th className="bg-orange-excel" style={fixedWidthStyle(SUMMARY_CELL_WIDTH)}>มาเรียน%</th>
+                {showAttendanceSummaryColumns && (
+                  <>
+                    <th className="bg-orange-excel" style={fixedWidthStyle(SUMMARY_CELL_WIDTH)}>ชั่วโมง</th>
+                    <th className="bg-orange-excel" style={fixedWidthStyle(SUMMARY_CELL_WIDTH)}>มาเรียน%</th>
+                  </>
+                )}
               </tr>
               <tr>
                 <th
-                  className="bg-orange-excel sticky z-20 border-r-2 border-r-slate-400"
-                  style={fixedWidthStyle(WEEK_LABEL_WIDTH, WEEK_LABEL_LEFT)}
+                  className="attendance-date-label-cell bg-orange-excel sticky z-20 border-r-2 border-r-slate-400"
+                  style={weekLabelStyle}
                 >
                   วันที่
                 </th>
                 {displayWeeks.map((w) => {
-                  const weekDates = displayDates.slice((w - 1) * 5, w * 5);
+                  const weekDates = weekDatesFor(w);
                   return (
                     <React.Fragment key={`days-${w}`}>
                       {weekDates.map((date, i) => {
-                        const monthStr = String(date.getMonth() + 1).padStart(
-                          2,
-                          "0",
-                        );
-                        const dayStr = String(date.getDate()).padStart(2, "0");
-                        const dateKey = `${monthStr}-${dayStr}`;
-                        const isHoliday = holidays[dateKey];
+                        if (!date) {
+                          return (
+                            <th key={i} className="attendance-date-cell bg-orange-excel" style={dayCellStyle}></th>
+                          );
+                        }
+                        const dateKey = dateKeyForDate(date);
+                        const isFiller = isPrintFillerDate(date);
+                        const isHoliday = !isFiller && holidays[dateKey];
                         return (
                           <th
                             key={i}
-                            className={`text-[11.5px] ${isHoliday ? "bg-[#CCFFFF]" : "bg-orange-excel"}`}
-                            style={fixedWidthStyle(DAY_CELL_WIDTH)}
+                            className={`attendance-date-cell text-[11.5px] ${isHoliday ? "bg-[#CCFFFF]" : "bg-orange-excel"}`}
+                            style={dayCellStyle}
                           >
                             {date.getDate()}
                           </th>
@@ -958,48 +1023,59 @@ export const StudentsForm: React.FC<Props> = ({
                     </React.Fragment>
                   );
                 })}
-                <th className="bg-white font-bold" style={fixedWidthStyle(SUMMARY_CELL_WIDTH)}>{currentTotalHours}</th>
-                <th className="bg-white font-bold" style={fixedWidthStyle(SUMMARY_CELL_WIDTH)}>100</th>
+                {showAttendanceSummaryColumns && (
+                  <>
+                    <th className="bg-white font-bold" style={fixedWidthStyle(SUMMARY_CELL_WIDTH)}>{currentTotalHours}</th>
+                    <th className="bg-white font-bold" style={fixedWidthStyle(SUMMARY_CELL_WIDTH)}>100</th>
+                  </>
+                )}
               </tr>
               <tr>
                 <th
-                  className="bg-orange-excel sticky z-20 border-r-2 border-r-slate-400"
-                  style={fixedWidthStyle(WEEK_LABEL_WIDTH, WEEK_LABEL_LEFT)}
+                  className="attendance-hour-label-cell bg-orange-excel sticky z-20 border-r-2 border-r-slate-400"
+                  style={weekLabelStyle}
                 >
                   ชั่วโมงที่
                 </th>
                 {displayWeeks.map((w) => {
-                  const weekDates = displayDates.slice((w - 1) * 5, w * 5);
+                  const weekDates = weekDatesFor(w);
                   return (
                     <React.Fragment key={`hours-${w}`}>
                       {weekDates.map((date, i) => {
-                        const monthStr = String(date.getMonth() + 1).padStart(
-                          2,
-                          "0",
-                        );
-                        const dayStr = String(date.getDate()).padStart(2, "0");
-                        const dateKey = `${monthStr}-${dayStr}`;
-                        const isHoliday = holidays[dateKey];
-                        const hourText = attendance?.hoursMap?.[dateKey] || "";
+                        if (!date) {
+                          return (
+                            <th key={i} className="attendance-hour-cell bg-orange-excel" style={dayCellStyle}></th>
+                          );
+                        }
+                        const dateKey = dateKeyForDate(date);
+                        const isFiller = isPrintFillerDate(date);
+                        const isHoliday = !isFiller && holidays[dateKey];
+                        const hourText = isFiller ? "" : attendance?.hoursMap?.[dateKey] || "";
                         return (
                           <th
                             key={i}
-                            className={`text-[10px] ${isHoliday ? "bg-[#CCFFFF]" : "bg-orange-excel"}`}
-                            style={fixedWidthStyle(DAY_CELL_WIDTH)}
+                            className={`attendance-hour-cell text-[10px] ${isHoliday ? "bg-[#CCFFFF]" : "bg-orange-excel"}`}
+                            style={dayCellStyle}
                           >
-                            {!isHoliday && hourText}
+                            {!isHoliday && hourText ? (
+                              <span className="attendance-hour-text">{hourText}</span>
+                            ) : null}
                           </th>
                         );
                       })}
                     </React.Fragment>
                   );
                 })}
-                <th className="bg-white font-bold text-blue-600" style={fixedWidthStyle(SUMMARY_CELL_WIDTH)}>
-                  {totalScheduledHours}
-                </th>
-                <th className="bg-white font-bold text-blue-600" style={fixedWidthStyle(SUMMARY_CELL_WIDTH)}>
-                  {scheduledPercentage}
-                </th>
+                {showAttendanceSummaryColumns && (
+                  <>
+                    <th className="bg-white font-bold text-blue-600" style={fixedWidthStyle(SUMMARY_CELL_WIDTH)}>
+                      {totalScheduledHours}
+                    </th>
+                    <th className="bg-white font-bold text-blue-600" style={fixedWidthStyle(SUMMARY_CELL_WIDTH)}>
+                      {scheduledPercentage}
+                    </th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -1028,14 +1104,14 @@ export const StudentsForm: React.FC<Props> = ({
                   return (
                     <tr key={student.id}>
                       <td
-                        className="text-center sticky left-0 z-10 bg-white"
-                        style={fixedWidthStyle(STUDENT_NO_WIDTH)}
+                        className="attendance-student-no-cell text-center sticky left-0 z-10 bg-white"
+                        style={studentNoStyle}
                       >
                         {index + 1}
                       </td>
                       <td
                         className="sticky z-10 bg-white"
-                        style={fixedWidthStyle(STUDENT_CODE_WIDTH, STUDENT_CODE_LEFT)}
+                        style={studentCodeStyle}
                       >
                         <div className="px-1 text-center">
                           {student.studentId}
@@ -1043,7 +1119,7 @@ export const StudentsForm: React.FC<Props> = ({
                       </td>
                       <td
                         className="sticky z-10 bg-white"
-                        style={fixedWidthStyle(CITIZEN_ID_WIDTH, CITIZEN_ID_LEFT)}
+                        style={citizenIdStyle}
                       >
                         <div className="px-1 text-center">
                           {student.citizenId || ""}
@@ -1051,7 +1127,7 @@ export const StudentsForm: React.FC<Props> = ({
                       </td>
                       <td
                         className="sticky z-10 bg-white"
-                        style={fixedWidthStyle(STUDENT_NAME_WIDTH, STUDENT_NAME_LEFT)}
+                        style={studentNameStyle}
                       >
                         <div className="px-2 text-left truncate">
                           {student.name}
@@ -1059,29 +1135,27 @@ export const StudentsForm: React.FC<Props> = ({
                       </td>
                       <td
                         className="bg-slate-50 sticky z-10 border-r-2 border-r-slate-400"
-                        style={fixedWidthStyle(WEEK_LABEL_WIDTH, WEEK_LABEL_LEFT)}
+                        style={weekLabelStyle}
                       ></td>
-                      {displayDates.map((date, i) => {
-                        const monthStr = String(date.getMonth() + 1).padStart(
-                          2,
-                          "0",
-                        );
-                        const dayStr = String(date.getDate()).padStart(2, "0");
-                        const dateKey = `${monthStr}-${dayStr}`;
-                        const isHoliday = holidays[dateKey];
+                      {displayGridDates.map((date, i) => {
+                        if (!date) {
+                          return <td key={`blank-${i}`} className="attendance-day-data-cell p-0" style={dayCellStyle}></td>;
+                        }
+                        const dateKey = dateKeyForDate(date);
+                        const isFiller = isPrintFillerDate(date);
+                        const isHoliday = !isFiller && holidays[dateKey];
 
                         if (isHoliday) {
                           if (index === 0) {
                             return (
                               <td
                                 key={i}
-                                rowSpan={Math.max(12, data.length)}
+                                rowSpan={data.length}
                                 className="bg-[#CCFFFF] align-middle p-0 border-x border-slate-300"
-                                style={fixedWidthStyle(DAY_CELL_WIDTH)}
+                                style={dayCellStyle}
                               >
                                 <div
                                   className="flex justify-center items-center h-full"
-                                  style={{ minHeight: "300px" }}
                                 >
                                   <div
                                     className="text-red-500 text-[12px] whitespace-nowrap"
@@ -1099,40 +1173,49 @@ export const StudentsForm: React.FC<Props> = ({
                           return null; // Skip rendering cell if it's merged
                         }
 
-                        const record =
-                          attendance?.records?.[student.id]?.[dateKey] || "";
+                        const record = isFiller
+                          ? ""
+                          : attendance?.records?.[student.id]?.[dateKey] || "";
 
                         return (
-                          <td key={i} className="p-0" style={fixedWidthStyle(DAY_CELL_WIDTH)}>
-                            <input
-                              type="text"
-                              className="excel-input w-full h-full text-center"
-                              value={record}
-                              onChange={(e) =>
-                                handleAttendanceChange(
-                                  student.id,
-                                  dateKey,
-                                  e.target.value,
-                                )
-                              }
-                            />
+                          <td key={i} className="attendance-day-data-cell p-0" style={dayCellStyle}>
+                            {printMode ? (
+                              <span className="attendance-print-mark">{record}</span>
+                            ) : (
+                              <input
+                                type="text"
+                                className="excel-input w-full h-full text-center"
+                                value={record}
+                                onChange={(e) =>
+                                  handleAttendanceChange(
+                                    student.id,
+                                    dateKey,
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                            )}
                           </td>
                         );
                       })}
-                      <td className="text-center font-bold" style={fixedWidthStyle(SUMMARY_CELL_WIDTH)}>{attendedHours}</td>
-                      <td className="text-center font-bold" style={fixedWidthStyle(SUMMARY_CELL_WIDTH)}>
-                        {attendancePercentage}
-                      </td>
-                      <td className="text-center font-bold text-green-600" style={fixedWidthStyle(RESULT_CELL_WIDTH)}>
-                        {attendedHours >= currentTotalHours * 0.8 ? "ผ" : "มผ"}
-                      </td>
+                      {showAttendanceSummaryColumns && (
+                        <>
+                          <td className="text-center font-bold" style={fixedWidthStyle(SUMMARY_CELL_WIDTH)}>{attendedHours}</td>
+                          <td className="text-center font-bold" style={fixedWidthStyle(SUMMARY_CELL_WIDTH)}>
+                            {attendancePercentage}
+                          </td>
+                          <td className="text-center font-bold text-green-600" style={fixedWidthStyle(RESULT_CELL_WIDTH)}>
+                            {attendedHours >= currentTotalHours * 0.8 ? "ผ" : "มผ"}
+                          </td>
+                        </>
+                      )}
                     </tr>
                   );
                 })
               ) : (
                 <tr>
                   <td
-                    colSpan={displayDates.length + 8}
+                    colSpan={displayGridDates.length + (showAttendanceSummaryColumns ? 8 : 5)}
                     className="text-center py-8 text-slate-500 bg-white"
                   >
                     {rosterLocked

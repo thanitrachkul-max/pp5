@@ -26,6 +26,22 @@ export interface AttendancePrintMonthRange {
   id: string;
   label: string;
   months: number[];
+  fillToWeeks?: number;
+}
+
+export interface ScoreSummaryPrintRange {
+  id: string;
+  label: string;
+  startUnitIndex: number;
+  endUnitIndex: number;
+  pageNumber: number;
+  totalPages: number;
+  studentStartIndex: number;
+  studentEndIndex: number;
+  studentPageNumber: number;
+  totalStudentPages: number;
+  summaryPageNumber: number;
+  totalSummaryPages: number;
 }
 
 const THAI_MONTHS_SHORT = [
@@ -60,14 +76,17 @@ const SEMESTER_TWO_CHUNK_MONTHS = [
 const SEMESTER_ONE_PRINT_MONTH_RANGES: AttendancePrintMonthRange[] = [
   { id: "attendance-1", label: "เวลาเรียน พฤษภาคม - มิถุนายน", months: [5, 6] },
   { id: "attendance-2", label: "เวลาเรียน กรกฎาคม - สิงหาคม", months: [7, 8] },
-  { id: "attendance-3", label: "เวลาเรียน กันยายน", months: [9] },
+  { id: "attendance-3", label: "เวลาเรียน กันยายน", months: [9], fillToWeeks: 9 },
 ];
 
 const SEMESTER_TWO_PRINT_MONTH_RANGES: AttendancePrintMonthRange[] = [
   { id: "attendance-1", label: "เวลาเรียน ตุลาคม - พฤศจิกายน", months: [10, 11] },
   { id: "attendance-2", label: "เวลาเรียน ธันวาคม - มกราคม", months: [12, 1] },
-  { id: "attendance-3", label: "เวลาเรียน กุมภาพันธ์ - มีนาคม", months: [2, 3] },
+  { id: "attendance-3", label: "เวลาเรียน กุมภาพันธ์ - มีนาคม", months: [2, 3], fillToWeeks: 9 },
 ];
+
+const SCORE_SUMMARY_UNITS_PER_PAGE = 3;
+const SCORE_SUMMARY_STUDENTS_PER_PAGE = 10;
 
 function numberFromText(value: unknown): number {
   const parsed = Number(value);
@@ -194,8 +213,66 @@ export function getAttendancePrintMonthRanges(
     : SEMESTER_ONE_PRINT_MONTH_RANGES;
 }
 
+export function getScoreSummaryPrintRanges(data: AppData): ScoreSummaryPrintRange[] {
+  const units = data.scoreConfig?.units ?? [];
+  if (units.length === 0) return [];
+
+  const totalUnitPages = Math.ceil(units.length / SCORE_SUMMARY_UNITS_PER_PAGE);
+  const totalStudentPages = Math.max(
+    1,
+    Math.ceil(data.students.length / SCORE_SUMMARY_STUDENTS_PER_PAGE),
+  );
+  const totalSummaryPages = totalUnitPages * totalStudentPages;
+  const ranges: ScoreSummaryPrintRange[] = [];
+
+  for (let unitPageIndex = 0; unitPageIndex < totalUnitPages; unitPageIndex += 1) {
+    const startUnitIndex = unitPageIndex * SCORE_SUMMARY_UNITS_PER_PAGE;
+    const endUnitIndex = Math.min(units.length, startUnitIndex + SCORE_SUMMARY_UNITS_PER_PAGE);
+
+    for (let studentPageIndex = 0; studentPageIndex < totalStudentPages; studentPageIndex += 1) {
+      const summaryPageNumber = ranges.length + 1;
+      const studentStartIndex = studentPageIndex * SCORE_SUMMARY_STUDENTS_PER_PAGE;
+      const studentEndIndex = Math.min(
+        data.students.length,
+        studentStartIndex + SCORE_SUMMARY_STUDENTS_PER_PAGE,
+      );
+      const unitPageNumber = unitPageIndex + 1;
+      const studentPageNumber = studentPageIndex + 1;
+      const id =
+        totalStudentPages === 1 || studentPageIndex === 0
+          ? `score-summary-${unitPageNumber}`
+          : `score-summary-${unitPageNumber}-students-${studentPageNumber}`;
+
+      ranges.push({
+        id,
+        label:
+          totalSummaryPages === 1
+            ? "สรุปผลคะแนน"
+            : `สรุปผลคะแนน ${summaryPageNumber}/${totalSummaryPages}`,
+        startUnitIndex,
+        endUnitIndex,
+        pageNumber: unitPageNumber,
+        totalPages: totalUnitPages,
+        studentStartIndex,
+        studentEndIndex,
+        studentPageNumber,
+        totalStudentPages,
+        summaryPageNumber,
+        totalSummaryPages,
+      });
+    }
+  }
+
+  return ranges;
+}
+
 export function getPap5PrintPageSpecs(data: AppData): Pap5PrintPageSpec[] {
   const attendanceSpecs = getAttendancePrintMonthRanges(data.generalInfo).map((range) => ({
+    id: range.id,
+    orientation: "landscape" as const,
+    label: range.label,
+  }));
+  const scoreSummarySpecs = getScoreSummaryPrintRanges(data).map((range) => ({
     id: range.id,
     orientation: "landscape" as const,
     label: range.label,
@@ -204,7 +281,9 @@ export function getPap5PrintPageSpecs(data: AppData): Pap5PrintPageSpec[] {
   return [
     { id: "cover", orientation: "portrait", label: "ปก" },
     ...attendanceSpecs,
+    { id: "attendance-summary", orientation: "landscape", label: "สรุปเวลาเรียน" },
     { id: "scores", orientation: "landscape", label: "คะแนนตามตัวชี้วัด" },
+    ...scoreSummarySpecs,
     { id: "attributes-1-4", orientation: "landscape", label: "คุณลักษณะ 1-4" },
     { id: "attributes-5-8", orientation: "landscape", label: "คุณลักษณะ 5-8" },
     { id: "analytical", orientation: "landscape", label: "คิดวิเคราะห์" },

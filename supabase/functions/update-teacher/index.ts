@@ -70,13 +70,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (normalizedUsername.length < 6) {
-      return new Response(JSON.stringify({ error: 'Username ต้องมีอย่างน้อย 6 ตัวอักษรเพื่อใช้เป็นรหัสผ่าน' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
     if (newPassword && newPassword.length < 6) {
       return new Response(JSON.stringify({ error: 'รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร' }), {
         status: 400,

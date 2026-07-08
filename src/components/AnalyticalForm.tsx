@@ -21,11 +21,20 @@ function buildReportTitle(generalInfo: AppData['generalInfo']) {
   ].filter(Boolean).join(' ');
 }
 
+function buildClassTermTitle(generalInfo: AppData['generalInfo']) {
+  return [
+    generalInfo.gradeLevel ? `ชั้น ${generalInfo.gradeLevel}` : '',
+    generalInfo.semester ? `ภาคเรียนที่ ${generalInfo.semester}` : '',
+    generalInfo.academicYear ? `ปีการศึกษา ${generalInfo.academicYear}` : '',
+  ].filter(Boolean).join(' ');
+}
+
 export const AnalyticalForm: React.FC<Props> = ({ students, data, generalInfo, printMode = false, onChange }) => {
   const [showAutoFillModal, setShowAutoFillModal] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const reportTitle = buildReportTitle(generalInfo);
+  const classTermTitle = buildClassTermTitle(generalInfo);
 
   const handleChange = (studentId: string, field: string, value: string) => {
     const numValue = value === '' ? '' : parseInt(value) || 0;
@@ -135,17 +144,37 @@ export const AnalyticalForm: React.FC<Props> = ({ students, data, generalInfo, p
       )}
 
       <div className="w-full min-w-0 bg-white p-4" style={{ minHeight: 'calc(100vh - 240px)', fontFamily: 'Sarabun' }}>
-        <div className="mb-3 grid gap-2 lg:grid-cols-[1fr_auto_1fr] lg:items-start">
-          <h2 className="text-xl font-bold">คิดวิเคราะห์</h2>
-          <div className="text-center text-lg font-bold leading-7 text-slate-900 lg:max-w-[760px]">
-            {reportTitle}
+        {printMode ? (
+          <div className="analytical-print-heading">
+            <span>ผลการประเมินการอ่าน คิดวิเคราะห์ และเขียน</span>
+            <span>{classTermTitle}</span>
           </div>
-          <div aria-hidden="true" />
-        </div>
+        ) : (
+          <div className="mb-3 grid gap-2 lg:grid-cols-[1fr_auto_1fr] lg:items-start">
+            <h2 className="text-xl font-bold">คิดวิเคราะห์</h2>
+            <div className="text-center text-lg font-bold leading-7 text-slate-900 lg:max-w-[760px]">
+              {reportTitle}
+            </div>
+            <div aria-hidden="true" />
+          </div>
+        )}
         
         <div className="excel-scroll-area overflow-auto max-w-full">
           <div className="excel-scroll-content">
-          <table className="excel-table min-w-max whitespace-nowrap">
+          <table className={`excel-table min-w-max whitespace-nowrap ${printMode ? 'analytical-print-table' : ''}`}>
+            {printMode && (
+              <colgroup>
+                <col className="analytical-col-no" />
+                <col className="analytical-col-code" />
+                <col className="analytical-col-citizen" />
+                <col className="analytical-col-name" />
+                {Array.from({ length: 7 }).map((_, index) => (
+                  <col key={`analytical-score-col-${index}`} className="analytical-score-col" />
+                ))}
+                <col className="analytical-summary-col" />
+                <col className="analytical-final-col" />
+              </colgroup>
+            )}
             <thead>
               <tr>
                 <th rowSpan={11} className="bg-orange-excel sticky left-0 z-20" style={{ width: '48px', minWidth: '48px', maxWidth: '48px' }}>เลขที่</th>
@@ -198,8 +227,8 @@ export const AnalyticalForm: React.FC<Props> = ({ students, data, generalInfo, p
                     <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr5'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr5', e.target.value)} disabled={!student} /></td>
                     <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr6'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr6', e.target.value)} disabled={!student} /></td>
                     <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr7'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr7', e.target.value)} disabled={!student} /></td>
-                    <td className="text-center">{student && avg > 0 ? avg : ''}</td>
-                    <td className={`text-center font-bold ${student && avg > 0 ? grade.color : ''}`}>{student && avg > 0 ? grade.text : ''}</td>
+                    <td className="analytical-summary-result-cell text-center">{student && avg > 0 ? avg : ''}</td>
+                    <td className={`analytical-final-result-cell text-center font-bold ${student && avg > 0 ? grade.color : ''}`}>{student && avg > 0 ? grade.text : ''}</td>
                   </tr>
                 );
               })}

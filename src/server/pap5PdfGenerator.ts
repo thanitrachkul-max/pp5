@@ -1,5 +1,6 @@
 import { Buffer } from "node:buffer";
-import { PDFDocument } from "pdf-lib";
+import { existsSync } from "node:fs";
+import { degrees, PDFDocument } from "pdf-lib";
 import type { Browser } from "puppeteer-core";
 import { getPap5PrintPageSpecs } from "../utils/pap5PrintLayout.js";
 import type { AppData, GradebookApprovalStatus } from "../types";
@@ -29,6 +30,13 @@ const A4_POINTS = {
 
 const PAGE_SIZE_TOLERANCE_PT = 2;
 
+const LOCAL_CHROME_CANDIDATES = [
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "/Applications/Chromium.app/Contents/MacOS/Chromium",
+  "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+  "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+];
+
 function safePrintId(value: string | undefined) {
   return encodeURIComponent(value || `pap5-${Date.now()}`);
 }
@@ -36,7 +44,10 @@ function safePrintId(value: string | undefined) {
 async function appendPdf(target: PDFDocument, sourceBytes: Uint8Array) {
   const source = await PDFDocument.load(sourceBytes);
   const pages = await target.copyPages(source, source.getPageIndices());
-  pages.forEach((page) => target.addPage(page));
+  pages.forEach((page) => {
+    page.setRotation(degrees(0));
+    target.addPage(page);
+  });
 }
 
 function isCloseToA4(actual: number, expected: number) {
@@ -56,10 +67,17 @@ export async function assertPap5PdfPageSizes(
 
   const results = pages.map((page, index) => {
     const { width, height } = page.getSize();
+    const rotation = page.getRotation().angle;
     const expected = A4_POINTS[specs[index].orientation];
     const ok =
       isCloseToA4(width, expected.width) &&
       isCloseToA4(height, expected.height);
+
+    if (rotation !== 0) {
+      throw new Error(
+        `Pap5 PDF page ${index + 1} rotation mismatch: expected 0, got ${rotation}`,
+      );
+    }
 
     if (!ok) {
       throw new Error(
@@ -73,6 +91,7 @@ export async function assertPap5PdfPageSizes(
       orientation: specs[index].orientation,
       width,
       height,
+      rotation,
     };
   });
 
@@ -160,8 +179,21 @@ async function launchChromium() {
   }
 
   const { chromium: playwrightChromium } = await import("playwright");
+  const executablePath = [
+    process.env.PUPPETEER_EXECUTABLE_PATH,
+    process.env.CHROME_BIN,
+    playwrightChromium.executablePath(),
+    ...LOCAL_CHROME_CANDIDATES,
+  ].find((candidate): candidate is string => Boolean(candidate && existsSync(candidate)));
+
+  if (!executablePath) {
+    throw new Error(
+      "ไม่พบ Chromium/Chrome สำหรับสร้าง PDF กรุณารัน `npx playwright install chromium` แล้วลองบันทึก PDF อีกครั้ง",
+    );
+  }
+
   return puppeteer.launch({
-    executablePath: playwrightChromium.executablePath(),
+    executablePath,
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });

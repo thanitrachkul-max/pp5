@@ -28,6 +28,8 @@ export type { SettingsSection };
 interface SemesterSettings extends Semester {
   draftEntryStart: string;
   draftEntryEnd: string;
+  draftStudyStart: string;
+  draftStudyEnd: string;
   draftEnabled: boolean;
   saving: boolean;
 }
@@ -203,7 +205,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
   const [studyDraftStart, setStudyDraftStart] = useState('');
   const [studyDraftEnd, setStudyDraftEnd] = useState('');
   const [studyPeriodSupported, setStudyPeriodSupported] = useState(true);
-  const [savingStudyPeriod, setSavingStudyPeriod] = useState(false);
   const [dbConnected, setDbConnected] = useState<boolean | null>(null);
 
   const canWrite = !readOnly && (currentUser.role === 'super_admin' || currentUser.role === 'admin');
@@ -280,6 +281,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
             semester_number: semester.semester_number as 1 | 2,
             draftEntryStart: '',
             draftEntryEnd: '',
+            draftStudyStart: semester.start_date ?? '',
+            draftStudyEnd: semester.end_date ?? '',
             draftEnabled: true,
             saving: false,
           })),
@@ -292,6 +295,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
           semester_number: semester.semester_number as 1 | 2,
           draftEntryStart: semester.entry_start_date ?? '',
           draftEntryEnd: semester.entry_end_date ?? '',
+          draftStudyStart: semester.start_date ?? '',
+          draftStudyEnd: semester.end_date ?? '',
           draftEnabled: semester.grade_entry_enabled ?? true,
           saving: false,
         })),
@@ -307,6 +312,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
         semester_number: semester.semester_number as 1 | 2,
         draftEntryStart: semester.entry_start_date ?? '',
         draftEntryEnd: semester.entry_end_date ?? '',
+        draftStudyStart: semester.start_date ?? '',
+        draftStudyEnd: semester.end_date ?? '',
         draftEnabled: semester.grade_entry_enabled ?? true,
         saving: false,
       })),
@@ -487,7 +494,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
   const saveSemesterSettings = async (semester: SemesterSettings) => {
     if (!canWrite) return;
     if (semester.draftEntryStart && semester.draftEntryEnd && semester.draftEntryEnd < semester.draftEntryStart) {
-      setError('วันสิ้นสุดต้องไม่ก่อนวันเริ่มต้น');
+      setError('ช่วงวันที่กรอก ปพ.5: วันสิ้นสุดต้องไม่ก่อนวันเริ่มต้น');
+      return;
+    }
+    if (semester.draftStudyStart && semester.draftStudyEnd && semester.draftStudyEnd < semester.draftStudyStart) {
+      setError('ระยะเวลาเรียน: วันสิ้นสุดต้องไม่ก่อนวันเริ่มต้น');
       return;
     }
 
@@ -499,6 +510,16 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
 
     try {
       await saveSemesterGradeEntryEnabled(semester);
+
+      const { error: studyDateError } = await supabase
+        .from('semesters')
+        .update({
+          start_date: semester.draftStudyStart || null,
+          end_date: semester.draftStudyEnd || null,
+        })
+        .eq('id', semester.id);
+
+      if (studyDateError) throw studyDateError;
 
       if (semesterDateColumnsSupported) {
         const { error: dateError } = await supabase
@@ -526,11 +547,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
         currentUser.schoolId,
         currentUser.id,
         currentUser.name,
-        `บันทึกการตั้งค่าภาคเรียนที่ ${semester.semester_number} (${semester.draftEnabled ? 'เปิด' : 'ปิด'}การกรอก ปพ.5)`,
+        `บันทึกการตั้งค่าภาคเรียนที่ ${semester.semester_number} (${semester.draftEnabled ? 'เปิด' : 'ปิด'}การกรอก ปพ.5, ระยะเวลาเรียน ${semester.draftStudyStart || '—'} ถึง ${semester.draftStudyEnd || '—'})`,
         currentUser.role,
       );
 
-      setMessage(`บันทึกการตั้งค่าภาคเรียนที่ ${semester.semester_number} แล้ว`);
+      setMessage(`บันทึกการตั้งค่าภาคเรียนที่ ${semester.semester_number} และระยะเวลาเรียนแล้ว`);
       await loadSemesters();
       if (section === 'activity') await loadActivity();
     } catch (err) {
@@ -577,67 +598,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
     }
   };
 
-  const saveStudyPeriod = async () => {
-    if (!canWrite || !selectedYearId || !studyPeriodSupported) return;
-
-    if (studyDraftStart && studyDraftEnd && studyDraftEnd < studyDraftStart) {
-      setError('วันที่สิ้นสุดต้องไม่ก่อนวันเริ่มต้น');
-      return;
-    }
-
-    setSavingStudyPeriod(true);
-    setError('');
-    setMessage('');
-
-    try {
-      const { error: updateError } = await supabase
-        .from('academic_years')
-        .update({
-          study_start_date: studyDraftStart || null,
-          study_end_date: studyDraftEnd || null,
-        })
-        .eq('id', selectedYearId);
-
-      if (updateError) {
-        if (
-          isSchemaCacheErrorFor(updateError, 'study_start_date') ||
-          isSchemaCacheErrorFor(updateError, 'study_end_date')
-        ) {
-          setStudyPeriodSupported(false);
-          throw new Error(STUDY_PERIOD_MIGRATION_HINT);
-        }
-        throw updateError;
-      }
-
-      setYears((items) =>
-        items.map((year) =>
-          year.id === selectedYearId
-            ? {
-                ...year,
-                study_start_date: studyDraftStart || null,
-                study_end_date: studyDraftEnd || null,
-              }
-            : year,
-        ),
-      );
-
-      await logActivity(
-        currentUser.schoolId,
-        currentUser.id,
-        currentUser.name,
-        `บันทึกระยะเวลาเรียน (${studyDraftStart || '—'} ถึง ${studyDraftEnd || '—'})`,
-        currentUser.role,
-      );
-
-      setMessage('บันทึกระยะเวลาเรียนแล้ว');
-      if (section === 'activity') await loadActivity();
-    } catch (err) {
-      setError(getErrorMessage(err, 'บันทึกระยะเวลาเรียนไม่สำเร็จ'));
-    } finally {
-      setSavingStudyPeriod(false);
-    }
-  };
-
   const savePrimarySettings = async () => {
     if (!canWrite || !selectedYearId) return;
 
@@ -646,7 +606,16 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
       primaryDraftEntryEnd &&
       primaryDraftEntryEnd < primaryDraftEntryStart
     ) {
-      setError('วันสิ้นสุดต้องไม่ก่อนวันเริ่มต้น');
+      setError('ช่วงวันที่กรอก ปพ.5 ระดับประถม: วันสิ้นสุดต้องไม่ก่อนวันเริ่มต้น');
+      return;
+    }
+
+    if (
+      studyDraftStart &&
+      studyDraftEnd &&
+      studyDraftEnd < studyDraftStart
+    ) {
+      setError('ระยะเวลาเรียนระดับประถม: วันสิ้นสุดต้องไม่ก่อนวันเริ่มต้น');
       return;
     }
 
@@ -676,6 +645,27 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
         }
       }
 
+      if (studyPeriodSupported) {
+        const { error: studyDateError } = await supabase
+          .from('academic_years')
+          .update({
+            study_start_date: studyDraftStart || null,
+            study_end_date: studyDraftEnd || null,
+          })
+          .eq('id', selectedYearId);
+
+        if (studyDateError) {
+          if (
+            isSchemaCacheErrorFor(studyDateError, 'study_start_date') ||
+            isSchemaCacheErrorFor(studyDateError, 'study_end_date')
+          ) {
+            setStudyPeriodSupported(false);
+            throw new Error(STUDY_PERIOD_MIGRATION_HINT);
+          }
+          throw studyDateError;
+        }
+      }
+
       await syncPrimaryAssignmentsEntryWindow(
         selectedYearId,
         primaryDraftEntryStart || null,
@@ -689,6 +679,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                 ...year,
                 primary_entry_start_date: primaryDraftEntryStart || null,
                 primary_entry_end_date: primaryDraftEntryEnd || null,
+                study_start_date: studyDraftStart || null,
+                study_end_date: studyDraftEnd || null,
               }
             : year,
         ),
@@ -698,11 +690,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
         currentUser.schoolId,
         currentUser.id,
         currentUser.name,
-        `บันทึกช่วงวันที่กรอก ปพ.5 ระดับประถมศึกษา (${primaryDraftEntryStart || '—'} ถึง ${primaryDraftEntryEnd || '—'})`,
+        `บันทึกการตั้งค่าระดับประถมศึกษา (กรอก ปพ.5 ${primaryDraftEntryStart || '—'} ถึง ${primaryDraftEntryEnd || '—'}, ระยะเวลาเรียน ${studyDraftStart || '—'} ถึง ${studyDraftEnd || '—'})`,
         currentUser.role,
       );
 
-      setMessage('บันทึกการตั้งค่าระดับประถมศึกษาแล้ว');
+      setMessage('บันทึกการตั้งค่าระดับประถมศึกษาและระยะเวลาเรียนแล้ว');
       if (section === 'activity') await loadActivity();
     } catch (err) {
       setError(getErrorMessage(err, 'บันทึกการตั้งค่าระดับประถมไม่สำเร็จ'));
@@ -850,45 +842,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
           <section className="ui-card p-4">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div>
-                <h5 className="text-lg font-extrabold text-slate-900">ระยะเวลาเรียน</h5>
-                <p className="mt-1 text-sm text-slate-500">
-                  กำหนดวันเริ่มต้นและสิ้นสุดการเรียนสำหรับปีการศึกษา {selectedYear?.year_be ?? '—'} เพื่อแสดงในหน้าเวลาเรียนของครูทุกคน
-                </p>
-              </div>
-
-              <div className="grid w-full gap-3 sm:grid-cols-[1fr_1fr_auto] lg:max-w-3xl">
-                <label className="flex min-w-0 flex-col">
-                  <span className="text-[11px] font-bold text-slate-500">วันที่เริ่มต้น</span>
-                  <ThaiDateCalendarInput
-                    value={studyDraftStart}
-                    onChange={setStudyDraftStart}
-                    disabled={!canWrite || !studyPeriodSupported}
-                  />
-                </label>
-                <label className="flex min-w-0 flex-col">
-                  <span className="text-[11px] font-bold text-slate-500">วันที่สิ้นสุด</span>
-                  <ThaiDateCalendarInput
-                    value={studyDraftEnd}
-                    onChange={setStudyDraftEnd}
-                    disabled={!canWrite || !studyPeriodSupported}
-                  />
-                </label>
-                <button
-                  type="button"
-                  onClick={() => void saveStudyPeriod()}
-                  disabled={!canWrite || savingStudyPeriod || !studyPeriodSupported}
-                  className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-extrabold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 sm:self-end"
-                >
-                  {savingStudyPeriod ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CalendarRange className="mr-2 h-4 w-4" />}
-                  บันทึก
-                </button>
-              </div>
-            </div>
-          </section>
-
-          <section className="ui-card p-4">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div>
                 <h5 className="text-lg font-extrabold text-slate-900">ระดับประถมศึกษา</h5>
                 <p className="mt-1 text-sm text-slate-500">
                   เปิด/ปิดการแสดงและกรอก ปพ.5 ระดับประถมศึกษาในปีการศึกษา {selectedYear?.year_be ?? '—'}
@@ -914,32 +867,65 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                 </button>
               </div>
 
-              <div className="grid w-full gap-3 sm:grid-cols-[1fr_1fr_auto] lg:max-w-3xl">
-                <label className="flex min-w-0 flex-col">
-                  <span className="text-[11px] font-bold text-slate-500">วันที่เริ่มลงข้อมูล</span>
-                  <ThaiDateCalendarInput
-                    value={primaryDraftEntryStart}
-                    onChange={setPrimaryDraftEntryStart}
-                    disabled={!canWrite || !primaryDateColumnsSupported}
-                  />
-                </label>
-                <label className="flex min-w-0 flex-col">
-                  <span className="text-[11px] font-bold text-slate-500">วันที่สิ้นสุด</span>
-                  <ThaiDateCalendarInput
-                    value={primaryDraftEntryEnd}
-                    onChange={setPrimaryDraftEntryEnd}
-                    disabled={!canWrite || !primaryDateColumnsSupported}
-                  />
-                </label>
-                <button
-                  type="button"
-                  onClick={() => void savePrimarySettings()}
-                  disabled={!canWrite || savingPrimary || !primaryDateColumnsSupported}
-                  className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-extrabold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 sm:self-end"
-                >
-                  {savingPrimary ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CalendarRange className="mr-2 h-4 w-4" />}
-                  บันทึก
-                </button>
+              <div className="w-full space-y-4 lg:max-w-3xl">
+                <div>
+                  <div className="mb-2 text-xs font-extrabold text-slate-700">ช่วงวันที่เปิดให้กรอก ปพ.5</div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="flex min-w-0 flex-col">
+                      <span className="text-[11px] font-bold text-slate-500">วันที่เริ่มลงข้อมูล</span>
+                      <ThaiDateCalendarInput
+                        value={primaryDraftEntryStart}
+                        onChange={setPrimaryDraftEntryStart}
+                        disabled={!canWrite || !primaryDateColumnsSupported}
+                      />
+                    </label>
+                    <label className="flex min-w-0 flex-col">
+                      <span className="text-[11px] font-bold text-slate-500">วันที่สิ้นสุด</span>
+                      <ThaiDateCalendarInput
+                        value={primaryDraftEntryEnd}
+                        onChange={setPrimaryDraftEntryEnd}
+                        disabled={!canWrite || !primaryDateColumnsSupported}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-100 pt-3">
+                  <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="text-xs font-extrabold text-slate-700">ระยะเวลาเรียนระดับประถม (ทั้งปี)</span>
+                    <span className="text-[11px] font-bold text-slate-400">ใช้กับหน้าเวลาเรียนใน ปพ.5</span>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="flex min-w-0 flex-col">
+                      <span className="text-[11px] font-bold text-slate-500">วันที่เริ่มเรียน</span>
+                      <ThaiDateCalendarInput
+                        value={studyDraftStart}
+                        onChange={setStudyDraftStart}
+                        disabled={!canWrite || !studyPeriodSupported}
+                      />
+                    </label>
+                    <label className="flex min-w-0 flex-col">
+                      <span className="text-[11px] font-bold text-slate-500">วันที่สิ้นสุดการเรียน</span>
+                      <ThaiDateCalendarInput
+                        value={studyDraftEnd}
+                        onChange={setStudyDraftEnd}
+                        disabled={!canWrite || !studyPeriodSupported}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => void savePrimarySettings()}
+                    disabled={!canWrite || savingPrimary || (!primaryDateColumnsSupported && !studyPeriodSupported)}
+                    className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-extrabold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {savingPrimary ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CalendarRange className="mr-2 h-4 w-4" />}
+                    บันทึก
+                  </button>
+                </div>
               </div>
             </div>
           </section>
@@ -978,44 +964,89 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                     </button>
                   </div>
 
-                  <div className="grid w-full gap-3 sm:grid-cols-[1fr_1fr_auto] lg:max-w-3xl">
-                    <label className="flex min-w-0 flex-col">
-                      <span className="text-[11px] font-bold text-slate-500">วันที่เริ่มลงข้อมูล</span>
-                      <ThaiDateCalendarInput
-                        value={semester.draftEntryStart}
-                        onChange={(value) =>
-                          setSemesters((items) =>
-                            items.map((item) =>
-                              item.id === semester.id ? { ...item, draftEntryStart: value } : item,
-                            ),
-                          )
-                        }
-                        disabled={!canWrite}
-                      />
-                    </label>
-                    <label className="flex min-w-0 flex-col">
-                      <span className="text-[11px] font-bold text-slate-500">วันที่สิ้นสุด</span>
-                      <ThaiDateCalendarInput
-                        value={semester.draftEntryEnd}
-                        onChange={(value) =>
-                          setSemesters((items) =>
-                            items.map((item) =>
-                              item.id === semester.id ? { ...item, draftEntryEnd: value } : item,
-                            ),
-                          )
-                        }
-                        disabled={!canWrite}
-                      />
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => void saveSemesterSettings(semester)}
-                      disabled={!canWrite || semester.saving}
-                      className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-extrabold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 sm:self-end"
-                    >
-                      {semester.saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CalendarRange className="mr-2 h-4 w-4" />}
-                      บันทึก
-                    </button>
+                  <div className="w-full space-y-4 lg:max-w-3xl">
+                    <div>
+                      <div className="mb-2 text-xs font-extrabold text-slate-700">ช่วงวันที่เปิดให้กรอก ปพ.5</div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <label className="flex min-w-0 flex-col">
+                          <span className="text-[11px] font-bold text-slate-500">วันที่เริ่มลงข้อมูล</span>
+                          <ThaiDateCalendarInput
+                            value={semester.draftEntryStart}
+                            onChange={(value) =>
+                              setSemesters((items) =>
+                                items.map((item) =>
+                                  item.id === semester.id ? { ...item, draftEntryStart: value } : item,
+                                ),
+                              )
+                            }
+                            disabled={!canWrite}
+                          />
+                        </label>
+                        <label className="flex min-w-0 flex-col">
+                          <span className="text-[11px] font-bold text-slate-500">วันที่สิ้นสุด</span>
+                          <ThaiDateCalendarInput
+                            value={semester.draftEntryEnd}
+                            onChange={(value) =>
+                              setSemesters((items) =>
+                                items.map((item) =>
+                                  item.id === semester.id ? { ...item, draftEntryEnd: value } : item,
+                                ),
+                              )
+                            }
+                            disabled={!canWrite}
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-slate-100 pt-3">
+                      <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                        <span className="text-xs font-extrabold text-slate-700">ระยะเวลาเรียนรายเทอม</span>
+                        <span className="text-[11px] font-bold text-slate-400">ใช้กับหน้าเวลาเรียนใน ปพ.5 มัธยม</span>
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <label className="flex min-w-0 flex-col">
+                          <span className="text-[11px] font-bold text-slate-500">วันที่เริ่มเรียน</span>
+                          <ThaiDateCalendarInput
+                            value={semester.draftStudyStart}
+                            onChange={(value) =>
+                              setSemesters((items) =>
+                                items.map((item) =>
+                                  item.id === semester.id ? { ...item, draftStudyStart: value } : item,
+                                ),
+                              )
+                            }
+                            disabled={!canWrite}
+                          />
+                        </label>
+                        <label className="flex min-w-0 flex-col">
+                          <span className="text-[11px] font-bold text-slate-500">วันที่สิ้นสุดการเรียน</span>
+                          <ThaiDateCalendarInput
+                            value={semester.draftStudyEnd}
+                            onChange={(value) =>
+                              setSemesters((items) =>
+                                items.map((item) =>
+                                  item.id === semester.id ? { ...item, draftStudyEnd: value } : item,
+                                ),
+                              )
+                            }
+                            disabled={!canWrite}
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => void saveSemesterSettings(semester)}
+                        disabled={!canWrite || semester.saving}
+                        className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-extrabold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {semester.saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CalendarRange className="mr-2 h-4 w-4" />}
+                        บันทึก
+                      </button>
+                    </div>
                   </div>
                 </div>
               </section>

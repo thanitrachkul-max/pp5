@@ -19,6 +19,7 @@ export const Instructions2Form: React.FC = () => {
         style={{ width: "1123px", minHeight: "794px", fontFamily: "Sarabun" }}
       >
         <div className="text-[16px] leading-relaxed text-black">
+          <h1 className="instruction-document-title">คำชี้แจงรายละเอียดเอกสาร 2</h1>
           <h2 className="mb-3 text-lg font-bold">การบันทึกการวัดและประเมินผล</h2>
 
           <div className="pl-4">

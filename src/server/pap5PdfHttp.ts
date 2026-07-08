@@ -16,6 +16,22 @@ function getFileName(payload: Pap5PdfPayload) {
   return sanitizeFileName(`แบบปพ.5 ${subjectName} ${gradeLevel}.pdf`) || "แบบปพ.5.pdf";
 }
 
+export function parsePap5PdfRequestPayload(
+  rawBody: string,
+  contentType = "",
+): Pap5PdfPayload {
+  const body = rawBody.replace(/^\uFEFF/, "");
+  const normalizedContentType = contentType.toLowerCase();
+
+  if (normalizedContentType.includes("application/x-www-form-urlencoded")) {
+    const params = new URLSearchParams(body);
+    const formPayload = params.get("payload");
+    if (formPayload) return JSON.parse(formPayload) as Pap5PdfPayload;
+  }
+
+  return JSON.parse(body || "{}") as Pap5PdfPayload;
+}
+
 export async function createPap5PdfHttpResult({
   payload,
   origin,
@@ -41,7 +57,7 @@ export async function createPap5PdfHttpResult({
     headers: {
       "content-type": "application/pdf",
       "content-length": String(pdf.byteLength),
-      "content-disposition": `inline; filename*=UTF-8''${fileName}`,
+      "content-disposition": `attachment; filename*=UTF-8''${fileName}`,
       "cache-control": "no-store",
     },
     body: pdf,

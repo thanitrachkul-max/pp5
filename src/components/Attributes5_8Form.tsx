@@ -21,11 +21,20 @@ function buildReportTitle(generalInfo: AppData['generalInfo']) {
   ].filter(Boolean).join(' ');
 }
 
+function buildClassTermTitle(generalInfo: AppData['generalInfo']) {
+  return [
+    generalInfo.gradeLevel ? `ชั้น ${generalInfo.gradeLevel}` : '',
+    generalInfo.semester ? `ภาคเรียนที่ ${generalInfo.semester}` : '',
+    generalInfo.academicYear ? `ปีการศึกษา ${generalInfo.academicYear}` : '',
+  ].filter(Boolean).join(' ');
+}
+
 export const Attributes5_8Form: React.FC<Props> = ({ students, data, generalInfo, printMode = false, onChange }) => {
   const [showAutoFillModal, setShowAutoFillModal] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const reportTitle = buildReportTitle(generalInfo);
+  const classTermTitle = buildClassTermTitle(generalInfo);
   const fields = ['attr5_1', 'attr5_2', 'attr6_1', 'attr6_2', 'attr7_1', 'attr7_2', 'attr7_3', 'attr8_1', 'attr8_2'];
 
   const handleChange = (studentId: string, field: string, value: string) => {
@@ -123,22 +132,42 @@ export const Attributes5_8Form: React.FC<Props> = ({ students, data, generalInfo
       )}
 
       <div className="w-full min-w-0 bg-white p-4" style={{ minHeight: 'calc(100vh - 240px)', fontFamily: 'Sarabun' }}>
-        <div className="mb-3 grid gap-2 lg:grid-cols-[1fr_auto_1fr] lg:items-start">
-          <h2 className="text-xl font-bold">คุณลักษณะ5-8</h2>
-          <div className="text-center text-lg font-bold leading-7 text-slate-900 lg:max-w-[760px]">
-            {reportTitle}
+        {printMode ? (
+          <div className="attribute-print-heading">
+            <span>ผลการประเมินคุณลักษณะอันพึงประสงค์ 5-8</span>
+            <span>{classTermTitle}</span>
           </div>
-          <div aria-hidden="true" />
-        </div>
+        ) : (
+          <div className="mb-3 grid gap-2 lg:grid-cols-[1fr_auto_1fr] lg:items-start">
+            <h2 className="text-xl font-bold">คุณลักษณะ5-8</h2>
+            <div className="text-center text-lg font-bold leading-7 text-slate-900 lg:max-w-[760px]">
+              {reportTitle}
+            </div>
+            <div aria-hidden="true" />
+          </div>
+        )}
         
         <div className="excel-scroll-area overflow-auto max-w-full">
           <div className="excel-scroll-content">
-          <table className="excel-table attributes-table min-w-max whitespace-nowrap">
+          <table className={`excel-table attributes-table min-w-max whitespace-nowrap ${printMode ? 'attribute-print-table' : ''}`}>
+            {printMode && (
+              <colgroup>
+                <col className="attribute-col-no" />
+                <col className="attribute-col-code" />
+                <col className="attribute-col-citizen" />
+                <col className="attribute-col-name" />
+                {Array.from({ length: 17 }).map((_, index) => (
+                  <col key={`attribute-score-col-${index}`} className="attribute-score-col" />
+                ))}
+                <col className="attribute-total-col" />
+                <col className="attribute-final-col" />
+              </colgroup>
+            )}
             <thead>
               <tr>
                 <th rowSpan={4} className="bg-orange-excel sticky left-0 z-20" style={{ width: '48px', minWidth: '48px', maxWidth: '48px' }}>เลขที่</th>
                 <th rowSpan={4} className="bg-orange-excel sticky z-20" style={{ left: '48px', width: '128px', minWidth: '128px', maxWidth: '128px' }}>เลขประจำตัว</th>
-                <th rowSpan={4} className="bg-orange-excel sticky z-20" style={{ left: '176px', width: '180px', minWidth: '180px', maxWidth: '180px' }}>เลขประจำตัวประชาชน</th>
+                <th rowSpan={4} className="bg-orange-excel sticky z-20" style={{ left: '176px', width: '180px', minWidth: '180px', maxWidth: '180px' }}>เลขประจำตัว<br />ประชาชน</th>
                 <th rowSpan={4} className="bg-orange-excel sticky z-20 border-r-2 border-r-slate-400" style={{ left: '356px', width: '292px', minWidth: '292px', maxWidth: '292px' }}>ชื่อ - สกุล</th>
                 <th colSpan={19} className="bg-orange-excel">แบบบันทึกผลการประเมินคุณลักษณะอันพึงประสงค์</th>
               </tr>
@@ -234,8 +263,8 @@ export const Attributes5_8Form: React.FC<Props> = ({ students, data, generalInfo
                     <td className="bg-orange-100 text-center">{avg8}</td>
                     <td className="bg-orange-100 text-center">{avg8}</td>
                     
-                    <td className="bg-orange-100 text-center">{totalAvg}</td>
-                    <td className={`text-center font-bold ${gradeClass}`}>{gradeText}</td>
+                    <td className="attribute-total-result-cell bg-orange-100 text-center">{totalAvg}</td>
+                    <td className={`attribute-final-result-cell text-center font-bold ${gradeClass}`}>{gradeText}</td>
                   </tr>
                 );
               })}

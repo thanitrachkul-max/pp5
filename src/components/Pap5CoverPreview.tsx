@@ -21,6 +21,20 @@ const LEGACY_LOGO_URL = "/logo1.png";
 
 const GRADE_KEYS = ["4", "3.5", "3", "2.5", "2", "1.5", "1", "0"] as const;
 const QUALITY_KEYS = ["3", "2", "1", "0"] as const;
+const THAI_MONTHS_FULL = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
 
 type GradeKey = (typeof GRADE_KEYS)[number] | "ผ" | "มผ";
 type QualityKey = (typeof QUALITY_KEYS)[number];
@@ -131,11 +145,12 @@ function buildCoverSummary(appData: AppData) {
   return summary;
 }
 
-function formatThaiNumericDate(value: string | undefined) {
+function formatThaiFullDate(value: string | undefined) {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return "";
   const [year, month, day] = value.split("-").map(Number);
   if (!year || !month || !day) return "";
-  return `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year + 543}`;
+  const thaiYear = year > 2400 ? year : year + 543;
+  return `${day} ${THAI_MONTHS_FULL[month - 1] ?? ""} ${thaiYear}`;
 }
 
 function fieldBaseClass(className: string) {
@@ -166,7 +181,16 @@ function TextField({
   const displayValue = value === undefined || value === null ? "" : String(value);
 
   if (!editable) {
-    return <span className={`${className} inline-block min-h-[20px] px-1`}>{displayValue}</span>;
+    const shouldBoldValue = highlighted || muted || name === "academicYear";
+    return (
+      <span
+        className={`pap5-cover-value pap5-cover-fill-line inline-flex min-h-[20px] items-center justify-center px-1 text-center ${widthClass} ${
+          shouldBoldValue ? "font-bold" : ""
+        }`}
+      >
+        {displayValue}
+      </span>
+    );
   }
 
   return (
@@ -192,7 +216,11 @@ function SemesterField({
   const className = fieldBaseClass("bg-yellow-excel w-16");
 
   if (!editable) {
-    return <span className={`${className} inline-block min-h-[20px] px-1`}>{value}</span>;
+    return (
+      <span className="pap5-cover-value pap5-cover-fill-line inline-flex min-h-[20px] w-16 items-center justify-center px-1 text-center font-bold">
+        {value}
+      </span>
+    );
   }
 
   return (
@@ -219,8 +247,8 @@ function DateField({
 }) {
   if (!editable) {
     return (
-      <span className="inline-flex min-h-[31px] w-[138px] items-center justify-center rounded border border-slate-300 px-2 py-1 text-center text-sm">
-        {formatThaiNumericDate(value)}
+      <span className="inline-flex min-h-[24px] min-w-[150px] items-center justify-center px-2 py-0.5 text-center text-sm font-bold">
+        {formatThaiFullDate(value)}
       </span>
     );
   }
@@ -269,6 +297,8 @@ export function Pap5CoverPreview({
       ? displayGeneralInfo.logoUrl
       : DEFAULT_LOGO_URL;
   const summary = buildCoverSummary(appData);
+  const hasSecondTeacher = Boolean(displayGeneralInfo.teacherName2?.trim());
+  const showSecondTeacherField = editable || hasSecondTeacher;
   const getPercent = (count: number) => {
     if (summary.totalStudents === 0) return "0";
     return Math.round((count / summary.totalStudents) * 100).toString();
@@ -326,12 +356,14 @@ export function Pap5CoverPreview({
           />
         </div>
 
-        <div className="text-center font-bold text-sm">แบบบันทึกผลการเรียนรายวิชา</div>
-        <div className="text-center font-bold text-sm">
-          ตามหลักสูตรแกนกลางการศึกษาขั้นพื้นฐาน พุทธศักราช 2551
+        <div className="pap5-cover-title-block mb-4">
+          <div className="text-center font-bold text-sm">แบบบันทึกผลการเรียนรายวิชา</div>
+          <div className="text-center font-bold text-sm">
+            ตามหลักสูตรแกนกลางการศึกษาขั้นพื้นฐาน พุทธศักราช 2551
+          </div>
+          <div className="text-center font-bold text-sm">{schoolName}</div>
+          <div className="text-center font-bold text-sm">{agencyName}</div>
         </div>
-        <div className="text-center font-bold text-sm">{schoolName}</div>
-        <div className="text-center font-bold text-sm mb-4">{agencyName}</div>
 
         <div className="flex justify-center items-center gap-2 mb-2">
           <span>ชั้นมัธยมศึกษาปีที่</span>
@@ -419,32 +451,36 @@ export function Pap5CoverPreview({
         </div>
 
         <div className="flex justify-center items-center gap-2 mb-2">
-          <span>ครูผู้สอน 1.</span>
+          <span>{showSecondTeacherField ? "ครูผู้สอน 1." : "ครูผู้สอน"}</span>
           <TextField
             name="teacherName"
             value={displayGeneralInfo.teacherName}
-            widthClass="w-48"
+            widthClass={showSecondTeacherField ? "w-48" : "w-72"}
             highlighted
             editable={editable}
             onChange={handleChange}
           />
-          <span>2.</span>
-          <TextField
-            name="teacherName2"
-            value={displayGeneralInfo.teacherName2 || ""}
-            widthClass="w-48"
-            highlighted
-            editable={editable}
-            onChange={handleChange}
-          />
+          {showSecondTeacherField && (
+            <>
+              <span>2.</span>
+              <TextField
+                name="teacherName2"
+                value={displayGeneralInfo.teacherName2 || ""}
+                widthClass="w-48"
+                highlighted
+                editable={editable}
+                onChange={handleChange}
+              />
+            </>
+          )}
         </div>
 
-        <div className="flex justify-center items-center gap-2 mb-4">
+        <div className="flex justify-center items-center gap-1 mb-4">
           <span>ครูประจำชั้น 1.</span>
           <TextField
             name="homeroomTeacher1"
             value={displayGeneralInfo.homeroomTeacher1}
-            widthClass="w-36"
+            widthClass="w-44"
             editable={editable}
             onChange={handleChange}
           />
@@ -452,7 +488,7 @@ export function Pap5CoverPreview({
           <TextField
             name="homeroomTeacher2"
             value={displayGeneralInfo.homeroomTeacher2}
-            widthClass="w-36"
+            widthClass="w-44"
             editable={editable}
             onChange={handleChange}
           />
@@ -460,7 +496,7 @@ export function Pap5CoverPreview({
           <TextField
             name="homeroomTeacher3"
             value={displayGeneralInfo.homeroomTeacher3 || ""}
-            widthClass="w-36"
+            widthClass="w-44"
             editable={editable}
             onChange={handleChange}
           />

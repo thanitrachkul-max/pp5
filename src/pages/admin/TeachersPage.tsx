@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Crown, Loader2, Pencil, ShieldCheck, Trash2, UserPlus, Users, X } from 'lucide-react';
+import { CheckCircle2, Crown, Loader2, Pencil, ShieldCheck, Trash2, UserPlus, Users, X } from 'lucide-react';
 import { canManageAdminData, isSuperAdmin, ROLE_LABELS } from '../../lib/auth';
-import { createTeacherAccount } from '../../lib/createTeacherAccount';
+import { createTeacherAccount, updateTeacherAccount } from '../../lib/createTeacherAccount';
 import { supabase } from '../../lib/supabase';
 import type { AppUser, Profile, UserRole } from '../../types';
 
@@ -24,6 +24,8 @@ interface TeacherFormState {
   password: string;
 }
 
+type ModalSaveState = 'idle' | 'saving' | 'success';
+
 interface RoleGroup {
   key: string;
   title: string;
@@ -44,16 +46,9 @@ const roleGroups: RoleGroup[] = [
   {
     key: 'developers',
     title: 'ผู้พัฒนาและผู้ดูแลระบบ',
-    description: 'บัญชีผู้พัฒนาระบบสำหรับดูแลระบบหลัก',
+    description: 'บัญชีผู้พัฒนาระบบและผู้ดูแลระบบหลัก',
     icon: ShieldCheck,
-    roles: ['super_admin'],
-  },
-  {
-    key: 'admins',
-    title: 'ผู้ดูแลระบบ (Admin)',
-    description: 'จัดการข้อมูลระบบและข้อมูลวิชาการ',
-    icon: ShieldCheck,
-    roles: ['admin'],
+    roles: ['super_admin', 'admin'],
   },
   {
     key: 'executives',
@@ -85,7 +80,7 @@ function displayName(teacher: TeacherRow): string {
 
 function displayGroupKey(teacher: TeacherRow): string {
   if (teacher.role === 'super_admin') return 'developers';
-  if (teacher.role === 'admin') return 'admins';
+  if (teacher.role === 'admin') return 'developers';
   if (teacher.role === 'teacher') return 'teachers';
   if (teacher.role === 'executive') return 'executives';
   return 'teachers';
@@ -109,6 +104,13 @@ function displayedRoleBadgeClass(teacher: TeacherRow, groupKey: string): string 
 }
 
 function sortGroupRows(rows: TeacherRow[], groupKey: string): TeacherRow[] {
+  if (groupKey === 'developers') {
+    return [...rows].sort((a, b) => {
+      const roleRank = (role: UserRole) => (role === 'super_admin' ? 0 : role === 'admin' ? 1 : 2);
+      return roleRank(a.role) - roleRank(b.role) || displayName(a).localeCompare(displayName(b), 'th');
+    });
+  }
+
   if (groupKey !== 'executives') return rows;
   return [...rows].sort((a, b) => {
     const aIndex = executiveNameOrder.indexOf(displayName(a));
@@ -132,6 +134,8 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
   const [form, setForm] = useState<TeacherFormState>(emptyForm());
   const [editing, setEditing] = useState<TeacherRow | null>(null);
   const [saving, setSaving] = useState(false);
+  const [modalSaveState, setModalSaveState] = useState<ModalSaveState>('idle');
+  const [modalSuccessText, setModalSuccessText] = useState('');
   const canWrite = !readOnly && canManageAdminData(currentUser);
   const canEditSuperAdmin = isSuperAdmin(currentUser);
 
@@ -190,22 +194,28 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
     setShowEditModal(false);
     setEditing(null);
     setForm(emptyForm());
+    setModalSaveState('idle');
+    setModalSuccessText('');
   };
 
   const handleAddTeacher = async (event: React.FormEvent) => {
     event.preventDefault();
     setSaving(true);
+    setModalSaveState('saving');
+    setModalSuccessText('');
     setError('');
     setMessage('');
 
     if (!canWrite) {
       setError('บัญชีนี้ดูข้อมูลได้อย่างเดียว');
+      setModalSaveState('idle');
       setSaving(false);
       return;
     }
 
     if (form.role === 'super_admin' && !canEditSuperAdmin) {
       setError('เฉพาะ Super Admin เท่านั้นที่เพิ่มผู้พัฒนาระบบได้');
+      setModalSaveState('idle');
       setSaving(false);
       return;
     }
@@ -232,10 +242,17 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
         password: form.password.trim() || undefined,
       });
 
-      closeModal();
-      setMessage(form.password.trim() ? 'เพิ่มผู้ใช้งานแล้ว และตั้งรหัสผ่านตามที่กำหนด' : 'เพิ่มผู้ใช้งานแล้ว และตั้งรหัสผ่านเริ่มต้นเป็น username');
+      const successText = form.password.trim()
+        ? 'เพิ่มผู้ใช้งานแล้ว และตั้งรหัสผ่านตามที่กำหนด'
+        : 'เพิ่มผู้ใช้งานแล้ว และตั้งรหัสผ่านเริ่มต้นเป็น username';
+      setModalSaveState('success');
+      setModalSuccessText(successText);
+      setMessage(successText);
       await loadTeachers();
+      await new Promise((resolve) => window.setTimeout(resolve, 650));
+      closeModal();
     } catch (err) {
+      setModalSaveState('idle');
       setError(err instanceof Error ? err.message : 'เพิ่มผู้ใช้งานไม่สำเร็จ');
     } finally {
       setSaving(false);
@@ -259,17 +276,21 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
     if (!editing) return;
 
     setSaving(true);
+    setModalSaveState('saving');
+    setModalSuccessText('');
     setError('');
     setMessage('');
 
     if (!canWrite) {
       setError('บัญชีนี้ดูข้อมูลได้อย่างเดียว');
+      setModalSaveState('idle');
       setSaving(false);
       return;
     }
 
     if ((editing.role === 'super_admin' || form.role === 'super_admin') && !canEditSuperAdmin) {
       setError('เฉพาะ Super Admin เท่านั้นที่แก้ไขบทบาทผู้พัฒนาระบบได้');
+      setModalSaveState('idle');
       setSaving(false);
       return;
     }
@@ -277,41 +298,39 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
     const newPassword = form.password.trim();
     if (newPassword && newPassword.length < 6) {
       setError('รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร');
+      setModalSaveState('idle');
       setSaving(false);
       return;
     }
 
     try {
-      const { data, error: fnError } = await supabase.functions.invoke('update-teacher', {
-        body: {
-          id: editing.id,
-          username: form.username.trim(),
-          full_name: form.full_name.trim(),
-          title: form.title.trim() || null,
-          role: form.role,
-          password: newPassword || undefined,
-          reset_password_to_username: false,
-        },
+      await updateTeacherAccount({
+        id: editing.id,
+        username: form.username.trim(),
+        fullName: form.full_name.trim(),
+        title: form.title.trim() || null,
+        role: form.role,
+        password: newPassword || undefined,
       });
-
-      if (fnError) throw fnError;
-      if (data?.error) throw new Error(data.error as string);
 
       if (newPassword && editing.id === currentUser.id) {
         const { error: passwordError } = await supabase.auth.updateUser({ password: newPassword });
         if (passwordError) throw passwordError;
       }
 
-      closeModal();
-      setMessage(newPassword ? 'บันทึกข้อมูลแล้ว และเปลี่ยนรหัสผ่านใหม่เรียบร้อยแล้ว' : 'บันทึกข้อมูลแล้ว');
+      const successText = newPassword
+        ? 'บันทึกข้อมูลแล้ว และเปลี่ยนรหัสผ่านใหม่เรียบร้อยแล้ว'
+        : 'บันทึกข้อมูลแล้ว';
+      setModalSaveState('success');
+      setModalSuccessText(successText);
+      setMessage(successText);
       await loadTeachers();
+      await new Promise((resolve) => window.setTimeout(resolve, 650));
+      closeModal();
     } catch (err) {
+      setModalSaveState('idle');
       const message = err instanceof Error ? err.message : 'บันทึกไม่สำเร็จ';
-      setError(
-        message.includes('Failed to send a request to the Edge Function') || message.includes('non-2xx')
-          ? 'Edge Function update-teacher ตอบกลับไม่สำเร็จ — ตรวจสอบว่า deploy ฟังก์ชันล่าสุดแล้ว'
-          : message,
-      );
+      setError(message);
     } finally {
       setSaving(false);
     }
@@ -510,7 +529,10 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
         <div className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">{error}</div>
       )}
       {message && (
-        <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-sm text-emerald-700">{message}</div>
+        <div className="flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-sm font-semibold text-emerald-700">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          <span>{message}</span>
+        </div>
       )}
 
       {loading ? (
@@ -548,7 +570,24 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
 
       {modalOpen && createPortal((
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+          <div className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white p-6 shadow-xl">
+            {modalSaveState !== 'idle' && (
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/95 px-8 text-center">
+                {modalSaveState === 'success' ? (
+                  <CheckCircle2 className="h-14 w-14 text-emerald-500" />
+                ) : (
+                  <Loader2 className="h-14 w-14 animate-spin text-blue-600" />
+                )}
+                <div className="mt-4 text-lg font-extrabold text-slate-900">
+                  {modalSaveState === 'success' ? 'บันทึกสำเร็จ' : 'กำลังบันทึกข้อมูล'}
+                </div>
+                <p className="mt-1 text-sm font-semibold text-slate-500">
+                  {modalSaveState === 'success'
+                    ? modalSuccessText || 'บันทึกข้อมูลเรียบร้อยแล้ว'
+                    : 'กรุณารอสักครู่ ระบบกำลังอัปเดตบัญชีผู้ใช้งาน'}
+                </p>
+              </div>
+            )}
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">
@@ -558,7 +597,12 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
                   {showAddModal ? 'กำหนดรหัสผ่านได้เอง หรือเว้นว่างเพื่อใช้ username เป็นรหัสผ่านเริ่มต้น' : 'กรอกรหัสผ่านใหม่เฉพาะเมื่อต้องการเปลี่ยนรหัสผ่าน'}
                 </p>
               </div>
-              <button type="button" onClick={closeModal} className="text-slate-400 hover:text-slate-600">
+              <button
+                type="button"
+                onClick={closeModal}
+                disabled={saving}
+                className="text-slate-400 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-40"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -633,6 +677,7 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
                 <button
                   type="button"
                   onClick={closeModal}
+                  disabled={saving}
                   className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50"
                 >
                   ยกเลิก
@@ -642,6 +687,7 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
                   disabled={saving}
                   className="btn btn-primary flex-1"
                 >
+                  {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   {saving ? 'กำลังบันทึก...' : 'บันทึก'}
                 </button>
               </div>

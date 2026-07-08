@@ -111,6 +111,72 @@ function readErrorMessage(text: string) {
   return compact ? compact.slice(0, 300) : "";
 }
 
+function readDownloadFileName(response: Response) {
+  const disposition = response.headers.get("content-disposition") ?? "";
+  const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+  if (utf8Match?.[1]) {
+    try {
+      return decodeURIComponent(utf8Match[1]);
+    } catch {
+      return utf8Match[1];
+    }
+  }
+
+  const quotedMatch = disposition.match(/filename="([^"]+)"/i);
+  if (quotedMatch?.[1]) return quotedMatch[1];
+
+  const plainMatch = disposition.match(/filename=([^;]+)/i);
+  if (plainMatch?.[1]) return plainMatch[1].trim();
+
+  return "แบบปพ.5.pdf";
+}
+
+function saveBlob(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  link.rel = "noopener";
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
+export async function downloadPap5Pdf({
+  id,
+  data,
+  approvalStatus,
+}: {
+  id: string;
+  data: AppData;
+  approvalStatus?: GradebookApprovalStatus | null;
+}) {
+  const response = await fetch("/api/pap5-pdf", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ id, data, approvalStatus }),
+  });
+
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!response.ok || !contentType.toLowerCase().includes("application/pdf")) {
+    const errorText = await response.text().catch(() => "");
+    const responseMessage = readErrorMessage(errorText);
+    const message = response.ok
+      ? `ระบบสร้าง PDF ตอบกลับเป็น ${contentType || "unknown"} ไม่ใช่ application/pdf`
+      : responseMessage || "ไม่สามารถสร้างไฟล์ PDF ได้";
+
+    throw new Error(message);
+  }
+
+  const blob = await response.blob();
+  saveBlob(blob, readDownloadFileName(response));
+}
+
 export async function openPap5PdfPreview({
   id,
   data,

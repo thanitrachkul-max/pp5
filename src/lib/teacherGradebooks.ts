@@ -44,12 +44,16 @@ const TEACHER_ASSIGNMENT_SELECT_BASE = `
   ),
   semesters:semester_id(
     semester_number,
+    start_date,
+    end_date,
     grade_entry_enabled,
     entry_start_date,
     entry_end_date,
     academic_years:academic_year_id(
       id,
       year_be,
+      start_date,
+      end_date,
       is_active,
       primary_grade_entry_enabled,
       primary_entry_start_date,
@@ -82,12 +86,16 @@ const TEACHER_ASSIGNMENT_SELECT_WITH_THIRD = `
   ),
   semesters:semester_id(
     semester_number,
+    start_date,
+    end_date,
     grade_entry_enabled,
     entry_start_date,
     entry_end_date,
     academic_years:academic_year_id(
       id,
       year_be,
+      start_date,
+      end_date,
       is_active,
       primary_grade_entry_enabled,
       primary_entry_start_date,
@@ -231,12 +239,16 @@ type RawAssignment = {
   } | null;
   semesters: {
     semester_number: number;
+    start_date?: string | null;
+    end_date?: string | null;
     grade_entry_enabled?: boolean | null;
     entry_start_date?: string | null;
     entry_end_date?: string | null;
     academic_years: {
       id: string;
       year_be: number;
+      start_date?: string | null;
+      end_date?: string | null;
       is_active: boolean;
       primary_grade_entry_enabled?: boolean | null;
       primary_entry_start_date?: string | null;
@@ -437,6 +449,12 @@ export async function fetchTeacherAssignments(
     const semesterGradeEntryEnabled = isPrimary
       ? year.primary_grade_entry_enabled !== false
       : semester.grade_entry_enabled ?? true;
+    const studyStartDate = isPrimary
+      ? year.study_start_date ?? year.start_date ?? null
+      : semester.start_date ?? year.study_start_date ?? year.start_date ?? null;
+    const studyEndDate = isPrimary
+      ? year.study_end_date ?? year.end_date ?? null
+      : semester.end_date ?? year.study_end_date ?? year.end_date ?? null;
 
     views.push({
       id: row.id,
@@ -462,8 +480,8 @@ export async function fetchTeacherAssignments(
       academic_year_id: year.id,
       year_be: year.year_be,
       year_is_active: year.is_active,
-      study_start_date: year.study_start_date ?? null,
-      study_end_date: year.study_end_date ?? null,
+      study_start_date: studyStartDate,
+      study_end_date: studyEndDate,
       semester_grade_entry_enabled: semesterGradeEntryEnabled,
       student_count: count ?? 0,
       gradebook_id: gb?.id ?? null,

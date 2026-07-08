@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { createPap5PdfHttpResult } from "../src/server/pap5PdfHttp.js";
+import { createPap5PdfHttpResult, parsePap5PdfRequestPayload } from "../src/server/pap5PdfHttp.js";
 
 function readRequestBody(req: IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -37,6 +37,12 @@ function getPrintRouteHeaders(req: IncomingMessage) {
   return headers;
 }
 
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message.trim()) return error.message;
+  const message = String(error ?? "").trim();
+  return message || "Pap5 PDF export failed";
+}
+
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   if (req.method !== "POST") {
     res.statusCode = 405;
@@ -47,7 +53,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
 
   try {
     const rawBody = await readRequestBody(req);
-    const payload = JSON.parse(rawBody.replace(/^\uFEFF/, "") || "{}");
+    const payload = parsePap5PdfRequestPayload(rawBody, getHeaderValue(req.headers["content-type"]) ?? "");
     const result = await createPap5PdfHttpResult({
       payload,
       origin: getOrigin(req),
@@ -61,8 +67,9 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     res.end(result.body);
   } catch (error) {
     console.error("Pap5 PDF export failed", error);
+    const message = getErrorMessage(error);
     res.statusCode = 500;
     res.setHeader("content-type", "application/json; charset=utf-8");
-    res.end(JSON.stringify({ error: "Pap5 PDF export failed" }));
+    res.end(JSON.stringify({ error: message }));
   }
 }

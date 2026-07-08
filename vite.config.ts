@@ -15,6 +15,12 @@ function readRequestBody(req: import('node:http').IncomingMessage): Promise<stri
   });
 }
 
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message.trim()) return error.message;
+  const message = String(error ?? '').trim();
+  return message || 'Pap5 PDF export failed';
+}
+
 function pap5PdfDevApiPlugin(): Plugin {
   return {
     name: 'pap5-pdf-dev-api',
@@ -32,8 +38,11 @@ function pap5PdfDevApiPlugin(): Plugin {
 
         try {
           const rawBody = await readRequestBody(req);
-          const payload = JSON.parse(rawBody.replace(/^\uFEFF/, '') || '{}');
-          const { createPap5PdfHttpResult } = await import('./src/server/pap5PdfHttp');
+          const { createPap5PdfHttpResult, parsePap5PdfRequestPayload } = await import('./src/server/pap5PdfHttp');
+          const contentType = Array.isArray(req.headers['content-type'])
+            ? req.headers['content-type'].join('; ')
+            : req.headers['content-type'] ?? '';
+          const payload = parsePap5PdfRequestPayload(rawBody, contentType);
           const origin = `http://${req.headers.host ?? '127.0.0.1:3000'}`;
           const result = await createPap5PdfHttpResult({ payload, origin });
 
@@ -44,9 +53,10 @@ function pap5PdfDevApiPlugin(): Plugin {
           res.end(result.body);
         } catch (error) {
           console.error('Pap5 PDF export failed', error);
+          const message = getErrorMessage(error);
           res.statusCode = 500;
           res.setHeader('content-type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ error: 'Pap5 PDF export failed' }));
+          res.end(JSON.stringify({ error: message }));
         }
       };
 

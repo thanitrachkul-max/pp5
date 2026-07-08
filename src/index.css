@@ -247,6 +247,19 @@ input[type="number"] {
 .bg-orange-excel { background-color: #ffedd5; }
 .bg-green-excel { background-color: #dcfce7; }
 
+.attendance-hour-text {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-orientation: mixed;
+  white-space: nowrap;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
 .writing-vertical {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
@@ -271,6 +284,34 @@ input[type="number"] {
 .excel-scroll-area {
   background: #fff;
   border-bottom: 1px solid #cbd5e1;
+  padding-bottom: 42px;
+  scrollbar-color: #475569 #e2e8f0;
+  scrollbar-gutter: stable;
+}
+
+.excel-scroll-area::-webkit-scrollbar {
+  height: 36px;
+}
+
+.excel-scroll-area::-webkit-scrollbar-track {
+  background: #e2e8f0;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  box-shadow: inset 0 1px 2px rgb(15 23 42 / 0.18);
+}
+
+.excel-scroll-area::-webkit-scrollbar-thumb {
+  min-width: 88px;
+  border: 7px solid #e2e8f0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #94a3b8 0%, #475569 100%);
+  box-shadow:
+    inset 1px 1px 0 rgb(255 255 255 / 0.72),
+    inset -1px -1px 0 rgb(15 23 42 / 0.26);
+}
+
+.excel-scroll-area::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #7c8ca3 0%, #334155 100%);
 }
 
 .excel-scroll-content {
@@ -352,12 +393,36 @@ input[type="number"] {
     inset 1px 0 0 color-mix(in srgb, var(--folder-active-border) 9%, transparent),
     inset -1px 0 0 color-mix(in srgb, var(--folder-active-border) 9%, transparent),
     0 18px 34px -30px rgba(15, 23, 42, 0.42);
+  perspective: 1300px;
 }
 
 .gradebook-folder-content > div:first-child {
   border-top-left-radius: 0 !important;
   border-top-right-radius: 0 !important;
   padding-top: 36px !important;
+}
+
+.gradebook-paper-turn {
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+  transform-origin: left center;
+  backface-visibility: hidden;
+  animation: gradebook-paper-turn-in 240ms cubic-bezier(0.18, 0.82, 0.22, 1) both;
+  will-change: opacity, transform;
+}
+
+.gradebook-paper-turn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(15, 23, 42, 0.18), rgba(255, 255, 255, 0.36) 34%, rgba(255, 255, 255, 0) 68%);
+  opacity: 0;
+  transform: translateX(-12%);
+  animation: gradebook-paper-glint 240ms cubic-bezier(0.18, 0.82, 0.22, 1) both;
 }
 
 .gradebook-folder-content-document {
@@ -435,12 +500,12 @@ input[type="number"] {
   transform: translateY(0);
   transform-origin: center bottom;
   transition:
-    background 180ms ease,
-    border-color 180ms ease,
-    filter 180ms ease,
-    box-shadow 180ms ease,
-    color 180ms ease,
-    transform 180ms ease;
+    background 110ms ease-out,
+    border-color 110ms ease-out,
+    box-shadow 110ms ease-out,
+    color 110ms ease-out,
+    transform 110ms ease-out;
+  will-change: transform;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     inset 0 10px 14px rgba(255, 255, 255, 0.34),
@@ -703,6 +768,42 @@ main table:not(.excel-table) tbody td {
 }
 .animate-fade-up { animation: fade-up 0.3s ease both; }
 
+@keyframes gradebook-paper-turn-in {
+  0% {
+    opacity: 0.08;
+    transform: rotateY(-18deg) translateX(-18px) scale(0.985);
+  }
+  62% {
+    opacity: 1;
+    transform: rotateY(2deg) translateX(2px) scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: rotateY(0) translateX(0) scale(1);
+  }
+}
+
+@keyframes gradebook-paper-glint {
+  0% {
+    opacity: 0.74;
+    transform: translateX(-22%);
+  }
+  72% {
+    opacity: 0.18;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(28%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gradebook-paper-turn,
+  .gradebook-paper-turn::before {
+    animation: none;
+  }
+}
+
 .network-bg {
   background-image: url('/cover2.jpg');
   background-size: cover;
@@ -743,11 +844,29 @@ main table:not(.excel-table) tbody td {
   background: #ffffff;
   color: #0f172a;
   font-family: "TH Sarabun PSK", "Sarabun", sans-serif;
+  font-synthesis: none;
+  letter-spacing: 0;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .print-page {
+  position: relative;
   background: #ffffff;
   overflow: hidden;
+}
+
+.pap5-page-number {
+  position: absolute;
+  top: 8mm;
+  right: 10mm;
+  z-index: 30;
+  color: #0f172a;
+  font-family: "TH Sarabun PSK", "Sarabun", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .print-page-content {
@@ -759,6 +878,29 @@ main table:not(.excel-table) tbody td {
   background: #ffffff;
   color: #0f172a;
   font-family: "TH Sarabun PSK", "Sarabun", sans-serif;
+  font-synthesis: none;
+  letter-spacing: 0;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.pap5-pdf-route-root .pap5-cover-page {
+  line-height: 1.45;
+}
+
+.pap5-cover-fill-line {
+  border-bottom: 1px dotted #94a3b8;
+}
+
+.pap5-cover-title-block {
+  font-size: 14.36px;
+  line-height: 1.44;
+}
+
+.pap5-cover-title-block > div {
+  font-size: inherit;
+  line-height: inherit;
 }
 
 .pdf-print-page {
@@ -913,6 +1055,225 @@ main table:not(.excel-table) tbody td {
   font-weight: 700;
 }
 
+.attendance-print-mark,
+.score-print-cell-value {
+  display: flex;
+  width: 100%;
+  min-height: 100%;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.15;
+  font: inherit;
+}
+
+.pap5-summary-page {
+  width: 100%;
+  color: #0f172a;
+  font-family: "TH Sarabun PSK", "Sarabun", sans-serif;
+}
+
+.pap5-summary-heading {
+  margin-bottom: 4mm;
+  text-align: center;
+}
+
+.pap5-summary-heading h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.pap5-summary-heading-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9mm;
+}
+
+.pap5-summary-heading-title span {
+  display: block;
+}
+
+.pap5-attendance-summary-page .pap5-summary-heading-title span:first-child {
+  font-size: 20px;
+}
+
+.pap5-attendance-summary-page .pap5-summary-heading-title span:not(:first-child) {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.pap5-attendance-summary-page .pap5-summary-heading {
+  margin-bottom: 7mm;
+}
+
+.pap5-attendance-summary-page .pap5-summary-heading h2 {
+  line-height: 1.5;
+}
+
+.pap5-attendance-summary-page .pap5-summary-heading-title {
+  gap: 2mm;
+}
+
+.pap5-summary-heading p {
+  margin: 1mm 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #475569;
+}
+
+.pap5-summary-table-wrap {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.pap5-score-summary-page .pap5-summary-table-wrap {
+  margin-top: 6mm;
+}
+
+.pap5-summary-table {
+  width: auto;
+  max-width: 100%;
+  table-layout: fixed;
+  font-size: 11.5px;
+  line-height: 1.18;
+}
+
+.pap5-summary-table th,
+.pap5-summary-table td {
+  padding: 3px 5px;
+  vertical-align: middle;
+}
+
+.pap5-summary-table tbody td {
+  font-weight: 400;
+}
+
+.pap5-summary-table .text-left {
+  text-align: left;
+}
+
+.pap5-summary-table .col-no {
+  width: 8mm;
+}
+
+.pap5-summary-table .col-code {
+  width: 18mm;
+}
+
+.pap5-summary-table .col-citizen {
+  width: 27mm;
+}
+
+.pap5-summary-table .col-name {
+  width: 46mm;
+}
+
+.pap5-attendance-summary-table .month-col {
+  width: 17mm;
+}
+
+.pap5-attendance-summary-table .summary-col {
+  width: 16mm;
+}
+
+.pap5-attendance-summary-table .result-col {
+  width: 24mm;
+}
+
+.pap5-score-summary-table .item-col {
+  width: 22mm;
+}
+
+.pap5-score-summary-table .col-no {
+  width: 11mm;
+}
+
+.pap5-score-summary-table .unit-summary-col {
+  width: 17mm;
+}
+
+.pap5-score-summary-table .final-summary-col,
+.pap5-score-summary-table .grade-col {
+  width: 13mm;
+}
+
+.pap5-score-summary-table .result-col {
+  width: 18mm;
+}
+
+.pap5-score-summary-table .writing-vertical {
+  height: 42mm;
+  padding: 2mm 1mm;
+  white-space: nowrap;
+}
+
+.pap5-score-summary-table .summary-unit-name,
+.pap5-score-summary-table .score-summary-vertical-header {
+  height: 42mm;
+  padding: 2mm 1mm;
+  font-size: 10px;
+  line-height: 1.12;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pap5-score-summary-table .score-summary-header-text {
+  display: flex;
+  min-height: 24mm;
+  align-items: center;
+  justify-content: center;
+  padding: 1mm;
+  font-size: 10px;
+  line-height: 1.12;
+  white-space: normal;
+}
+
+.pap5-score-summary-table .score-summary-full-row th,
+.pap5-score-summary-table .score-summary-passing-row th {
+  height: 7.2mm;
+  min-height: 7.2mm;
+}
+
+.attribute-print-heading,
+.analytical-print-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6mm;
+  margin-bottom: 6mm;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.36;
+  color: #0f172a;
+}
+
+.indicator-print-heading {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  margin-bottom: 5mm;
+  text-align: center;
+  color: #0f172a;
+}
+
+.indicator-print-heading h2 {
+  font-size: 23px;
+  line-height: 1.25;
+}
+
+.instruction-document-title {
+  margin: 0 0 7mm;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
 .pap5-cover-page,
 .pap5-cover-page * {
   print-color-adjust: exact;
@@ -1044,6 +1405,16 @@ main table:not(.excel-table) tbody td {
     -webkit-print-color-adjust: exact;
   }
 
+  .print-page.landscape > .pap5-page-number {
+    left: 274mm !important;
+    right: auto !important;
+  }
+
+  .print-page.portrait > .pap5-page-number {
+    left: 187mm !important;
+    right: auto !important;
+  }
+
   .print-page:last-child {
     break-after: auto;
     page-break-after: auto;
@@ -1079,7 +1450,28 @@ main table:not(.excel-table) tbody td {
     page: landscapePage;
     width: 297mm !important;
     height: 210mm !important;
-    padding: 25.4mm 18mm 8mm !important;
+    padding: 25.4mm 22mm 10mm !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+  }
+
+  .attendance-print-page.original-tab-print-page {
+    padding: 25.4mm 6mm 10mm 16mm !important;
+    justify-content: flex-start !important;
+  }
+
+  .score-print-page.original-tab-print-page {
+    padding: 22mm 6mm 10mm 16mm !important;
+    justify-content: flex-start !important;
+  }
+
+  .summary-print-page {
+    page: landscapePage;
+    width: 297mm !important;
+    height: 210mm !important;
+    min-height: 210mm !important;
+    padding: 22mm 18mm 12mm !important;
     display: flex !important;
     align-items: flex-start !important;
     justify-content: center !important;
@@ -1115,12 +1507,17 @@ main table:not(.excel-table) tbody td {
 
   .pap5-original-print-document .original-tab-print-page > div {
     width: 100% !important;
-    max-width: 261mm !important;
+    max-width: 253mm !important;
     height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: visible !important;
     background: #ffffff !important;
+  }
+
+  .pap5-original-print-document .attendance-print-page.original-tab-print-page > div,
+  .pap5-original-print-document .score-print-page.original-tab-print-page > div {
+    max-width: 275mm !important;
   }
 
   .pap5-original-print-document .original-tab-print-page > div > div {
@@ -1140,7 +1537,13 @@ main table:not(.excel-table) tbody td {
     width: 100% !important;
     max-width: 100% !important;
     overflow: visible !important;
+    padding-bottom: 0 !important;
     border-bottom: 0 !important;
+  }
+
+  .pap5-original-print-document .attendance-print-page .excel-scroll-area,
+  .pap5-original-print-document .score-print-page .excel-scroll-area {
+    justify-content: flex-start !important;
   }
 
   .pap5-original-print-document .original-tab-print-page .excel-scroll-content {
@@ -1153,13 +1556,18 @@ main table:not(.excel-table) tbody td {
     transform-origin: top left !important;
   }
 
+  .pap5-original-print-document .attendance-print-page .excel-scroll-content,
+  .pap5-original-print-document .score-print-page .excel-scroll-content {
+    margin: 0 !important;
+  }
+
   .pap5-original-print-document .original-tab-print-page table {
     width: auto !important;
     max-width: 100% !important;
     border-collapse: separate !important;
     border-spacing: 0 !important;
     table-layout: auto !important;
-    font-size: 12px !important;
+    font-size: 11px !important;
     line-height: 1.2 !important;
   }
 
@@ -1176,14 +1584,276 @@ main table:not(.excel-table) tbody td {
 
   .pap5-original-print-document .attendance-print-page table,
   .pap5-original-print-document .score-print-page table {
-    font-size: 11.5px !important;
+    font-size: 10.5px !important;
     line-height: 1.16 !important;
+  }
+
+  .pap5-original-print-document .attendance-print-page tbody tr,
+  .pap5-original-print-document .score-print-page tbody tr,
+  .pap5-original-print-document .summary-print-page tbody tr,
+  .pap5-original-print-document .attribute-print-page tbody tr,
+  .pap5-original-print-document .analytical-print-page tbody tr {
+    height: 8.4mm !important;
+  }
+
+  .pap5-original-print-document .attendance-print-page tbody td,
+  .pap5-original-print-document .score-print-page tbody td,
+  .pap5-original-print-document .summary-print-page tbody td,
+  .pap5-original-print-document .attribute-print-page tbody td,
+  .pap5-original-print-document .analytical-print-page tbody td {
+    height: 8.4mm !important;
+    min-height: 8.4mm !important;
+  }
+
+  .pap5-original-print-document .attendance-print-page .attendance-student-no-header,
+  .pap5-original-print-document .attendance-print-page .attendance-student-no-cell {
+    width: 7.6mm !important;
+    min-width: 7.6mm !important;
+    max-width: 7.6mm !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+  }
+
+  .pap5-original-print-document .attendance-print-page .attendance-date-cell,
+  .pap5-original-print-document .attendance-print-page .attendance-hour-cell {
+    padding: 1px 0 !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+  }
+
+  .pap5-original-print-document .attendance-print-page .attendance-date-cell {
+    font-size: 8.9px !important;
+    font-weight: 400 !important;
+    line-height: 1.08 !important;
+  }
+
+  .pap5-original-print-document .attendance-print-page .attendance-date-label-cell,
+  .pap5-original-print-document .attendance-print-page .attendance-hour-label-cell,
+  .pap5-original-print-document .attendance-print-page .attendance-hour-cell {
+    font-size: 9.6px !important;
+    font-weight: 400 !important;
+    line-height: 1.08 !important;
+  }
+
+  .pap5-original-print-document .attendance-print-page .attendance-hour-cell {
+    height: 8.2mm !important;
+    padding: 0 !important;
+  }
+
+  .pap5-original-print-document .attendance-print-page .attendance-hour-text {
+    display: inline-flex !important;
+    height: 7.6mm !important;
+    align-items: center !important;
+    justify-content: center !important;
+    writing-mode: vertical-rl !important;
+    transform: rotate(180deg) !important;
+    white-space: nowrap !important;
+    font-size: 8.9px !important;
+    line-height: 1 !important;
+  }
+
+  .pap5-original-print-document .attendance-summary-print-page .pap5-summary-heading {
+    margin-bottom: 7mm !important;
+  }
+
+  .pap5-original-print-document .attendance-summary-print-page .pap5-summary-heading-title {
+    gap: 1.35mm !important;
+  }
+
+  .pap5-original-print-document .score-summary-print-page .pap5-score-summary-table .col-no {
+    width: 11mm !important;
+  }
+
+  .pap5-original-print-document .score-summary-print-page .pap5-score-summary-table {
+    transform: scaleY(0.86) !important;
+    transform-origin: top center !important;
+  }
+
+  .pap5-original-print-document .score-summary-print-page .pap5-score-summary-table tbody tr.score-summary-student-row {
+    height: 2.05mm !important;
+    max-height: 2.05mm !important;
+  }
+
+  .pap5-original-print-document .score-summary-print-page .pap5-score-summary-table tbody tr.score-summary-student-row > td {
+    height: 2.05mm !important;
+    min-height: 2.05mm !important;
+    max-height: 2.05mm !important;
+    padding: 0 4px !important;
+    font-size: 11.5px !important;
+    line-height: 0.675 !important;
+    overflow: visible !important;
+    white-space: nowrap !important;
+  }
+
+  .pap5-original-print-document .score-summary-print-page .score-summary-full-row th,
+  .pap5-original-print-document .score-summary-print-page .score-summary-passing-row th {
+    height: 7.2mm !important;
+    min-height: 7.2mm !important;
+  }
+
+  .pap5-original-print-document .score-summary-print-page .score-summary-percent-col,
+  .pap5-original-print-document .score-summary-print-page .score-summary-indicator-result-col {
+    font-weight: 700 !important;
+  }
+
+  .pap5-original-print-document .attribute-print-page .attribute-total-result-cell,
+  .pap5-original-print-document .attribute-print-page .attribute-final-result-cell,
+  .pap5-original-print-document .analytical-print-page .analytical-summary-result-cell,
+  .pap5-original-print-document .analytical-print-page .analytical-final-result-cell {
+    font-weight: 700 !important;
+  }
+
+  .pap5-original-print-document .score-print-page .score-print-heading {
+    margin-bottom: 7mm !important;
+  }
+
+  .pap5-original-print-document .score-print-page .score-print-heading h2 {
+    font-size: 17px !important;
+    line-height: 1.38 !important;
+  }
+
+  .pap5-original-print-document .score-print-page .score-print-heading-line {
+    display: block !important;
+  }
+
+  .pap5-original-print-document .score-print-page thead .writing-vertical {
+    height: 30mm !important;
+    padding: 1mm 0.8mm !important;
+    line-height: 1.08 !important;
   }
 
   .pap5-original-print-document .attribute-print-page table,
   .pap5-original-print-document .analytical-print-page table {
-    font-size: 12px !important;
+    font-size: 11px !important;
     line-height: 1.2 !important;
+  }
+
+  .pap5-original-print-document .attribute-print-page .attribute-print-heading,
+  .pap5-original-print-document .analytical-print-page .analytical-print-heading {
+    gap: 1.6mm !important;
+    margin-bottom: 6mm !important;
+    font-size: 18px !important;
+    line-height: 1.36 !important;
+  }
+
+  .pap5-original-print-document .attribute-print-page .excel-scroll-area,
+  .pap5-original-print-document .analytical-print-page .excel-scroll-area,
+  .pap5-original-print-document .attribute-print-page .excel-scroll-content,
+  .pap5-original-print-document .analytical-print-page .excel-scroll-content {
+    width: 100% !important;
+  }
+
+  .pap5-original-print-document .attribute-print-page .attribute-print-table,
+  .pap5-original-print-document .analytical-print-page .analytical-print-table {
+    width: 100% !important;
+    table-layout: fixed !important;
+  }
+
+  .pap5-original-print-document .analytical-print-page .analytical-print-table .analytical-col-no {
+    width: 7mm !important;
+  }
+
+  .pap5-original-print-document .analytical-print-page .analytical-print-table .analytical-col-code {
+    width: 32mm !important;
+  }
+
+  .pap5-original-print-document .analytical-print-page .analytical-print-table .analytical-col-citizen {
+    width: 39mm !important;
+  }
+
+  .pap5-original-print-document .analytical-print-page .analytical-print-table .analytical-col-name {
+    width: 42mm !important;
+  }
+
+  .pap5-original-print-document .analytical-print-page .analytical-print-table .analytical-score-col {
+    width: 9mm !important;
+  }
+
+  .pap5-original-print-document .analytical-print-page .analytical-print-table .analytical-summary-col,
+  .pap5-original-print-document .analytical-print-page .analytical-print-table .analytical-final-col {
+    width: 35mm !important;
+  }
+
+  .pap5-original-print-document .attribute-print-page .attribute-print-table .attribute-col-no {
+    width: 7mm !important;
+  }
+
+  .pap5-original-print-document .attribute-print-page .attribute-print-table .attribute-col-code {
+    width: 17mm !important;
+  }
+
+  .pap5-original-print-document .attribute-print-page .attribute-print-table .attribute-col-citizen {
+    width: 24mm !important;
+  }
+
+  .pap5-original-print-document .attribute-print-page .attribute-print-table .attribute-col-name {
+    width: 42mm !important;
+  }
+
+  .pap5-original-print-document .attribute-print-page .attribute-print-table .attribute-score-col {
+    width: 6.8mm !important;
+  }
+
+  .pap5-original-print-document .attribute-print-page .attribute-print-table .attribute-total-col {
+    width: 9mm !important;
+  }
+
+  .pap5-original-print-document .attribute-print-page .attribute-print-table .attribute-final-col {
+    width: 15mm !important;
+  }
+
+  .pap5-original-print-document .attribute-print-page .attribute-print-table thead tr:nth-child(3) th,
+  .pap5-original-print-document .attribute-print-page .attribute-print-table thead tr:nth-child(4) th,
+  .pap5-original-print-document .attribute-print-page .attribute-print-table tbody td:nth-child(n + 5) {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  .pap5-original-print-document .analytical-print-page .analytical-print-table thead tr:nth-last-child(-n + 3) th,
+  .pap5-original-print-document .analytical-print-page .analytical-print-table tbody td:nth-child(n + 5) {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  .pap5-original-print-document .indicator-print-page .indicator-print-heading {
+    justify-content: center !important;
+    margin-bottom: 6mm !important;
+  }
+
+  .pap5-original-print-document .indicator-print-page .indicator-print-heading h2 {
+    font-size: 23px !important;
+    line-height: 1.25 !important;
+  }
+
+  .pap5-original-print-document .indicator-print-page .indicator-print-table-frame {
+    width: 75% !important;
+  }
+
+  .pap5-original-print-document .indicator-print-page .indicator-print-table {
+    font-size: 12.1px !important;
+    line-height: 1.38 !important;
+  }
+
+  .pap5-original-print-document .indicator-print-page .indicator-print-table th,
+  .pap5-original-print-document .indicator-print-page .indicator-print-table td {
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+  }
+
+  .pap5-original-print-document .indicator-print-page .indicator-print-table tbody tr {
+    height: 13.8mm !important;
+  }
+
+  .pap5-original-print-document .indicator-print-page .indicator-print-table textarea {
+    min-height: 11mm !important;
+  }
+
+  .pap5-original-print-document .instruction-document-title {
+    margin-bottom: 7mm !important;
+    font-size: 20px !important;
+    line-height: 1.25 !important;
   }
 
   .pap5-original-print-document .original-tab-print-page input,
@@ -1206,6 +1876,24 @@ main table:not(.excel-table) tbody td {
     max-width: 2.8mm !important;
   }
 
+  .pap5-original-print-document .attendance-print-page [style*="28px"] {
+    width: 3.3mm !important;
+    min-width: 3.3mm !important;
+    max-width: 3.3mm !important;
+  }
+
+  .pap5-original-print-document .attendance-print-page [style*="31px"] {
+    width: 3.65mm !important;
+    min-width: 3.65mm !important;
+    max-width: 3.65mm !important;
+  }
+
+  .pap5-original-print-document .attendance-print-page [style*="34px"] {
+    width: 3.8mm !important;
+    min-width: 3.8mm !important;
+    max-width: 3.8mm !important;
+  }
+
   .pap5-original-print-document .attendance-print-page [style*="41px"],
   .pap5-original-print-document .attendance-print-page [style*="44px"],
   .pap5-original-print-document .attendance-print-page [style*="48px"],
@@ -1223,10 +1911,23 @@ main table:not(.excel-table) tbody td {
     max-width: 7mm !important;
   }
 
+  .pap5-original-print-document .score-print-page [style*="44px"] {
+    width: 12mm !important;
+    min-width: 12mm !important;
+    max-width: 12mm !important;
+  }
+
   .pap5-original-print-document .attendance-print-page [style*="64px"] {
     width: 8mm !important;
     min-width: 8mm !important;
     max-width: 8mm !important;
+  }
+
+  .pap5-original-print-document .attendance-print-page [style*="76px"] {
+    width: 12mm !important;
+    min-width: 12mm !important;
+    max-width: 12mm !important;
+    text-align: center !important;
   }
 
   .pap5-original-print-document .attendance-print-page [style*="72px"],
@@ -1274,6 +1975,12 @@ main table:not(.excel-table) tbody td {
     width: 24mm !important;
     min-width: 24mm !important;
     max-width: 24mm !important;
+  }
+
+  .pap5-original-print-document .score-print-page [style*="136px"] {
+    width: 30mm !important;
+    min-width: 30mm !important;
+    max-width: 30mm !important;
   }
 
   .pap5-original-print-document .attendance-print-page [style*="248px"],
@@ -1455,6 +2162,61 @@ main table:not(.excel-table) tbody td {
     background: #ffffff !important;
     color: #0f172a !important;
     font-family: "TH Sarabun PSK", "Sarabun", sans-serif !important;
+    font-size: 13.3px !important;
+    line-height: 1.38 !important;
+  }
+
+  .pap5-pdf-route-root .cover-print-page .pap5-cover-fill-line.font-bold,
+  .pap5-preview-route-root .pap5-cover-fill-line.font-bold {
+    font-weight: 700 !important;
+  }
+
+  .pap5-pdf-route-root .cover-print-page .pap5-cover-fill-line,
+  .pap5-preview-route-root .pap5-cover-fill-line {
+    font-size: 15.3px !important;
+    line-height: 1.05 !important;
+    white-space: nowrap !important;
+  }
+
+  .pap5-pdf-route-root .cover-print-page .pap5-cover-fill-line:not(.font-bold),
+  .pap5-preview-route-root .pap5-cover-fill-line:not(.font-bold) {
+    font-weight: 400 !important;
+  }
+
+  .pap5-pdf-route-root .cover-print-page .pap5-cover-page .text-sm,
+  .pap5-preview-route-root .pap5-cover-page .text-sm {
+    font-size: 13.3px !important;
+    line-height: 1.2 !important;
+  }
+
+  .pap5-pdf-route-root .cover-print-page .pap5-cover-title-block,
+  .pap5-preview-route-root .pap5-cover-title-block {
+    font-size: 14.36px !important;
+    line-height: 1.44 !important;
+  }
+
+  .pap5-pdf-route-root .cover-print-page .pap5-cover-title-block > div,
+  .pap5-preview-route-root .pap5-cover-title-block > div {
+    font-size: inherit !important;
+    line-height: inherit !important;
+  }
+
+  .pap5-pdf-route-root .cover-print-page .pap5-cover-page .pap5-cover-title-block > div.text-sm,
+  .pap5-preview-route-root .pap5-cover-page .pap5-cover-title-block > div.text-sm {
+    font-size: 14.36px !important;
+    line-height: 1.44 !important;
+  }
+
+  .pap5-pdf-route-root .cover-print-page .pap5-cover-summary th,
+  .pap5-pdf-route-root .cover-print-page .pap5-cover-summary td,
+  .pap5-preview-route-root .pap5-cover-summary th,
+  .pap5-preview-route-root .pap5-cover-summary td {
+    font-size: 11.4px !important;
+  }
+
+  .pap5-pdf-route-root .cover-print-page .pap5-signatures,
+  .pap5-preview-route-root .pap5-signatures {
+    transform: translateX(8mm) !important;
   }
 
   .pap5-pdf-route-root .explanation-print-page > div {
@@ -1527,6 +2289,10 @@ main table:not(.excel-table) tbody td {
   .print-document .excel-scroll-content {
     overflow: visible !important;
     max-width: none !important;
+  }
+
+  .print-document .excel-scroll-area {
+    padding-bottom: 0 !important;
   }
 
   .print-document .sticky {

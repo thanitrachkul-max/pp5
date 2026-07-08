@@ -5,6 +5,7 @@ export const Instructions1Form: React.FC = () => {
     <div className="flex justify-center rounded-2xl bg-slate-100/90 p-4 sm:p-6 overflow-auto">
       <div className="bg-white p-10 rounded-lg ring-1 ring-slate-200/80 shadow-[0_12px_32px_-8px_rgb(15,23,42,0.12)]" style={{ width: '1123px', minHeight: '794px', fontFamily: 'Sarabun' }}>
         <div className="text-base leading-relaxed">
+          <h1 className="instruction-document-title">คำชี้แจงรายละเอียดเอกสาร 1</h1>
           <p className="font-bold text-lg mb-2">การบันทึกเวลาเรียน</p>
           <div className="pl-4 mb-4">
             <p>1. เลขประจำตัวนักเรียน ให้กรอกเลขประจำตัวนักเรียนเรียงจากน้อยไปหามาก โดยเริ่มจากนักเรียนชายทั้งหมด</p>

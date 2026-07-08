@@ -6,10 +6,19 @@ import { IndicatorsForm } from "./IndicatorsForm";
 import { Instructions1Form } from "./Instructions1Form";
 import { Instructions2Form } from "./Instructions2Form";
 import { Pap5CoverPreview } from "./Pap5CoverPreview";
+import {
+  Pap5AttendanceSummaryPrintPage,
+  Pap5ScoreSummaryPrintPage,
+} from "./Pap5PrintSummaryPages";
 import { ScoresForm } from "./ScoresForm";
 import { StudentsForm } from "./StudentsForm";
 import type { AppData, GradebookApprovalStatus } from "../types";
-import { getAttendancePrintMonthRanges } from "../utils/pap5PrintLayout";
+import {
+  getAttendancePrintMonthRanges,
+  getPap5PrintPageSpecs,
+  getScoreSummaryPrintRanges,
+  type ScoreSummaryPrintRange,
+} from "../utils/pap5PrintLayout";
 
 interface PrintAllPap5DocumentProps {
   data: AppData;
@@ -17,6 +26,11 @@ interface PrintAllPap5DocumentProps {
 }
 
 const noop = () => {};
+
+function PrintPageNumber({ pageNumber }: { pageNumber?: number }) {
+  if (!pageNumber) return null;
+  return <span className="pap5-page-number">หน้า {pageNumber}</span>;
+}
 
 function CoverOriginalPrintPage({
   data,
@@ -40,18 +54,24 @@ function CoverOriginalPrintPage({
 function AttendanceOriginalPrintPage({
   data,
   months,
+  fillToWeeks,
+  pageNumber,
 }: {
   data: AppData;
   months: number[];
+  fillToWeeks?: number;
+  pageNumber?: number;
 }) {
   return (
     <section className="print-page landscape attendance-print-page original-tab-print-page">
+      <PrintPageNumber pageNumber={pageNumber} />
       <StudentsForm
         data={data.students}
         generalInfo={data.generalInfo}
         attendance={data.attendance}
         printMode
         printDateMonths={months}
+        printFillToWeeks={fillToWeeks}
         onChange={noop}
         onAttendanceChange={noop}
       />
@@ -59,9 +79,19 @@ function AttendanceOriginalPrintPage({
   );
 }
 
-function ScoreOriginalPrintPage({ data }: { data: AppData }) {
+function AttendanceSummaryOriginalPrintPage({ data, pageNumber }: { data: AppData; pageNumber?: number }) {
+  return (
+    <section className="print-page landscape summary-print-page attendance-summary-print-page">
+      <PrintPageNumber pageNumber={pageNumber} />
+      <Pap5AttendanceSummaryPrintPage data={data} />
+    </section>
+  );
+}
+
+function ScoreOriginalPrintPage({ data, pageNumber }: { data: AppData; pageNumber?: number }) {
   return (
     <section className="print-page landscape score-print-page original-tab-print-page">
+      <PrintPageNumber pageNumber={pageNumber} />
       <ScoresForm
         students={data.students}
         data={data.scores}
@@ -76,17 +106,37 @@ function ScoreOriginalPrintPage({ data }: { data: AppData }) {
   );
 }
 
+function ScoreSummaryOriginalPrintPage({
+  data,
+  range,
+  pageNumber,
+}: {
+  data: AppData;
+  range: ScoreSummaryPrintRange;
+  pageNumber?: number;
+}) {
+  return (
+    <section className="print-page landscape summary-print-page score-summary-print-page">
+      <PrintPageNumber pageNumber={pageNumber} />
+      <Pap5ScoreSummaryPrintPage data={data} range={range} />
+    </section>
+  );
+}
+
 function AttributesOriginalPrintPage({
   data,
   range,
+  pageNumber,
 }: {
   data: AppData;
   range: "1-4" | "5-8";
+  pageNumber?: number;
 }) {
   const Form = range === "1-4" ? AttributesForm : Attributes5_8Form;
 
   return (
     <section className="print-page landscape attribute-print-page original-tab-print-page">
+      <PrintPageNumber pageNumber={pageNumber} />
       <Form
         students={data.students}
         data={data.attributes}
@@ -98,9 +148,10 @@ function AttributesOriginalPrintPage({
   );
 }
 
-function AnalyticalOriginalPrintPage({ data }: { data: AppData }) {
+function AnalyticalOriginalPrintPage({ data, pageNumber }: { data: AppData; pageNumber?: number }) {
   return (
     <section className="print-page landscape analytical-print-page original-tab-print-page">
+      <PrintPageNumber pageNumber={pageNumber} />
       <AnalyticalForm
         students={data.students}
         data={data.analytical}
@@ -112,9 +163,10 @@ function AnalyticalOriginalPrintPage({ data }: { data: AppData }) {
   );
 }
 
-function IndicatorOriginalPrintPage({ data }: { data: AppData }) {
+function IndicatorOriginalPrintPage({ data, pageNumber }: { data: AppData; pageNumber?: number }) {
   return (
     <section className="print-page landscape indicator-print-page original-tab-print-page">
+      <PrintPageNumber pageNumber={pageNumber} />
       <IndicatorsForm
         data={data.indicators}
         scoreConfig={data.scoreConfig}
@@ -126,9 +178,10 @@ function IndicatorOriginalPrintPage({ data }: { data: AppData }) {
   );
 }
 
-function ExplanationOriginalPrintPage({ page }: { page: "first" | "next" }) {
+function ExplanationOriginalPrintPage({ page, pageNumber }: { page: "first" | "next"; pageNumber?: number }) {
   return (
     <section className="print-page portrait explanation-print-page">
+      <PrintPageNumber pageNumber={pageNumber} />
       {page === "first" ? <Instructions1Form /> : <Instructions2Form />}
     </section>
   );
@@ -139,6 +192,8 @@ export function PrintAllPap5Document({
   approvalStatus = null,
 }: PrintAllPap5DocumentProps) {
   const attendanceRanges = getAttendancePrintMonthRanges(data.generalInfo);
+  const scoreSummaryRanges = getScoreSummaryPrintRanges(data);
+  let nextPageNumber = 2;
 
   return (
     <div className="print-document pap5-original-print-document">
@@ -146,17 +201,28 @@ export function PrintAllPap5Document({
 
       {attendanceRanges.map((range) => (
         <React.Fragment key={range.label}>
-          <AttendanceOriginalPrintPage data={data} months={range.months} />
+          <AttendanceOriginalPrintPage
+            data={data}
+            months={range.months}
+            fillToWeeks={range.fillToWeeks}
+            pageNumber={nextPageNumber++}
+          />
         </React.Fragment>
       ))}
 
-      <ScoreOriginalPrintPage data={data} />
-      <AttributesOriginalPrintPage data={data} range="1-4" />
-      <AttributesOriginalPrintPage data={data} range="5-8" />
-      <AnalyticalOriginalPrintPage data={data} />
-      <IndicatorOriginalPrintPage data={data} />
-      <ExplanationOriginalPrintPage page="first" />
-      <ExplanationOriginalPrintPage page="next" />
+      <AttendanceSummaryOriginalPrintPage data={data} pageNumber={nextPageNumber++} />
+      <ScoreOriginalPrintPage data={data} pageNumber={nextPageNumber++} />
+      {scoreSummaryRanges.map((range) => (
+        <React.Fragment key={range.id}>
+          <ScoreSummaryOriginalPrintPage data={data} range={range} pageNumber={nextPageNumber++} />
+        </React.Fragment>
+      ))}
+      <AttributesOriginalPrintPage data={data} range="1-4" pageNumber={nextPageNumber++} />
+      <AttributesOriginalPrintPage data={data} range="5-8" pageNumber={nextPageNumber++} />
+      <AnalyticalOriginalPrintPage data={data} pageNumber={nextPageNumber++} />
+      <IndicatorOriginalPrintPage data={data} pageNumber={nextPageNumber++} />
+      <ExplanationOriginalPrintPage page="first" pageNumber={nextPageNumber++} />
+      <ExplanationOriginalPrintPage page="next" pageNumber={nextPageNumber++} />
     </div>
   );
 }
@@ -172,25 +238,37 @@ export function Pap5SingleOriginalPrintPage({
 }) {
   const attendanceRanges = getAttendancePrintMonthRanges(data.generalInfo);
   const attendancePage = attendanceRanges.find((range) => range.id === pageId);
+  const scoreSummaryRange = getScoreSummaryPrintRanges(data).find((range) => range.id === pageId);
+  const pageIndex = getPap5PrintPageSpecs(data).findIndex((spec) => spec.id === pageId);
+  const pageNumber = pageIndex > 0 ? pageIndex + 1 : undefined;
   const page =
     pageId === "cover" ? (
       <CoverOriginalPrintPage data={data} approvalStatus={approvalStatus} />
     ) : attendancePage ? (
-      <AttendanceOriginalPrintPage data={data} months={attendancePage.months} />
+      <AttendanceOriginalPrintPage
+        data={data}
+        months={attendancePage.months}
+        fillToWeeks={attendancePage.fillToWeeks}
+        pageNumber={pageNumber}
+      />
+    ) : pageId === "attendance-summary" ? (
+      <AttendanceSummaryOriginalPrintPage data={data} pageNumber={pageNumber} />
     ) : pageId === "scores" ? (
-      <ScoreOriginalPrintPage data={data} />
+      <ScoreOriginalPrintPage data={data} pageNumber={pageNumber} />
+    ) : scoreSummaryRange ? (
+      <ScoreSummaryOriginalPrintPage data={data} range={scoreSummaryRange} pageNumber={pageNumber} />
     ) : pageId === "attributes-1-4" ? (
-      <AttributesOriginalPrintPage data={data} range="1-4" />
+      <AttributesOriginalPrintPage data={data} range="1-4" pageNumber={pageNumber} />
     ) : pageId === "attributes-5-8" ? (
-      <AttributesOriginalPrintPage data={data} range="5-8" />
+      <AttributesOriginalPrintPage data={data} range="5-8" pageNumber={pageNumber} />
     ) : pageId === "analytical" ? (
-      <AnalyticalOriginalPrintPage data={data} />
+      <AnalyticalOriginalPrintPage data={data} pageNumber={pageNumber} />
     ) : pageId === "indicators" ? (
-      <IndicatorOriginalPrintPage data={data} />
+      <IndicatorOriginalPrintPage data={data} pageNumber={pageNumber} />
     ) : pageId === "explanation" ? (
-      <ExplanationOriginalPrintPage page="first" />
+      <ExplanationOriginalPrintPage page="first" pageNumber={pageNumber} />
     ) : pageId === "explanation-next" ? (
-      <ExplanationOriginalPrintPage page="next" />
+      <ExplanationOriginalPrintPage page="next" pageNumber={pageNumber} />
     ) : (
       <CoverOriginalPrintPage data={data} approvalStatus={approvalStatus} />
     );

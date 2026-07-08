@@ -10,6 +10,10 @@ export interface CreateTeacherAccountInput {
   password?: string;
 }
 
+export interface UpdateTeacherAccountInput extends CreateTeacherAccountInput {
+  id: string;
+}
+
 function isEdgeFunctionUnavailable(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error ?? '');
   return (
@@ -70,6 +74,59 @@ export async function createTeacherAccount(input: CreateTeacherAccountInput): Pr
     if (error.message.includes('Could not find the function')) {
       throw new Error(
         'ไม่สามารถสร้างผู้ใช้ได้ — กรุณา deploy Edge Function create-teacher หรือรัน migration `0021_admin_create_teacher_rpc.sql` ใน Supabase',
+      );
+    }
+    throw error;
+  }
+
+  if (data && typeof data === 'object' && 'error' in data && data.error) {
+    throw new Error(String(data.error));
+  }
+}
+
+export async function updateTeacherAccount(input: UpdateTeacherAccountInput): Promise<void> {
+  const username = normalizeUsername(input.username);
+  const password = input.password?.trim() || null;
+  const body = {
+    id: input.id,
+    username,
+    full_name: input.fullName.trim(),
+    title: input.title?.trim() || null,
+    role: input.role,
+    password: password || undefined,
+    reset_password_to_username: false,
+  };
+
+  try {
+    const { data, error } = await supabase.functions.invoke('update-teacher', { body });
+    if (error) {
+      const detail = await readFunctionErrorMessage(error);
+      throw new Error(detail || error.message);
+    }
+    if (data?.error) throw new Error(String(data.error));
+    return;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err ?? '');
+    const staleUsernameValidation = message.includes('Username ต้องมีอย่างน้อย 6 ตัวอักษร');
+
+    if (!isEdgeFunctionUnavailable(err) && !staleUsernameValidation) {
+      throw err instanceof Error ? err : new Error('บันทึกไม่สำเร็จ');
+    }
+  }
+
+  const { data, error } = await supabase.rpc('admin_update_teacher_account', {
+    p_id: input.id,
+    p_username: username,
+    p_password: password,
+    p_full_name: body.full_name,
+    p_title: body.title,
+    p_role: body.role,
+  });
+
+  if (error) {
+    if (error.message.includes('Could not find the function')) {
+      throw new Error(
+        'ยังแก้ไขผู้ใช้จากหน้าเว็บไม่ได้ เพราะ Edge Function update-teacher ที่ deploy อยู่ยังเป็นเวอร์ชันเก่า และฐานข้อมูลยังไม่มี RPC สำรอง `admin_update_teacher_account` — กรุณา deploy function หรือรัน migration `0036_admin_update_teacher_rpc.sql`',
       );
     }
     throw error;

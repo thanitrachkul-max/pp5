@@ -27,10 +27,10 @@ const thClass =
   'bg-[#0f172a] px-3 py-3 text-center align-middle font-semibold text-slate-100';
 
 const actionCellClass =
-  'sticky right-0 z-20 bg-white px-3 py-3.5 text-center shadow-[-4px_0_8px_rgba(15,23,42,0.06)]';
+  'px-3 py-3.5 text-center';
 
 const actionHeaderClass =
-  'sticky right-0 z-40 bg-[#0f172a] px-3 py-3 text-center align-middle font-semibold text-slate-100 shadow-[-4px_0_8px_rgba(15,23,42,0.2)]';
+  'bg-[#0f172a] px-3 py-3 text-center align-middle font-semibold text-slate-100';
 
 export const CurriculumIndicatorTable: React.FC<CurriculumIndicatorTableProps> = ({
   rows,
@@ -128,7 +128,7 @@ export const CurriculumIndicatorTable: React.FC<CurriculumIndicatorTableProps> =
               <CellText value={row.exitIndicator} />
             </td>
             {!readOnly && (
-              <td className={`${actionCellClass} group-hover:bg-slate-50/70`}>
+              <td className={actionCellClass}>
                 <div className="flex justify-center gap-1.5">
                   <button
                     type="button"
