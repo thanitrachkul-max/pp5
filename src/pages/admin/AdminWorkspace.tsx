@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Activity,
   ArrowLeft,
@@ -65,7 +65,7 @@ interface AdminWorkspaceProps {
     assignment: TeacherAssignmentView,
     gradebookId: string,
     options?: { readOnly?: boolean },
-  ) => void;
+  ) => void | Promise<void>;
   onLogout: () => void;
 }
 
@@ -204,6 +204,7 @@ export const AdminWorkspace: React.FC<AdminWorkspaceProps> = ({
   const [now, setNow] = useState(() => new Date());
   const [workspaceYearLabel, setWorkspaceYearLabel] = useState('');
   const [assignmentFilter, setAssignmentFilter] = useState<AdminTabNavigateOptions | null>(null);
+  const [mainBackAction, setMainBackAction] = useState<(() => void) | null>(null);
   const readOnly = isAdminReadOnly(currentUser);
   const isDeveloperAccount = currentUser.role === 'super_admin';
   const currentUserDisplayName = isDeveloperAccount ? 'ผู้พัฒนาระบบ' : currentUser.name;
@@ -211,9 +212,9 @@ export const AdminWorkspace: React.FC<AdminWorkspaceProps> = ({
   void onOpenTeacherView;
 
   const contentMaxWidth =
-    activeTab === 'students' || activeTab === 'curriculum' || activeTab === 'student-roster-edits'
+    activeTab === 'students' || activeTab === 'curriculum' || activeTab === 'student-roster-edits' || activeTab === 'main'
       ? 'max-w-none'
-      : activeTab === 'home' || activeTab === 'assignments' || activeTab === 'main'
+      : activeTab === 'home' || activeTab === 'assignments'
         ? 'max-w-7xl'
         : 'max-w-6xl';
 
@@ -239,6 +240,10 @@ export const AdminWorkspace: React.FC<AdminWorkspaceProps> = ({
 
     return { dateText, timeText };
   }, [now]);
+
+  const handleMainBackActionChange = useCallback((action: (() => void) | null) => {
+    setMainBackAction(() => action);
+  }, []);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 1000);
@@ -357,6 +362,14 @@ export const AdminWorkspace: React.FC<AdminWorkspaceProps> = ({
     setEnteredWorkspace(false);
     setActiveTab('main');
     clearAdminTabFromUrl();
+  };
+
+  const handleHeaderBack = () => {
+    if (activeTab === 'main' && mainBackAction) {
+      mainBackAction();
+      return;
+    }
+    returnToYearSelector();
   };
 
   if (!enteredWorkspace) {
@@ -522,9 +535,9 @@ export const AdminWorkspace: React.FC<AdminWorkspaceProps> = ({
                   <RefreshCw className="h-3.5 w-3.5 text-blue-500" aria-label="ซิงก์ข้อมูลอัตโนมัติ" />
                 </p>
               </div>
-              <button type="button" onClick={returnToYearSelector} className="btn btn-secondary !px-3 !py-2">
+              <button type="button" onClick={handleHeaderBack} className="btn btn-secondary !px-3 !py-2">
                 <ArrowLeft className="h-4 w-4" />
-                <span className="hidden sm:inline">กลับหน้าแรก</span>
+                <span className="hidden sm:inline">{activeTab === 'main' ? 'ย้อนกลับ' : 'กลับหน้าแรก'}</span>
               </button>
               <button
                 type="button"
@@ -566,7 +579,11 @@ export const AdminWorkspace: React.FC<AdminWorkspaceProps> = ({
         <main className="flex-1 min-w-0">
           <div key={activeTab} className={`mx-auto ${contentMaxWidth} ${contentPaddingClass} animate-fade-up`}>
             {activeTab === 'main' && (
-              <GradebookSearchPage currentUser={currentUser} initialYearId={workspaceYearId} />
+              <GradebookSearchPage
+                currentUser={currentUser}
+                initialYearId={workspaceYearId}
+                onBackActionChange={handleMainBackActionChange}
+              />
             )}
             {activeTab === 'home' && (
               <AdminHomePage

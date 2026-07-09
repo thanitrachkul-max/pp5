@@ -1,15 +1,21 @@
 ﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, BookOpenCheck, ChevronRight, Download, Eye, Loader2, Search } from 'lucide-react';
+import JSZip from 'jszip';
+import { AlertCircle, ArrowLeft, BookOpenCheck, CheckCircle2, ChevronRight, Download, Eye, Loader2, Printer, Search, X } from 'lucide-react';
 import { FilterDropdown } from '../../components/FilterBar';
+import { ModalPortal } from '../../components/ModalPortal';
 import { rowToAppData, type GradebookRow } from '../../lib/gradebookAdapter';
 import { getStudentReportSummary } from '../../lib/gradebookStats';
+import { applyPap5OfficialDisplayDefaults } from '../../lib/pap5Officials';
 import { supabase } from '../../lib/supabase';
 import { SUBJECTS_CATALOG } from '../../data/subjectsCatalog';
-import type { AppData, AppUser, Semester } from '../../types';
+import { createPap5PdfFile, downloadPap5Pdf, savePap5PdfBlob } from '../../utils/pap5PdfPreview';
+import { openPap5PrintDialog } from '../../utils/pap5PrintDialog';
+import type { AppData, AppUser, GradebookApprovalStatus, Semester } from '../../types';
 
 interface GradebookSearchPageProps {
   currentUser: AppUser;
   initialYearId?: string;
+  onBackActionChange?: (action: (() => void) | null) => void;
 }
 
 type GradebookStatus = 'not_started' | 'in_progress' | 'completed';
@@ -25,6 +31,9 @@ interface CompletedGradebook {
   score_config?: unknown;
   attributes?: unknown;
   analytical?: unknown;
+  indicators?: unknown;
+  general_info?: unknown;
+  approval_status?: GradebookApprovalStatus | null;
   updated_at: string | null;
   created_at: string | null;
 }
@@ -60,6 +69,7 @@ interface AssignmentReportRow {
 interface CompletedReport {
   assignmentId: string;
   gradebook: CompletedGradebook;
+  teacherId: string;
   teacherName: string;
   teacherUsername: string;
   subjectId: string;
@@ -86,6 +96,15 @@ function profileName(profile: AssignmentReportRow['profiles']): string {
   return [profile.title, profile.full_name].filter(Boolean).join(' ');
 }
 
+function splitTeacherNames(name: string): string[] {
+  const trimmed = name.trim();
+  if (!trimmed) return ['-'];
+  return trimmed
+    .split(/\s*(?:\n|,|;|\/|、| และ )\s*/u)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
 function statNumber(stats: Record<string, unknown> | null | undefined, key: string): number {
   const value = Number(stats?.[key]);
   return Number.isFinite(value) ? value : 0;
@@ -107,7 +126,7 @@ function isCompletedGradebook(gradebook: Pick<CompletedGradebook, 'status' | 'st
 }
 
 const GRADEBOOK_LIST_SELECT = 'id, teaching_assignment_id, status, students, stats, updated_at, created_at';
-const GRADEBOOK_DETAIL_SELECT = `${GRADEBOOK_LIST_SELECT}, attendance, scores, score_config, attributes, analytical, general_info`;
+const GRADEBOOK_DETAIL_SELECT = `${GRADEBOOK_LIST_SELECT}, attendance, scores, score_config, attributes, analytical, indicators, general_info, approval_status`;
 
 function parseHours(value: unknown): number | null {
   if (value == null || value === '') return null;
@@ -238,6 +257,13 @@ function studentCitizenId(student: unknown): string {
   return value || '—';
 }
 
+function roomNumberLabel(classroomName: string): string {
+  const trimmed = classroomName.trim();
+  if (!trimmed) return '-';
+  const parts = trimmed.split('/');
+  return (parts.length > 1 ? parts[parts.length - 1] : trimmed).trim() || trimmed;
+}
+
 function isPrimaryClassLevel(classLevel: string): boolean {
   return classLevel.trim().startsWith('ป.');
 }
@@ -284,6 +310,7 @@ function reportMetaLine(report: CompletedReport): string {
 interface SearchFilterContext {
   searchTerm: string;
   classLevelFilter: string;
+  classroomFilter: string;
   learningAreaFilter: string;
   subjectFilter: string;
   subjectFilterLabel: string;
@@ -304,10 +331,96 @@ const LEVEL_GROUPS: Array<{
   },
 ];
 
+const CLASS_LEVEL_ORDER = LEVEL_GROUPS.flatMap((group) => group.codes);
+
+function compareThaiText(a: string, b: string): number {
+  return a.localeCompare(b, 'th', { numeric: true, sensitivity: 'base' });
+}
+
+function classLevelSortIndex(classLevel: string): number {
+  const index = CLASS_LEVEL_ORDER.indexOf(classLevel.trim());
+  return index >= 0 ? index : CLASS_LEVEL_ORDER.length;
+}
+
+function compareReportsByLevel(a: CompletedReport, b: CompletedReport): number {
+  return (
+    classLevelSortIndex(a.classLevel) - classLevelSortIndex(b.classLevel)
+    || compareThaiText(a.classroomName, b.classroomName)
+    || (a.semesterNumber ?? 99) - (b.semesterNumber ?? 99)
+    || compareThaiText(a.subjectCode, b.subjectCode)
+    || compareThaiText(a.subjectName, b.subjectName)
+  );
+}
+
+function sanitizeDownloadName(value: string, fallback = 'ไม่ระบุ'): string {
+  const cleaned = value
+    .replace(/[\\/:*?"<>|\u0000-\u001F]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return cleaned || fallback;
+}
+
+function ensurePdfExtension(fileName: string): string {
+  return fileName.toLowerCase().endsWith('.pdf') ? fileName : `${fileName}.pdf`;
+}
+
+function buildBulkPdfPath(report: CompletedReport, fallbackFileName: string): string {
+  const classLevel = sanitizeDownloadName(report.classLevel, 'ไม่ระบุระดับชั้น');
+  const classroom = sanitizeDownloadName(roomNumberLabel(report.classroomName), 'ไม่ระบุห้อง');
+  const subjectCode = sanitizeDownloadName(report.subjectCode, 'ไม่มีรหัส');
+  const subjectName = sanitizeDownloadName(report.subjectName, 'รายวิชา');
+  const semester = report.semesterNumber == null
+    ? 'ไม่ระบุภาคเรียน'
+    : `ภาคเรียนที่ ${report.semesterNumber}`;
+  const fallbackBase = sanitizeDownloadName(fallbackFileName.replace(/\.pdf$/i, ''), 'แบบปพ.5');
+  const fileName = ensurePdfExtension(
+    sanitizeDownloadName(
+      `ปพ.5 ${classLevel} ห้อง ${classroom} ${subjectCode} ${subjectName} ${semester}`,
+      fallbackBase,
+    ),
+  );
+
+  return `${classLevel}/${classroom}/${fileName}`;
+}
+
+function makeUniqueZipPath(path: string, usedPaths: Set<string>): string {
+  const normalized = path.replace(/^\/+/, '').replace(/\/{2,}/g, '/');
+  if (!usedPaths.has(normalized)) {
+    usedPaths.add(normalized);
+    return normalized;
+  }
+
+  const dotIndex = normalized.lastIndexOf('.');
+  const base = dotIndex > 0 ? normalized.slice(0, dotIndex) : normalized;
+  const ext = dotIndex > 0 ? normalized.slice(dotIndex) : '';
+
+  for (let index = 2; ; index += 1) {
+    const candidate = `${base} (${index})${ext}`;
+    if (!usedPaths.has(candidate)) {
+      usedPaths.add(candidate);
+      return candidate;
+    }
+  }
+}
+
+function saveDownloadBlob(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  link.rel = 'noopener';
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
 function hasActiveSearchOrFilter(ctx: SearchFilterContext): boolean {
   return Boolean(
     ctx.searchTerm.trim()
     || ctx.classLevelFilter
+    || ctx.classroomFilter
     || ctx.learningAreaFilter
     || ctx.subjectFilter
     || ctx.semesterFilter,
@@ -340,23 +453,23 @@ function ClassLevelBrowseMenu({
 
           <div className="grid grid-cols-3 gap-2 p-2.5 sm:grid-cols-6">
             {group.codes.map((code) => {
-              const isActive = selectedLevel === code;
-              return (
-                <button
-                  key={code}
-                  type="button"
-                  onClick={() => onSelectLevel(code)}
-                  className={`flex min-h-[44px] items-center justify-center rounded-xl border px-2 py-2 text-center transition-all duration-200 ${
-                    isActive
-                      ? 'border-blue-400 bg-white shadow-md shadow-blue-100/80 ring-2 ring-blue-200/70'
-                      : 'border-slate-200/80 bg-white/90 hover:-translate-y-px hover:border-slate-300 hover:bg-white hover:shadow-md hover:shadow-slate-200/70'
-                  }`}
-                >
-                  <span
-                    className={`text-[28px] font-extrabold leading-none tracking-tight ${
-                      isActive ? 'text-blue-700' : 'text-slate-800'
-                    }`}
-                  >
+                  const isActive = selectedLevel === code;
+                  return (
+                    <button
+                      key={code}
+                      type="button"
+                      onClick={() => onSelectLevel(code)}
+                      className={`btn btn-grey-3d flex min-h-[44px] items-center justify-center !rounded-xl !px-2 !py-2 text-center transition-all duration-200 ${
+                        isActive
+                          ? 'ring-2 ring-blue-300/80'
+                          : 'hover:-translate-y-px'
+                      }`}
+                    >
+                      <span
+                        className={`text-[28px] font-extrabold leading-none tracking-tight ${
+                          isActive ? 'text-blue-700' : 'text-slate-800'
+                        }`}
+                      >
                     {code}
                   </span>
                 </button>
@@ -374,6 +487,7 @@ function buildActiveFilterHighlights(ctx: SearchFilterContext): string[] {
   const keyword = ctx.searchTerm.trim();
   if (keyword) highlights.push(keyword);
   if (ctx.classLevelFilter) highlights.push(ctx.classLevelFilter);
+  if (ctx.classroomFilter) highlights.push(ctx.classroomFilter);
   if (ctx.learningAreaFilter) highlights.push(ctx.learningAreaFilter);
   if (ctx.subjectFilter && ctx.subjectFilterLabel) highlights.push(ctx.subjectFilterLabel);
   if (ctx.semesterFilter) highlights.push(`ภาคเรียนที่ ${ctx.semesterFilter}`);
@@ -460,20 +574,337 @@ function CompletedReportCard({
   );
 }
 
-export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({ currentUser, initialYearId }) => {
+type DocumentActionType = 'print' | 'save' | 'preview';
+
+interface PdfPreviewState {
+  objectUrl: string;
+  blob: Blob;
+  fileName: string;
+  gradebookId: string;
+  title: string;
+}
+
+type DocumentActionStatus = {
+  variant: 'preparing' | 'success' | 'error';
+  title: string;
+  message: string;
+};
+
+type BulkDownloadStatus = {
+  phase: 'running' | 'zipping' | 'success' | 'error';
+  total: number;
+  completed: number;
+  percent: number;
+  currentLabel: string;
+  message: string;
+  fileName?: string;
+};
+
+function DocumentActionStatusModal({
+  status,
+  onClose,
+}: {
+  status: DocumentActionStatus | null;
+  onClose: () => void;
+}) {
+  if (!status) return null;
+
+  return (
+    <ModalPortal>
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/35 px-4 backdrop-blur-sm">
+        <div
+          className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-6 text-center shadow-[0_24px_60px_-28px_rgba(15,23,42,0.6)]"
+          role="status"
+          aria-live="polite"
+        >
+          <div
+            className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full ${
+              status.variant === 'success'
+                ? 'bg-emerald-50 text-emerald-600'
+                : status.variant === 'error'
+                  ? 'bg-rose-50 text-rose-600'
+                  : 'bg-blue-50 text-blue-600'
+            }`}
+          >
+            {status.variant === 'success' ? (
+              <CheckCircle2 className="h-8 w-8" />
+            ) : status.variant === 'error' ? (
+              <AlertCircle className="h-8 w-8" />
+            ) : (
+              <Loader2 className="h-8 w-8 animate-spin" />
+            )}
+          </div>
+          <h2 className="text-lg font-extrabold text-slate-950">{status.title}</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">{status.message}</p>
+          {status.variant !== 'preparing' && (
+            <button type="button" onClick={onClose} className="btn btn-secondary mt-5 !h-10 !px-5">
+              ปิด
+            </button>
+          )}
+        </div>
+      </div>
+    </ModalPortal>
+  );
+}
+
+function BulkDownloadProgressModal({
+  status,
+  onClose,
+}: {
+  status: BulkDownloadStatus | null;
+  onClose: () => void;
+}) {
+  if (!status) return null;
+
+  const working = status.phase === 'running' || status.phase === 'zipping';
+  const error = status.phase === 'error';
+  const success = status.phase === 'success';
+
+  return (
+    <ModalPortal>
+      <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/45 px-4 backdrop-blur-sm">
+        <div
+          className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-[0_24px_70px_-28px_rgba(15,23,42,0.7)]"
+          role="status"
+          aria-live="polite"
+        >
+          <div
+            className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full ${
+              success
+                ? 'bg-emerald-50 text-emerald-600'
+                : error
+                  ? 'bg-rose-50 text-rose-600'
+                  : 'bg-blue-50 text-blue-600'
+            }`}
+          >
+            {success ? (
+              <CheckCircle2 className="h-8 w-8" />
+            ) : error ? (
+              <AlertCircle className="h-8 w-8" />
+            ) : (
+              <Loader2 className="h-8 w-8 animate-spin" />
+            )}
+          </div>
+
+          <div className="text-center">
+            <h2 className="text-lg font-extrabold text-slate-950">
+              {success ? 'บันทึก ปพ.5 ทั้งหมดสำเร็จ' : error ? 'บันทึก ปพ.5 ทั้งหมดไม่สำเร็จ' : 'กำลังบันทึก ปพ.5 ทั้งหมด'}
+            </h2>
+            <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">{status.message}</p>
+          </div>
+
+          <div className="mt-5">
+            <div className="mb-2 flex items-center justify-between text-xs font-extrabold text-slate-600">
+              <span>{status.completed.toLocaleString('th-TH')} / {status.total.toLocaleString('th-TH')} ไฟล์</span>
+              <span>{status.percent.toLocaleString('th-TH')}%</span>
+            </div>
+            <div
+              className="h-3 overflow-hidden rounded-full bg-slate-100 ring-1 ring-slate-200"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={status.percent}
+            >
+              <div
+                className={`h-full rounded-full transition-all duration-300 ${
+                  error
+                    ? 'bg-rose-500'
+                    : success
+                      ? 'bg-emerald-500'
+                      : 'bg-gradient-to-r from-blue-500 to-cyan-400'
+                }`}
+                style={{ width: `${Math.max(2, status.percent)}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold leading-6 text-slate-700">
+            {status.currentLabel}
+          </div>
+
+          {working ? (
+            <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-center text-sm font-extrabold text-amber-800">
+              กรุณาอย่ากดออก ปิดแท็บ หรือรีเฟรชหน้าจอจนกว่าจะเสร็จ
+            </div>
+          ) : (
+            <button type="button" onClick={onClose} className="btn btn-secondary mt-5 w-full justify-center !h-10">
+              ปิด
+            </button>
+          )}
+        </div>
+      </div>
+    </ModalPortal>
+  );
+}
+
+function CompletedReportsTable({
+  reports,
+  documentActionKey,
+  onOpen,
+  onPrint,
+  onSave,
+}: {
+  reports: CompletedReport[];
+  documentActionKey: string;
+  onOpen: (report: CompletedReport) => void;
+  onPrint: (report: CompletedReport) => void;
+  onSave: (report: CompletedReport) => void;
+}) {
+    return (
+    <div className="w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[1280px] table-fixed text-sm">
+          <colgroup>
+            <col className="w-[8%]" />
+            <col className="w-[11%]" />
+            <col className="w-[24%]" />
+            <col className="w-[10%]" />
+            <col className="w-[17%]" />
+            <col className="w-[15%]" />
+            <col className="w-[8%]" />
+            <col className="w-[12%]" />
+          </colgroup>
+          <thead className="bg-slate-950 text-white">
+            <tr>
+              <th className="px-3 py-3 text-center font-extrabold">ระดับชั้น</th>
+              <th className="px-3 py-3 text-center font-extrabold">ห้องเรียน</th>
+              <th className="px-3 py-3 text-left font-extrabold">ชื่อวิชา</th>
+              <th className="px-3 py-3 text-center font-extrabold">รหัส</th>
+              <th className="px-3 py-3 text-left font-extrabold">กลุ่มสาระการเรียนรู้</th>
+              <th className="px-3 py-3 text-left font-extrabold">ชื่อครูผู้สอน</th>
+              <th className="px-3 py-3 text-center font-extrabold">สถานะ</th>
+              <th className="px-3 py-3 text-center font-extrabold">เอกสาร</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {reports.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="px-4 py-14 text-center text-slate-400">
+                  ไม่พบ ปพ.5 ที่เสร็จสมบูรณ์ตามเงื่อนไขที่เลือก
+                </td>
+              </tr>
+            ) : (
+              reports.map((report) => {
+                const printKey = `${report.gradebook.id}:print`;
+                const saveKey = `${report.gradebook.id}:save`;
+                const printing = documentActionKey === printKey;
+                const saving = documentActionKey === saveKey;
+                const teacherNames = splitTeacherNames(report.teacherName);
+
+                return (
+                  <tr
+                    key={report.gradebook.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => onOpen(report)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        onOpen(report);
+                      }
+                    }}
+                    className="cursor-pointer transition-colors hover:bg-blue-50/70 focus-visible:bg-blue-50/70 focus-visible:outline-none"
+                  >
+                    <td className="px-3 py-3 text-center font-extrabold text-slate-900">{report.classLevel}</td>
+                    <td className="px-3 py-3 text-center font-semibold text-slate-700">{roomNumberLabel(report.classroomName)}</td>
+                    <td className="px-3 py-3">
+                      <div className="truncate font-extrabold text-slate-950" title={report.subjectName}>
+                        {report.subjectName}
+                      </div>
+                      <div className="mt-0.5 text-[11px] font-semibold text-slate-400">
+                        ภาคเรียนที่ {report.semesterNumber ?? '-'}
+                      </div>
+                    </td>
+                    <td className="px-3 py-3 text-center font-mono font-semibold text-slate-700">{report.subjectCode}</td>
+                    <td className="px-3 py-3">
+                      <div className="truncate font-semibold text-slate-700" title={report.learningArea}>
+                        {report.learningArea}
+                      </div>
+                    </td>
+                    <td className="px-3 py-3">
+                      <div className="space-y-0.5 font-semibold text-slate-800" title={report.teacherName}>
+                        {teacherNames.map((teacherName, index) => (
+                          <div key={`${report.gradebook.id}-teacher-${index}`} className="truncate">
+                            {teacherName}
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-3 py-3 text-center">
+                      <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-extrabold text-emerald-700 ring-1 ring-emerald-100">
+                        เสร็จสมบูรณ์
+                      </span>
+                    </td>
+                    <td className="px-3 py-3">
+                      <div className="flex justify-center gap-2">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onPrint(report);
+                          }}
+                          disabled={Boolean(documentActionKey)}
+                          className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-800 bg-slate-950 px-3 text-xs font-extrabold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                          title="Print"
+                        >
+                          {printing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Printer className="h-3.5 w-3.5" />}
+                          Print
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onSave(report);
+                          }}
+                          disabled={Boolean(documentActionKey)}
+                          className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-blue-600 bg-blue-600 px-3 text-xs font-extrabold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                          title="Save"
+                        >
+                          {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                          Save
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+      <div className="border-t border-slate-100 px-4 py-3 text-left text-xs font-bold text-slate-500">
+        จำนวน {reports.length.toLocaleString('th-TH')} รายการ
+      </div>
+    </div>
+  );
+}
+
+export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({
+  currentUser,
+  initialYearId,
+  onBackActionChange,
+}) => {
   const [yearLabel, setYearLabel] = useState('');
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [reports, setReports] = useState<CompletedReport[]>([]);
   const [selectedReport, setSelectedReport] = useState<CompletedReport | null>(null);
-  const [selectedStudentIndex, setSelectedStudentIndex] = useState<number | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [browseLevel, setBrowseLevel] = useState('');
+  const [showAllReportsTable, setShowAllReportsTable] = useState(false);
   const [classLevelFilter, setClassLevelFilter] = useState('');
+  const [classroomFilter, setClassroomFilter] = useState('');
   const [learningAreaFilter, setLearningAreaFilter] = useState('');
   const [subjectFilter, setSubjectFilter] = useState('');
   const [semesterFilter, setSemesterFilter] = useState('');
+  const [documentAction, setDocumentAction] = useState<{ gradebookId: string; type: DocumentActionType } | null>(null);
+  const [documentStatus, setDocumentStatus] = useState<DocumentActionStatus | null>(null);
+  const [bulkDownloadStatus, setBulkDownloadStatus] = useState<BulkDownloadStatus | null>(null);
+  const [documentError, setDocumentError] = useState('');
+  const [pdfPreview, setPdfPreview] = useState<PdfPreviewState | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const bulkDownloadWorking = bulkDownloadStatus?.phase === 'running' || bulkDownloadStatus?.phase === 'zipping';
 
   const loadReports = useCallback(async () => {
     if (!currentUser.schoolId) return;
@@ -610,6 +1041,7 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({ curren
           return {
             assignmentId: row.id,
             gradebook,
+            teacherId: row.teacher_id,
             teacherName: profileName(row.profiles),
             teacherUsername: row.profiles?.username ?? '',
             subjectId: row.subjects?.id ?? '',
@@ -646,36 +1078,377 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({ curren
     void loadReports();
   }, [loadReports]);
 
+  const loadReportDetail = useCallback(async (report: CompletedReport): Promise<CompletedReport> => {
+    const { data, error } = await supabase
+      .from('gradebooks')
+      .select(GRADEBOOK_DETAIL_SELECT)
+      .eq('id', report.gradebook.id)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) return report;
+
+    const gradebook = data as CompletedGradebook;
+    return {
+      ...report,
+      gradebook,
+      hoursTotal: effectiveStudyHours({ ...report, gradebook }),
+    };
+  }, []);
+
   const openReport = useCallback(async (report: CompletedReport) => {
-    setSelectedStudentIndex(null);
     setSelectedReport(report);
     setDetailLoading(true);
 
     try {
-      const { data, error } = await supabase
-        .from('gradebooks')
-        .select(GRADEBOOK_DETAIL_SELECT)
-        .eq('id', report.gradebook.id)
-        .maybeSingle();
-
-      if (error) throw error;
-      if (data) {
-        const gradebook = data as CompletedGradebook;
-        const enrichedReport: CompletedReport = {
-          ...report,
-          gradebook,
-          hoursTotal: effectiveStudyHours({ ...report, gradebook }),
-        };
-        setSelectedReport(enrichedReport);
-      }
+      const enrichedReport = await loadReportDetail(report);
+      setSelectedReport(enrichedReport);
     } catch (err) {
       console.warn('Unable to load gradebook detail; showing summary data only.', err);
     } finally {
       setDetailLoading(false);
     }
+  }, [loadReportDetail]);
+
+  const buildPap5DocumentData = useCallback((report: CompletedReport): AppData => {
+    const data = rowToAppData(report.gradebook as GradebookRow);
+    return {
+      ...data,
+      generalInfo: applyPap5OfficialDisplayDefaults(data.generalInfo),
+    };
+  }, []);
+
+  const replacePdfPreview = useCallback((nextPreview: PdfPreviewState | null) => {
+    setPdfPreview((currentPreview) => {
+      if (currentPreview?.objectUrl && currentPreview.objectUrl !== nextPreview?.objectUrl) {
+        URL.revokeObjectURL(currentPreview.objectUrl);
+      }
+      return nextPreview;
+    });
+  }, []);
+
+  const closePdfPreview = useCallback(() => {
+    replacePdfPreview(null);
+    setDocumentError('');
+  }, [replacePdfPreview]);
+
+  const openReportPdfPreview = useCallback(async (report: CompletedReport) => {
+    if (documentAction?.type === 'preview') return;
+
+    setDocumentAction({ gradebookId: report.gradebook.id, type: 'preview' });
+    setDocumentStatus({
+      variant: 'preparing',
+      title: 'กำลังเตรียมเอกสาร ปพ.5',
+      message: 'ระบบกำลังจัดหน้าเอกสารและสร้างไฟล์ PDF สำหรับอ่าน กรุณารอสักครู่',
+    });
+    setDocumentError('');
+
+    try {
+      const detailedReport = await loadReportDetail(report);
+      const { blob, fileName } = await createPap5PdfFile({
+        id: detailedReport.gradebook.id,
+        data: buildPap5DocumentData(detailedReport),
+        approvalStatus: detailedReport.gradebook.approval_status ?? null,
+      });
+      const objectUrl = URL.createObjectURL(blob);
+      setSelectedReport(detailedReport);
+      replacePdfPreview({
+        objectUrl,
+        blob,
+        fileName,
+        gradebookId: detailedReport.gradebook.id,
+        title: `ปพ.5 ${detailedReport.subjectName} ${detailedReport.classroomName}`,
+      });
+      setDocumentStatus(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'ไม่สามารถสร้างตัวอย่าง PDF ปพ.5 ได้';
+      setDocumentError(message);
+      setDocumentStatus({
+        variant: 'error',
+        title: 'เปิดอ่าน ปพ.5 ไม่สำเร็จ',
+        message,
+      });
+    } finally {
+      setDocumentAction(null);
+    }
+  }, [buildPap5DocumentData, documentAction?.type, loadReportDetail, replacePdfPreview]);
+
+  const handlePrintReport = useCallback(async (report: CompletedReport) => {
+    const targetWindow = window.open('about:blank', '_blank');
+    if (!targetWindow) {
+      const message = 'เบราว์เซอร์บล็อกหน้าต่างพิมพ์ กรุณาอนุญาต Pop-up แล้วลองอีกครั้ง';
+      setDocumentError(message);
+      setDocumentStatus({
+        variant: 'error',
+        title: 'เปิดหน้าพิมพ์ ปพ.5 ไม่สำเร็จ',
+        message,
+      });
+      return;
+    }
+
+    setDocumentAction({ gradebookId: report.gradebook.id, type: 'print' });
+    setDocumentStatus({
+      variant: 'preparing',
+      title: 'กำลังเตรียมหน้าพิมพ์ ปพ.5',
+      message: 'ระบบกำลังจัดหน้าเอกสารและเปิดหน้าพิมพ์ กรุณารอสักครู่',
+    });
+    setDocumentError('');
+
+    try {
+      const detailedReport = await loadReportDetail(report);
+      openPap5PrintDialog({
+        id: detailedReport.gradebook.id,
+        data: buildPap5DocumentData(detailedReport),
+        approvalStatus: detailedReport.gradebook.approval_status ?? null,
+        targetWindow,
+      });
+      setDocumentStatus({
+        variant: 'success',
+        title: 'เปิดหน้าพิมพ์ ปพ.5 แล้ว',
+        message: 'ระบบเปิดหน้าพิมพ์ ปพ.5 ให้แล้ว กรุณาตรวจสอบหน้าต่างพิมพ์ของเบราว์เซอร์',
+      });
+    } catch (err) {
+      try {
+        targetWindow.close();
+      } catch {
+        // The visible error below is the important part if the browser refuses to close it.
+      }
+      const message = err instanceof Error ? err.message : 'ไม่สามารถเปิดหน้าพิมพ์ ปพ.5 ได้';
+      setDocumentError(message);
+      setDocumentStatus({
+        variant: 'error',
+        title: 'เปิดหน้าพิมพ์ ปพ.5 ไม่สำเร็จ',
+        message,
+      });
+    } finally {
+      setDocumentAction(null);
+    }
+  }, [buildPap5DocumentData, loadReportDetail]);
+
+  const handleSaveReport = useCallback(async (report: CompletedReport) => {
+    if (pdfPreview?.gradebookId === report.gradebook.id) {
+      setDocumentError('');
+      try {
+        savePap5PdfBlob(pdfPreview.blob, pdfPreview.fileName);
+        setDocumentStatus({
+          variant: 'success',
+          title: 'บันทึก ปพ.5 สำเร็จ',
+          message: 'ไฟล์ PDF ที่เปิดอ่านอยู่ถูกส่งไปยังรายการดาวน์โหลดของเบราว์เซอร์แล้ว',
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'ไม่สามารถบันทึกไฟล์ ปพ.5 ได้';
+        setDocumentError(message);
+        setDocumentStatus({
+          variant: 'error',
+          title: 'บันทึก ปพ.5 ไม่สำเร็จ',
+          message,
+        });
+      }
+      return;
+    }
+
+    setDocumentAction({ gradebookId: report.gradebook.id, type: 'save' });
+    setDocumentStatus({
+      variant: 'preparing',
+      title: 'กำลังบันทึก ปพ.5',
+      message: 'ระบบกำลังจัดหน้าเอกสารและสร้างไฟล์ PDF กรุณารอสักครู่',
+    });
+    setDocumentError('');
+
+    try {
+      const detailedReport = await loadReportDetail(report);
+      await downloadPap5Pdf({
+        id: detailedReport.gradebook.id,
+        data: buildPap5DocumentData(detailedReport),
+        approvalStatus: detailedReport.gradebook.approval_status ?? null,
+      });
+      setDocumentStatus({
+        variant: 'success',
+        title: 'บันทึก ปพ.5 สำเร็จ',
+        message: 'ไฟล์ PDF ถูกส่งไปยังรายการดาวน์โหลดของเบราว์เซอร์แล้ว',
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'ไม่สามารถบันทึกไฟล์ ปพ.5 ได้';
+      setDocumentError(message);
+      setDocumentStatus({
+        variant: 'error',
+        title: 'บันทึก ปพ.5 ไม่สำเร็จ',
+        message,
+      });
+    } finally {
+      setDocumentAction(null);
+    }
+  }, [buildPap5DocumentData, loadReportDetail, pdfPreview]);
+
+  const handleDownloadAllReports = useCallback(async () => {
+    if (bulkDownloadWorking || documentAction || loading) return;
+
+    const sourceReports = [...reports].sort(compareReportsByLevel);
+    const total = sourceReports.length;
+    if (total === 0) {
+      setBulkDownloadStatus({
+        phase: 'error',
+        total: 0,
+        completed: 0,
+        percent: 0,
+        currentLabel: 'ไม่พบ ปพ.5 ที่เสร็จสมบูรณ์สำหรับดาวน์โหลด',
+        message: 'ยังไม่มีไฟล์ ปพ.5 ที่เสร็จสมบูรณ์ในปีการศึกษานี้',
+      });
+      return;
+    }
+
+    const zip = new JSZip();
+    const usedPaths = new Set<string>();
+    let completedCount = 0;
+    let currentPercent = 0;
+    setDocumentError('');
+    setBulkDownloadStatus({
+      phase: 'running',
+      total,
+      completed: 0,
+      percent: 0,
+      currentLabel: 'กำลังเตรียมรายการ ปพ.5',
+      message: `ระบบกำลังสร้าง PDF จำนวน ${total.toLocaleString('th-TH')} ไฟล์`,
+    });
+
+    try {
+      for (let index = 0; index < sourceReports.length; index += 1) {
+        const report = sourceReports[index];
+        const currentLabel = `${report.classLevel} ห้อง ${roomNumberLabel(report.classroomName)} · ${report.subjectName}`;
+        currentPercent = Math.round((index / total) * 100);
+        setBulkDownloadStatus({
+          phase: 'running',
+          total,
+          completed: index,
+          percent: currentPercent,
+          currentLabel,
+          message: `กำลังสร้าง PDF ไฟล์ที่ ${(index + 1).toLocaleString('th-TH')} จาก ${total.toLocaleString('th-TH')}`,
+        });
+
+        const detailedReport = await loadReportDetail(report);
+        const { blob, fileName } = await createPap5PdfFile({
+          id: detailedReport.gradebook.id,
+          data: buildPap5DocumentData(detailedReport),
+          approvalStatus: detailedReport.gradebook.approval_status ?? null,
+        });
+        const zipPath = makeUniqueZipPath(buildBulkPdfPath(detailedReport, fileName), usedPaths);
+        zip.file(zipPath, blob);
+
+        completedCount = index + 1;
+        currentPercent = Math.round((completedCount / total) * 100);
+        setBulkDownloadStatus({
+          phase: 'running',
+          total,
+          completed: completedCount,
+          percent: currentPercent,
+          currentLabel,
+          message: `สร้าง PDF แล้ว ${(index + 1).toLocaleString('th-TH')} จาก ${total.toLocaleString('th-TH')} ไฟล์`,
+        });
+      }
+
+      setBulkDownloadStatus({
+        phase: 'zipping',
+        total,
+        completed: total,
+        percent: 100,
+        currentLabel: 'กำลังรวมไฟล์เป็น ZIP',
+        message: 'ระบบกำลังบีบอัดไฟล์ PDF ทั้งหมดเป็นไฟล์ ZIP',
+      });
+
+      const zipBlob = await zip.generateAsync({ type: 'blob' }, (metadata) => {
+        const zipPercent = Math.round(metadata.percent);
+        setBulkDownloadStatus((current) => current?.phase === 'zipping'
+          ? {
+              ...current,
+              currentLabel: `กำลังรวมไฟล์เป็น ZIP ${zipPercent.toLocaleString('th-TH')}%`,
+            }
+          : current);
+      });
+      const zipFileName = sanitizeDownloadName(`ปพ.5 ทั้งหมด ปีการศึกษา ${yearLabel || 'ไม่ระบุปี'}`, 'ปพ.5 ทั้งหมด') + '.zip';
+
+      saveDownloadBlob(zipBlob, zipFileName);
+      setBulkDownloadStatus({
+        phase: 'success',
+        total,
+        completed: total,
+        percent: 100,
+        currentLabel: zipFileName,
+        message: 'ไฟล์ ZIP ถูกส่งไปยังรายการดาวน์โหลดของเบราว์เซอร์แล้ว',
+        fileName: zipFileName,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'ไม่สามารถบันทึก ปพ.5 ทั้งหมดได้';
+      setDocumentError(message);
+      setBulkDownloadStatus({
+        phase: 'error',
+        total,
+        completed: completedCount,
+        percent: currentPercent,
+        currentLabel: message,
+        message,
+      });
+    }
+  }, [
+    bulkDownloadWorking,
+    buildPap5DocumentData,
+    documentAction,
+    loadReportDetail,
+    loading,
+    reports,
+    yearLabel,
+  ]);
+
+  const handleBrowseLevelSelect = useCallback((level: string) => {
+    setShowAllReportsTable(false);
+    setBrowseLevel(level);
+    setClassLevelFilter(level);
+    setClassroomFilter('');
+    setLearningAreaFilter('');
+    setSubjectFilter('');
+    setSemesterFilter('');
+    setSearchTerm('');
+    setDocumentError('');
+  }, []);
+
+  const handleShowAllReportsTable = useCallback(() => {
+    setShowAllReportsTable(true);
+    setBrowseLevel('');
+    setClassLevelFilter('');
+    setClassroomFilter('');
+    setLearningAreaFilter('');
+    setSubjectFilter('');
+    setSemesterFilter('');
+    setSearchTerm('');
+    setDocumentError('');
+  }, []);
+
+  const handleClassLevelFilterChange = useCallback((level: string) => {
+    setClassLevelFilter(level);
+    setClassroomFilter('');
+    if (browseLevel) {
+      setBrowseLevel(level);
+    }
+  }, [browseLevel]);
+
+  const returnToClassBrowse = useCallback(() => {
+    setShowAllReportsTable(false);
+    setBrowseLevel('');
+    setClassLevelFilter('');
+    setClassroomFilter('');
+    setLearningAreaFilter('');
+    setSubjectFilter('');
+    setSemesterFilter('');
+    setSearchTerm('');
+    setDocumentError('');
   }, []);
 
   const classLevelOptions = useMemo(() => unique(reports.map((report) => report.classLevel)), [reports]);
+  const classroomOptions = useMemo(() => {
+    const scopedReports = classLevelFilter
+      ? reports.filter((report) => report.classLevel === classLevelFilter)
+      : reports;
+    return unique(scopedReports.map((report) => report.classroomName));
+  }, [classLevelFilter, reports]);
   const learningAreaOptions = useMemo(() => unique(reports.map((report) => report.learningArea)), [reports]);
   const subjectOptions = useMemo(
     () => [...reports]
@@ -692,107 +1465,175 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({ curren
   const filterContext = useMemo<SearchFilterContext>(() => ({
     searchTerm,
     classLevelFilter,
+    classroomFilter,
     learningAreaFilter,
     subjectFilter,
     subjectFilterLabel,
     semesterFilter,
-  }), [classLevelFilter, learningAreaFilter, searchTerm, semesterFilter, subjectFilter, subjectFilterLabel]);
+  }), [classLevelFilter, classroomFilter, learningAreaFilter, searchTerm, semesterFilter, subjectFilter, subjectFilterLabel]);
 
   const filteredReports = useMemo(() => {
     const keyword = searchTerm.trim().toLowerCase();
-    return reports.filter((report) => {
-      const searchText = [
-        report.subjectCode,
-        report.subjectName,
-        report.teacherName,
-        report.teacherUsername,
-        report.classroomName,
-        report.learningArea,
-        report.studentNames,
-        studentSearchText(normalizeStudents(report.gradebook.students)),
-      ].join(' ').toLowerCase();
-      const matchesKeyword = !keyword || searchText.includes(keyword);
-      const matchesLevel = !classLevelFilter || report.classLevel === classLevelFilter;
-      const matchesArea = !learningAreaFilter || report.learningArea === learningAreaFilter;
-      const matchesSubject = !subjectFilter || report.subjectId === subjectFilter;
-      const matchesSemester = !semesterFilter || String(report.semesterNumber ?? '') === semesterFilter;
-      return matchesKeyword && matchesLevel && matchesArea && matchesSubject && matchesSemester;
-    });
-  }, [classLevelFilter, learningAreaFilter, reports, searchTerm, semesterFilter, subjectFilter]);
+    return reports
+      .filter((report) => {
+        const searchText = [
+          report.subjectCode,
+          report.subjectName,
+          report.teacherName,
+          report.teacherUsername,
+          report.classroomName,
+          report.learningArea,
+          report.studentNames,
+          studentSearchText(normalizeStudents(report.gradebook.students)),
+        ].join(' ').toLowerCase();
+        const matchesKeyword = !keyword || searchText.includes(keyword);
+        const matchesLevel = !classLevelFilter || report.classLevel === classLevelFilter;
+        const matchesClassroom = !classroomFilter || report.classroomName === classroomFilter;
+        const matchesArea = !learningAreaFilter || report.learningArea === learningAreaFilter;
+        const matchesSubject = !subjectFilter || report.subjectId === subjectFilter;
+        const matchesSemester = !semesterFilter || String(report.semesterNumber ?? '') === semesterFilter;
+        return matchesKeyword && matchesLevel && matchesClassroom && matchesArea && matchesSubject && matchesSemester;
+      })
+      .sort(compareReportsByLevel);
+  }, [classLevelFilter, classroomFilter, learningAreaFilter, reports, searchTerm, semesterFilter, subjectFilter]);
 
-  const showBrowseMenu = !hasActiveSearchOrFilter(filterContext);
+  const showReportsTable = Boolean(browseLevel) || showAllReportsTable;
+  const showBrowseMenu = !showReportsTable && !hasActiveSearchOrFilter(filterContext);
+  const actionBusy = Boolean(documentAction) || bulkDownloadWorking;
+  const documentActionKey = documentAction
+    ? `${documentAction.gradebookId}:${documentAction.type}`
+    : bulkDownloadWorking
+      ? 'bulk-download'
+      : '';
+  const documentStatusModal = (
+    <DocumentActionStatusModal status={documentStatus} onClose={() => setDocumentStatus(null)} />
+  );
+  const bulkDownloadModal = (
+    <BulkDownloadProgressModal status={bulkDownloadStatus} onClose={() => setBulkDownloadStatus(null)} />
+  );
+
+  useEffect(() => {
+    if (!onBackActionChange) return undefined;
+
+    if (pdfPreview) {
+      onBackActionChange(closePdfPreview);
+    } else if (selectedReport) {
+      onBackActionChange(() => {
+        setSelectedReport(null);
+        setDocumentError('');
+      });
+    } else if (showReportsTable) {
+      onBackActionChange(returnToClassBrowse);
+    } else {
+      onBackActionChange(null);
+    }
+
+    return () => onBackActionChange(null);
+  }, [closePdfPreview, onBackActionChange, pdfPreview, returnToClassBrowse, selectedReport, showReportsTable]);
+
+  useEffect(() => {
+    if (!bulkDownloadWorking) return undefined;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [bulkDownloadWorking]);
+
+  useEffect(() => {
+    if (!pdfPreview) return undefined;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closePdfPreview();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [closePdfPreview, pdfPreview]);
+
+  if (pdfPreview) {
+    const previewReport = selectedReport;
+    const previewPrintLoading = previewReport ? documentActionKey === `${previewReport.gradebook.id}:print` : false;
+    const previewSaveLoading = previewReport ? documentActionKey === `${previewReport.gradebook.id}:save` : false;
+
+    return (
+      <>
+        {documentStatusModal}
+        {bulkDownloadModal}
+        <div className="flex min-h-[calc(100vh-8rem)] flex-col gap-4">
+        <div className="flex flex-wrap justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              if (previewReport) void handlePrintReport(previewReport);
+            }}
+            disabled={!previewReport || actionBusy}
+            className="btn btn-grey-3d min-w-[150px] justify-center !px-5 !py-3"
+          >
+            {previewPrintLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4" />}
+            พิมพ์ ปพ.5
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (previewReport) void handleSaveReport(previewReport);
+            }}
+            disabled={!previewReport || actionBusy}
+            className="btn btn-grey-3d min-w-[150px] justify-center !px-5 !py-3"
+          >
+            {previewSaveLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            บันทึก ปพ.5
+          </button>
+        </div>
+
+        <section className="min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-800 bg-[#101216] shadow-xl">
+          <div className="flex h-12 shrink-0 items-center gap-3 border-b border-white/10 bg-[#14171d] px-4 text-white">
+            <div className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-200">
+              {pdfPreview.title}
+            </div>
+            <button
+              type="button"
+              onClick={closePdfPreview}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-300 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+              aria-label="ปิดตัวอ่าน PDF"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="h-[calc(100vh-13rem)] min-h-[640px] bg-[#101216]">
+            <iframe
+              title={pdfPreview.title}
+              src={`${pdfPreview.objectUrl}#toolbar=1&navpanes=0&scrollbar=1&view=FitH`}
+              className="h-full w-full border-0 bg-[#101216]"
+            />
+          </div>
+        </section>
+      </div>
+      </>
+    );
+  }
 
   if (selectedReport) {
     const students = normalizeStudents(selectedReport.gradebook.students);
     const appData = gradebookAppData(selectedReport.gradebook);
-
-    if (selectedStudentIndex != null && students[selectedStudentIndex]) {
-      const student = students[selectedStudentIndex];
-      const row = studentName(student, selectedStudentIndex);
-      const summary = getStudentReportSummary(row.id, appData);
-
-      return (
-        <div className="space-y-5">
-          <button
-            type="button"
-            onClick={() => setSelectedStudentIndex(null)}
-            className="btn btn-secondary"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            กลับรายชื่อนักเรียน
-          </button>
-
-          <section className="ui-card overflow-hidden">
-            <div className="border-b border-slate-100 bg-slate-50 px-5 py-4">
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-blue-600">คะแนนรายบุคคล</p>
-              <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-950">{row.name}</h2>
-              <p className="mt-1 text-sm font-medium text-slate-500">
-                รหัส {row.code} · {selectedReport.subjectName} · {selectedReport.classroomName}
-              </p>
-            </div>
-
-            <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-xl border border-slate-200 bg-white p-4">
-                <p className="text-xs font-bold text-slate-500">เวลาเรียน (ทั้งภาค)</p>
-                <p className="mt-1 text-2xl font-extrabold text-slate-950">
-                  {summary.attendedHours > 0 ? summary.attendedHours.toLocaleString('th-TH') : '—'}
-                </p>
-              </div>
-              <div className="rounded-xl border border-slate-200 bg-white p-4">
-                <p className="text-xs font-bold text-slate-500">คะแนนรวม</p>
-                <p className="mt-1 text-2xl font-extrabold text-slate-950">
-                  {summary.totalScore != null ? summary.totalScore.toLocaleString('th-TH') : '—'}
-                </p>
-              </div>
-              <div className="rounded-xl border border-slate-200 bg-white p-4">
-                <p className="text-xs font-bold text-slate-500">ระดับผลการเรียน</p>
-                <p className="mt-1 text-2xl font-extrabold text-slate-950">{summary.gradeLevel}</p>
-              </div>
-              <div className="rounded-xl border border-slate-200 bg-white p-4">
-                <p className="text-xs font-bold text-slate-500">คุณลักษณะ / คิดวิเคราะห์</p>
-                <p className="mt-1 text-sm font-semibold text-slate-800">
-                  {summary.attributeRating} · {summary.analyticalRating}
-                </p>
-              </div>
-            </div>
-
-            <div className="border-t border-slate-100 px-5 py-8 text-center">
-              <p className="text-sm font-medium text-slate-500">
-                หน้ารายละเอียดคะแนนรายบุคคลจะพร้อมใช้งานในเร็วๆ นี้
-              </p>
-            </div>
-          </section>
-        </div>
-      );
-    }
+    const detailPreviewLoading = documentActionKey === `${selectedReport.gradebook.id}:preview`;
+    const detailSaveLoading = documentActionKey === `${selectedReport.gradebook.id}:save`;
 
     return (
+      <>
+      {documentStatusModal}
+      {bulkDownloadModal}
       <div className="space-y-5">
         <button
           type="button"
           onClick={() => {
             setSelectedReport(null);
-            setSelectedStudentIndex(null);
+            setDocumentError('');
           }}
           className="btn btn-secondary"
         >
@@ -806,6 +1647,11 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({ curren
             กำลังโหลดรายละเอียด ปพ.5...
           </div>
         )}
+        {documentError && (
+          <div className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">
+            {documentError}
+          </div>
+        )}
 
         <section className={`ui-card overflow-hidden${detailLoading ? ' opacity-60' : ''}`}>
           <div className="border-b border-slate-100 bg-slate-50 px-5 py-4">
@@ -813,7 +1659,7 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({ curren
               <div className="min-w-0">
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-blue-600">รายละเอียด ปพ.5</p>
                 <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-950">
-                  {selectedReport.subjectName}
+                  รายวิชา {selectedReport.subjectName} {selectedReport.subjectCode ? `รหัสวิชา ${selectedReport.subjectCode}` : ''}
                 </h2>
               </div>
               <p className="shrink-0 text-right text-sm font-medium leading-relaxed text-slate-500 lg:max-w-[55%] lg:pt-6">
@@ -849,19 +1695,7 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({ curren
                     const row = studentName(student, index);
                     const summary = getStudentReportSummary(row.id, appData);
                     return (
-                      <tr
-                        key={`${row.id}-${index}`}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setSelectedStudentIndex(index)}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault();
-                            setSelectedStudentIndex(index);
-                          }
-                        }}
-                        className="cursor-pointer transition hover:bg-blue-50/70 focus-visible:bg-blue-50/70 focus-visible:outline-none"
-                      >
+                      <tr key={`${row.id}-${index}`} className="transition hover:bg-slate-50">
                         <td className="px-3 py-3 text-center font-semibold text-slate-500">{index + 1}</td>
                         <td className="px-3 py-3 text-center font-mono text-slate-700">{row.code}</td>
                         <td className="px-3 py-3 text-center font-mono text-slate-600">{studentCitizenId(student)}</td>
@@ -883,32 +1717,122 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({ curren
             </table>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-3 border-t border-slate-100 px-5 py-4">
-            <button
-              type="button"
-              className="btn btn-grey-3d"
-              disabled
-              title="ฟังก์ชันดูรายละเอียดเล่ม ปพ.5 จะพร้อมใช้งานในเร็วๆ นี้"
-            >
-              <Eye className="h-4 w-4" />
-              ดูรายละเอียด
-            </button>
-            <button
-              type="button"
-              className="btn btn-grey-3d"
-              disabled
-              title="ฟังก์ชันดาวน์โหลด PDF เล่ม ปพ.5 จะพร้อมใช้งานในเร็วๆ นี้"
-            >
-              <Download className="h-4 w-4" />
-              ดาวน์โหลด PDF
-            </button>
+          <div className="border-t border-slate-100 bg-slate-50/80 px-5 py-5">
+            <div className="flex flex-wrap justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  void openReportPdfPreview(selectedReport);
+                }}
+                disabled={detailLoading || actionBusy}
+                className="btn btn-grey-3d min-w-[150px] justify-center !px-5 !py-3"
+              >
+                {detailPreviewLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
+                อ่าน ปพ.5
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void handleSaveReport(selectedReport);
+                }}
+                disabled={detailLoading || actionBusy}
+                className="btn btn-grey-3d min-w-[150px] justify-center !px-5 !py-3"
+              >
+                {detailSaveLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                บันทึก ปพ.5
+              </button>
+            </div>
           </div>
         </section>
       </div>
+      </>
+    );
+  }
+
+  if (showReportsTable) {
+    return (
+      <>
+      {documentStatusModal}
+      {bulkDownloadModal}
+      <div className="w-full space-y-4">
+        <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+          <div className="grid gap-3 md:grid-cols-[1.2fr_repeat(5,minmax(0,1fr))]">
+            <label className="flex h-[42px] min-w-0 items-center rounded-xl border border-slate-200 bg-white px-3 shadow-sm focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100">
+              <Search className="mr-2 h-4 w-4 shrink-0 text-slate-400" />
+              <input
+                type="search"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="ค้นหา"
+                className="w-full min-w-0 bg-transparent text-sm font-semibold text-slate-900 outline-none placeholder:text-slate-400"
+              />
+            </label>
+
+            <FilterDropdown value={classLevelFilter} onChange={handleClassLevelFilterChange}>
+              <option value="">ระดับชั้น</option>
+              {classLevelOptions.map((level) => <option key={level} value={level}>{level}</option>)}
+            </FilterDropdown>
+            <FilterDropdown value={classroomFilter} onChange={setClassroomFilter}>
+              <option value="">ห้องเรียน</option>
+              {classroomOptions.map((classroom) => <option key={classroom} value={classroom}>{classroom}</option>)}
+            </FilterDropdown>
+            <FilterDropdown value={learningAreaFilter} onChange={setLearningAreaFilter}>
+              <option value="">กลุ่มสาระการเรียนรู้</option>
+              {learningAreaOptions.map((area) => <option key={area} value={area}>{area}</option>)}
+            </FilterDropdown>
+            <FilterDropdown value={subjectFilter} onChange={setSubjectFilter}>
+              <option value="">วิชา</option>
+              {subjectOptions.map((subject) => (
+                <option key={subject.subjectId} value={subject.subjectId}>{subject.subjectName}</option>
+              ))}
+            </FilterDropdown>
+            <FilterDropdown value={semesterFilter} onChange={setSemesterFilter}>
+              <option value="">ภาคเรียน</option>
+              {semesters.map((semester) => (
+                <option key={semester.id} value={String(semester.semester_number)}>
+                  ภาคเรียนที่ {semester.semester_number}
+                </option>
+              ))}
+            </FilterDropdown>
+          </div>
+        </section>
+
+        {error && (
+          <div className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+        {documentError && (
+          <div className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">
+            {documentError}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="ui-card flex items-center justify-center py-16 text-slate-500">
+            <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+            กำลังโหลดรายการ ปพ.5...
+          </div>
+        ) : (
+          <CompletedReportsTable
+            reports={filteredReports}
+            documentActionKey={documentActionKey}
+            onOpen={(report) => {
+              void openReport(report);
+            }}
+            onPrint={(report) => void handlePrintReport(report)}
+            onSave={(report) => void handleSaveReport(report)}
+          />
+        )}
+      </div>
+      </>
     );
   }
 
   return (
+    <>
+    {documentStatusModal}
+    {bulkDownloadModal}
     <div className="space-y-8">
       <section className="mx-auto max-w-5xl text-center">
         <img src="/logo1.png" alt="ปพ.5" className="mx-auto h-24 w-24 object-contain" />
@@ -931,10 +1855,14 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({ curren
           />
         </label>
 
-        <div className="mx-auto mt-7 grid max-w-4xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <FilterDropdown value={classLevelFilter} onChange={setClassLevelFilter}>
+        <div className="mx-auto mt-7 grid max-w-5xl gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <FilterDropdown value={classLevelFilter} onChange={handleClassLevelFilterChange}>
             <option value="">ระดับชั้น</option>
             {classLevelOptions.map((level) => <option key={level} value={level}>{level}</option>)}
+          </FilterDropdown>
+          <FilterDropdown value={classroomFilter} onChange={setClassroomFilter}>
+            <option value="">ห้องเรียน</option>
+            {classroomOptions.map((classroom) => <option key={classroom} value={classroom}>{classroom}</option>)}
           </FilterDropdown>
           <FilterDropdown value={learningAreaFilter} onChange={setLearningAreaFilter}>
             <option value="">กลุ่มสาระการเรียนรู้</option>
@@ -970,7 +1898,10 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({ curren
             {!showBrowseMenu && classLevelFilter && !searchTerm.trim() ? (
               <button
                 type="button"
-                onClick={() => setClassLevelFilter('')}
+                onClick={() => {
+                  setClassLevelFilter('');
+                  setClassroomFilter('');
+                }}
                 className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-blue-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
@@ -989,10 +1920,34 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({ curren
             กำลังโหลดรายการ ปพ.5...
           </div>
         ) : showBrowseMenu ? (
-          <ClassLevelBrowseMenu
-            selectedLevel={classLevelFilter}
-            onSelectLevel={setClassLevelFilter}
-          />
+          <>
+            <ClassLevelBrowseMenu
+              selectedLevel={classLevelFilter}
+              onSelectLevel={handleBrowseLevelSelect}
+            />
+            <div className="mt-7 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <button
+                type="button"
+                onClick={handleShowAllReportsTable}
+                disabled={loading || reports.length === 0 || bulkDownloadWorking}
+                className="group flex min-h-[58px] w-full max-w-[300px] items-center justify-center gap-3 rounded-xl border border-blue-700 bg-gradient-to-b from-sky-500 to-blue-700 px-4 py-3 text-white shadow-[0_10px_22px_-14px_rgba(37,99,235,0.9)] transition hover:-translate-y-0.5 hover:from-sky-400 hover:to-blue-700 hover:shadow-[0_16px_30px_-18px_rgba(37,99,235,0.9)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+              >
+                <BookOpenCheck className="h-5 w-5 shrink-0" />
+                <span className="min-w-0 text-lg font-extrabold leading-tight">ปพ.5 ทั้งหมด</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void handleDownloadAllReports();
+                }}
+                disabled={loading || reports.length === 0 || actionBusy}
+                className="group flex min-h-[58px] w-full max-w-[300px] items-center justify-center gap-3 rounded-xl border border-emerald-700 bg-gradient-to-b from-emerald-500 to-teal-700 px-4 py-3 text-white shadow-[0_10px_22px_-14px_rgba(5,150,105,0.9)] transition hover:-translate-y-0.5 hover:from-emerald-400 hover:to-teal-700 hover:shadow-[0_16px_30px_-18px_rgba(5,150,105,0.9)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+              >
+                {bulkDownloadWorking ? <Loader2 className="h-5 w-5 shrink-0 animate-spin" /> : <Download className="h-5 w-5 shrink-0" />}
+                <span className="min-w-0 text-lg font-extrabold leading-tight">บันทึก ปพ.5 ทั้งหมด</span>
+              </button>
+            </div>
+          </>
         ) : filteredReports.length === 0 ? (
           <div className="ui-card py-16 text-center text-slate-400">
             <BookOpenCheck className="mx-auto mb-3 h-10 w-10 opacity-40" />
@@ -1015,5 +1970,6 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({ curren
         )}
       </section>
     </div>
+    </>
   );
 };

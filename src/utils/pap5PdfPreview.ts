@@ -131,6 +131,14 @@ function readDownloadFileName(response: Response) {
   return "แบบปพ.5.pdf";
 }
 
+function normalizePdfRequestError(error: unknown) {
+  const message = error instanceof Error ? error.message.trim() : String(error ?? "").trim();
+  if (/^(load failed|failed to fetch|networkerror)$/i.test(message)) {
+    return "ไม่สามารถเชื่อมต่อระบบสร้าง PDF ได้ กรุณาลองใหม่อีกครั้ง";
+  }
+  return message || "ไม่สามารถสร้างไฟล์ PDF ได้";
+}
+
 function saveBlob(blob: Blob, fileName: string) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -145,36 +153,69 @@ function saveBlob(blob: Blob, fileName: string) {
   window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
-export async function downloadPap5Pdf({
-  id,
-  data,
-  approvalStatus,
-}: {
+type Pap5PdfRequest = {
   id: string;
   data: AppData;
   approvalStatus?: GradebookApprovalStatus | null;
-}) {
-  const response = await fetch("/api/pap5-pdf", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({ id, data, approvalStatus }),
-  });
+};
 
-  const contentType = response.headers.get("content-type") ?? "";
-  if (!response.ok || !contentType.toLowerCase().includes("application/pdf")) {
-    const errorText = await response.text().catch(() => "");
-    const responseMessage = readErrorMessage(errorText);
-    const message = response.ok
-      ? `ระบบสร้าง PDF ตอบกลับเป็น ${contentType || "unknown"} ไม่ใช่ application/pdf`
-      : responseMessage || "ไม่สามารถสร้างไฟล์ PDF ได้";
+async function requestPap5Pdf({
+  id,
+  data,
+  approvalStatus,
+}: Pap5PdfRequest): Promise<{ blob: Blob; fileName: string }> {
+  const payload = JSON.stringify({ id, data, approvalStatus });
+  const endpoints = ["/api/pap5-pdf", "/api/export/pap5/preview"];
+  let lastError: unknown = null;
 
-    throw new Error(message);
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: payload,
+      });
+
+      const contentType = response.headers.get("content-type") ?? "";
+      if (!response.ok || !contentType.toLowerCase().includes("application/pdf")) {
+        const errorText = await response.text().catch(() => "");
+        const responseMessage = readErrorMessage(errorText);
+        const message = response.ok
+          ? `ระบบสร้าง PDF ตอบกลับเป็น ${contentType || "unknown"} ไม่ใช่ application/pdf`
+          : responseMessage || "ไม่สามารถสร้างไฟล์ PDF ได้";
+
+        throw new Error(message);
+      }
+
+      const buffer = await response.arrayBuffer();
+      const blob = new Blob([buffer], { type: "application/pdf" });
+      return { blob, fileName: readDownloadFileName(response) };
+    } catch (error) {
+      lastError = error;
+    }
   }
 
-  const blob = await response.blob();
-  saveBlob(blob, readDownloadFileName(response));
+  throw new Error(normalizePdfRequestError(lastError));
+}
+
+export async function createPap5PdfBlob(request: Pap5PdfRequest): Promise<Blob> {
+  const result = await requestPap5Pdf(request);
+  return result.blob;
+}
+
+export async function createPap5PdfFile(request: Pap5PdfRequest): Promise<{ blob: Blob; fileName: string }> {
+  return requestPap5Pdf(request);
+}
+
+export function savePap5PdfBlob(blob: Blob, fileName: string) {
+  saveBlob(blob, fileName);
+}
+
+export async function downloadPap5Pdf(request: Pap5PdfRequest) {
+  const { blob, fileName } = await requestPap5Pdf(request);
+  saveBlob(blob, fileName);
 }
 
 export async function openPap5PdfPreview({
