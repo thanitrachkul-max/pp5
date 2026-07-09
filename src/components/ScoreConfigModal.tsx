@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { X, AlertCircle, Sparkles, Loader2, CheckCircle2 } from 'lucide-react';
 import { AppData, ScoreConfig, ScoreUnit } from '../types';
 import { StandardIndicatorFilter } from './StandardIndicatorFilter';
@@ -213,10 +213,10 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
     return total;
   };
 
-  const handleSelectIndicators = (standardCode: string, indicators: string[]) => {
+  const handleSelectIndicators = useCallback((standardCode: string, indicators: string[]) => {
     setMainStandard(standardCode);
     setSelectedIndicators(indicators);
-  };
+  }, []);
 
   const handleSaveClick = () => {
     // Validation
@@ -362,6 +362,8 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
             subjectCode={subjectCode}
             learningArea={learningArea}
             gradeLevel={gradeLevel} 
+            initialStandard={mainStandard}
+            initialIndicators={selectedIndicators}
             onSelectIndicators={handleSelectIndicators} 
           />
 

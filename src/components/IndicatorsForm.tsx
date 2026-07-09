@@ -9,6 +9,7 @@ interface Props {
   scoreConfig?: AppData['scoreConfig'];
   generalInfo?: AppData['generalInfo'];
   printMode?: boolean;
+  readOnly?: boolean;
   onChange: (data: AppData['indicators']) => void;
 }
 
@@ -41,10 +42,11 @@ function findLegacyDescription(code: string): string {
   return '';
 }
 
-export const IndicatorsForm: React.FC<Props> = ({ data, scoreConfig, generalInfo, printMode = false, onChange }) => {
+export const IndicatorsForm: React.FC<Props> = ({ data, scoreConfig, generalInfo, printMode = false, readOnly = false, onChange }) => {
   const [autoFilling, setAutoFilling] = useState(false);
 
   const handleAutoFill = useCallback(async () => {
+    if (readOnly) return;
     if (!scoreConfig) return;
 
     const uniqueCodes = new Set<string>();
@@ -99,17 +101,18 @@ export const IndicatorsForm: React.FC<Props> = ({ data, scoreConfig, generalInfo
     } finally {
       setAutoFilling(false);
     }
-  }, [data, generalInfo, onChange, scoreConfig]);
+  }, [data, generalInfo, onChange, readOnly, scoreConfig]);
 
   // Auto-fill on mount if empty or if existing rows only have codes without details.
   useEffect(() => {
-    if (printMode) return;
+    if (printMode || readOnly) return;
     if (scoreConfig && scoreConfig.units.length > 0 && (data.length === 0 || data.some(ind => ind.id && !ind.description.trim()))) {
       void handleAutoFill();
     }
   }, []);
 
   const handleAdd = () => {
+    if (readOnly) return;
     const newIndicator: Indicator = {
       id: '',
       description: ''
@@ -118,10 +121,12 @@ export const IndicatorsForm: React.FC<Props> = ({ data, scoreConfig, generalInfo
   };
 
   const handleRemove = (index: number) => {
+    if (readOnly) return;
     onChange(data.filter((_, i) => i !== index));
   };
 
   const handleChange = (index: number, field: keyof Indicator, value: string) => {
+    if (readOnly) return;
     onChange(data.map((ind, i) => i === index ? { ...ind, [field]: value } : ind));
   };
 
@@ -130,7 +135,7 @@ export const IndicatorsForm: React.FC<Props> = ({ data, scoreConfig, generalInfo
       <div className="w-full bg-white p-4" style={{ minHeight: 'calc(100vh - 240px)', fontFamily: 'Sarabun' }}>
         <div className={printMode ? "indicator-print-heading" : "flex justify-between items-center mb-2"}>
           <h2 className="text-xl font-bold">{printMode ? "ตัวชี้วัดประจำรายวิชา" : "ตัวชี้วัด"}</h2>
-          {!printMode && (
+          {!printMode && !readOnly && (
             <div className="flex gap-2">
               <button
                 onClick={handleAutoFill}
@@ -176,6 +181,7 @@ export const IndicatorsForm: React.FC<Props> = ({ data, scoreConfig, generalInfo
                       value={ind.id}
                       onChange={(e) => handleChange(index, 'id', e.target.value)}
                       placeholder="รหัสตัวชี้วัด"
+                      readOnly={readOnly}
                     />
                   </td>
                   <td colSpan={4} className="border border-slate-300 align-top">
@@ -185,10 +191,11 @@ export const IndicatorsForm: React.FC<Props> = ({ data, scoreConfig, generalInfo
                       onChange={(e) => handleChange(index, 'description', e.target.value)}
                       placeholder="รายละเอียดตัวชี้วัด"
                       rows={2}
+                      readOnly={readOnly}
                     />
                   </td>
                   <td className="border border-slate-300 text-center align-middle">
-                    {!printMode && (
+                    {!printMode && !readOnly && (
                       <button
                         onClick={() => handleRemove(index)}
                         className="text-red-500 hover:text-red-700 p-1.5 rounded hover:bg-red-50 transition-colors"

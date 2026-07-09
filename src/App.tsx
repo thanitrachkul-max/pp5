@@ -122,6 +122,7 @@ function ConfiguredApp() {
   const [authLoading, setAuthLoading] = useState(true);
   const [activeView, setActiveView] = useState<AppView>(readInitialAppView);
   const [gradebookSession, setGradebookSession] = useState<GradebookSession | null>(null);
+  const [gradebookReturnView, setGradebookReturnView] = useState<AppView>('teacher');
   const [openingGradebook, setOpeningGradebook] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [teacherReturnPeriodKey, setTeacherReturnPeriodKey] = useState<string | null>(null);
@@ -274,6 +275,7 @@ function ConfiguredApp() {
     gradebookId: string,
     options?: { readOnly?: boolean; returnPeriodKey?: string | null }
   ) => {
+    setGradebookReturnView(activeView);
     setOpeningGradebook(true);
     setSyncStatus('loading');
     try {
@@ -283,7 +285,11 @@ function ConfiguredApp() {
         options?.returnPeriodKey ?? `${assignment.academic_year_id}:${assignment.semester_number}`,
       );
       setActiveView('teacher');
-      setGradebookSession(options?.readOnly ? { ...session, readOnly: true } : session);
+      setGradebookSession(
+        typeof options?.readOnly === 'boolean'
+          ? { ...session, readOnly: options.readOnly }
+          : session,
+      );
     } catch {
       setSyncStatus('error');
     } finally {
@@ -389,6 +395,7 @@ function ConfiguredApp() {
             currentUser={currentUser}
             onBack={() => {
               setGradebookSession(null);
+              setActiveView(gradebookReturnView);
             }}
             onLogout={handleLogout}
             onSettings={openAdminView}

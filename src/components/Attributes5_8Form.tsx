@@ -9,6 +9,7 @@ interface Props {
   data: AppData['attributes'];
   generalInfo: AppData['generalInfo'];
   printMode?: boolean;
+  readOnly?: boolean;
   onChange: (data: AppData['attributes']) => void;
 }
 
@@ -29,7 +30,7 @@ function buildClassTermTitle(generalInfo: AppData['generalInfo']) {
   ].filter(Boolean).join(' ');
 }
 
-export const Attributes5_8Form: React.FC<Props> = ({ students, data, generalInfo, printMode = false, onChange }) => {
+export const Attributes5_8Form: React.FC<Props> = ({ students, data, generalInfo, printMode = false, readOnly = false, onChange }) => {
   const [showAutoFillModal, setShowAutoFillModal] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
@@ -38,6 +39,7 @@ export const Attributes5_8Form: React.FC<Props> = ({ students, data, generalInfo
   const fields = ['attr5_1', 'attr5_2', 'attr6_1', 'attr6_2', 'attr7_1', 'attr7_2', 'attr7_3', 'attr8_1', 'attr8_2'];
 
   const handleChange = (studentId: string, field: string, value: string) => {
+    if (readOnly) return;
     const numValue = value === '' ? '' : parseInt(value);
     onChange({
       ...data,
@@ -49,6 +51,7 @@ export const Attributes5_8Form: React.FC<Props> = ({ students, data, generalInfo
   };
 
   const handleAutoFill = (minScore: number, maxScore: number, studentIds?: string[]) => {
+    if (readOnly) return;
     const newData = { ...data };
     const targetStudents = studentIds?.length
       ? students.filter(student => studentIds.includes(student.id))
@@ -69,6 +72,7 @@ export const Attributes5_8Form: React.FC<Props> = ({ students, data, generalInfo
   };
 
   const confirmClearData = () => {
+    if (readOnly) return;
     const newData = { ...data };
 
     students.forEach(student => {
@@ -99,7 +103,7 @@ export const Attributes5_8Form: React.FC<Props> = ({ students, data, generalInfo
 
   return (
     <div className="w-full overflow-auto">
-      {!printMode && showClearConfirm && (
+      {!printMode && !readOnly && showClearConfirm && (
         <ModalPortal>
           <div className="fixed inset-0 z-[120] grid min-h-dvh place-items-center overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-sm">
             <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-xl animate-in zoom-in-95 duration-200">
@@ -242,24 +246,24 @@ export const Attributes5_8Form: React.FC<Props> = ({ students, data, generalInfo
                     <td className="text-center sticky z-10 bg-white" style={{ left: '48px', width: '128px', minWidth: '128px', maxWidth: '128px' }}>{student?.studentId ?? ''}</td>
                     <td className="text-center sticky z-10 bg-white" style={{ left: '176px', width: '180px', minWidth: '180px', maxWidth: '180px' }}>{student?.citizenId ?? ''}</td>
                     <td className="text-left px-2 sticky z-10 bg-white border-r-2 border-r-slate-400" style={{ left: '356px', width: '292px', minWidth: '292px', maxWidth: '292px' }}>{student?.name ?? ''}</td>
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr5_1'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr5_1', e.target.value)} disabled={!student} /></td>
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr5_2'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr5_2', e.target.value)} disabled={!student} /></td>
+                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr5_1'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr5_1', e.target.value)} disabled={!student || readOnly} /></td>
+                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr5_2'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr5_2', e.target.value)} disabled={!student || readOnly} /></td>
                     <td className="bg-orange-100 text-center">{avg5}</td>
                     <td className="bg-orange-100 text-center">{avg5}</td>
                     
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr6_1'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr6_1', e.target.value)} disabled={!student} /></td>
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr6_2'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr6_2', e.target.value)} disabled={!student} /></td>
+                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr6_1'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr6_1', e.target.value)} disabled={!student || readOnly} /></td>
+                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr6_2'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr6_2', e.target.value)} disabled={!student || readOnly} /></td>
                     <td className="bg-orange-100 text-center">{avg6}</td>
                     <td className="bg-orange-100 text-center">{avg6}</td>
                     
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr7_1'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr7_1', e.target.value)} disabled={!student} /></td>
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr7_2'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr7_2', e.target.value)} disabled={!student} /></td>
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr7_3'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr7_3', e.target.value)} disabled={!student} /></td>
+                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr7_1'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr7_1', e.target.value)} disabled={!student || readOnly} /></td>
+                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr7_2'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr7_2', e.target.value)} disabled={!student || readOnly} /></td>
+                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr7_3'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr7_3', e.target.value)} disabled={!student || readOnly} /></td>
                     <td className="bg-orange-100 text-center">{avg7}</td>
                     <td className="bg-orange-100 text-center">{avg7}</td>
                     
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr8_1'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr8_1', e.target.value)} disabled={!student} /></td>
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr8_2'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr8_2', e.target.value)} disabled={!student} /></td>
+                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr8_1'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr8_1', e.target.value)} disabled={!student || readOnly} /></td>
+                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr8_2'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr8_2', e.target.value)} disabled={!student || readOnly} /></td>
                     <td className="bg-orange-100 text-center">{avg8}</td>
                     <td className="bg-orange-100 text-center">{avg8}</td>
                     
@@ -273,7 +277,7 @@ export const Attributes5_8Form: React.FC<Props> = ({ students, data, generalInfo
         </div>
         </div>
 
-        {!printMode && (
+        {!printMode && !readOnly && (
         <div className="mt-6 flex flex-wrap justify-center gap-4">
           <button
             type="button"
@@ -294,7 +298,7 @@ export const Attributes5_8Form: React.FC<Props> = ({ students, data, generalInfo
         )}
       </div>
       
-      {!printMode && (
+      {!printMode && !readOnly && (
         <AutoFillAttributesModal
           isOpen={showAutoFillModal}
           onClose={() => setShowAutoFillModal(false)}

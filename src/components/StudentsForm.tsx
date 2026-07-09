@@ -33,6 +33,14 @@ const CITIZEN_ID_LEFT = STUDENT_NO_WIDTH + STUDENT_CODE_WIDTH;
 const STUDENT_NAME_LEFT = CITIZEN_ID_LEFT + CITIZEN_ID_WIDTH;
 const WEEK_LABEL_LEFT = STUDENT_NAME_LEFT + STUDENT_NAME_WIDTH;
 
+function parsePositiveInteger(...values: Array<string | number | null | undefined>) {
+  for (const value of values) {
+    const parsed = typeof value === "number" ? value : parseInt(String(value ?? ""), 10);
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  }
+  return 0;
+}
+
 function dateKeyForDate(date: Date) {
   const monthStr = String(date.getMonth() + 1).padStart(2, "0");
   const dayStr = String(date.getDate()).padStart(2, "0");
@@ -87,6 +95,7 @@ interface Props {
   attendance?: AppData["attendance"];
   rosterLocked?: boolean;
   printMode?: boolean;
+  readOnly?: boolean;
   printDateMonths?: number[];
   printFillToWeeks?: number;
   onChange: (data: AppData["students"]) => void;
@@ -100,6 +109,7 @@ export const StudentsForm: React.FC<Props> = ({
   attendance,
   rosterLocked = false,
   printMode = false,
+  readOnly = false,
   printDateMonths,
   printFillToWeeks,
   onChange,
@@ -145,7 +155,8 @@ export const StudentsForm: React.FC<Props> = ({
     onConfirm: () => {},
   });
 
-  const currentHoursPerWeek = parseInt(generalInfo.totalHours) || 1;
+  const currentHoursPerWeek =
+    parsePositiveInteger(generalInfo.hoursPerWeek, generalInfo.totalHours) || 1;
   const currentTotalHours = currentHoursPerWeek * 20;
   const fallbackStudyPeriod = useMemo(
     () => defaultStudyPeriod(generalInfo),
@@ -226,6 +237,8 @@ export const StudentsForm: React.FC<Props> = ({
       }
 
       if (!attendance?.settings) {
+        setDaysPerWeek(1);
+        setSchedule([{ dayOfWeek: 1, hours: currentHoursPerWeek }]);
         setStartDate(effectiveStudyStartDate);
         setEndDate(effectiveStudyEndDate);
       }
@@ -237,6 +250,9 @@ export const StudentsForm: React.FC<Props> = ({
     generalInfo.academicYear,
     generalInfo.studyStartDate,
     generalInfo.studyEndDate,
+    generalInfo.hoursPerWeek,
+    generalInfo.totalHours,
+    currentHoursPerWeek,
     effectiveStudyStartDate,
     effectiveStudyEndDate,
   ]);
@@ -1229,7 +1245,7 @@ export const StudentsForm: React.FC<Props> = ({
         </div>
         </div>
 
-        {!printMode && (
+        {!printMode && !readOnly && (
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <button
               type="button"
@@ -1249,6 +1265,7 @@ export const StudentsForm: React.FC<Props> = ({
         )}
 
         {!printMode &&
+          !readOnly &&
           editModalMode &&
           typeof document !== "undefined" &&
           createPortal(

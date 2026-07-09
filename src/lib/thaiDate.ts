@@ -22,7 +22,18 @@ export function displayToIsoDate(display: string): string | null {
 export function isWithinEntryWindow(start: string | null | undefined, end: string | null | undefined): boolean {
   if (!start && !end) return true;
   const today = new Date().toISOString().slice(0, 10);
-  if (start && today < start) return false;
-  if (end && today > end) return false;
+  const normalizedStart = normalizeThaiOrIsoDate(start);
+  const normalizedEnd = normalizeThaiOrIsoDate(end);
+  if (normalizedStart && today < normalizedStart) return false;
+  if (normalizedEnd && today > normalizedEnd) return false;
   return true;
+}
+
+function normalizeThaiOrIsoDate(value: string | null | undefined): string | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return value || null;
+  const [rawYear, month, day] = value.split('-');
+  const year = Number(rawYear);
+  if (!Number.isFinite(year)) return value;
+  const normalizedYear = year >= 2400 ? year - 543 : year;
+  return `${normalizedYear}-${month}-${day}`;
 }

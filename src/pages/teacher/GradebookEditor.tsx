@@ -682,6 +682,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 data={data.generalInfo}
                 appData={data}
                 approvalStatus={approvalStatus}
+                readOnly={session.readOnly}
                 onChange={(generalInfo) =>
                   !session.readOnly && handleUpdate({ ...data, generalInfo })
                 }
@@ -692,6 +693,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 data={data.students}
                 generalInfo={data.generalInfo}
                 attendance={data.attendance}
+                readOnly={session.readOnly}
                 onChange={(students) =>
                   !session.readOnly && handleUpdate({ ...data, students })
                 }
@@ -707,6 +709,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 data={data.scores}
                 generalInfo={data.generalInfo}
                 scoreConfig={data.scoreConfig}
+                readOnly={session.readOnly}
                 onChange={(scores) =>
                   !session.readOnly && handleUpdate({ ...data, scores })
                 }
@@ -723,6 +726,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 students={data.students}
                 data={data.attributes}
                 generalInfo={data.generalInfo}
+                readOnly={session.readOnly}
                 onChange={(attributes) =>
                   !session.readOnly && handleUpdate({ ...data, attributes })
                 }
@@ -733,6 +737,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 students={data.students}
                 data={data.attributes}
                 generalInfo={data.generalInfo}
+                readOnly={session.readOnly}
                 onChange={(attributes) =>
                   !session.readOnly && handleUpdate({ ...data, attributes })
                 }
@@ -743,6 +748,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 students={data.students}
                 data={data.analytical}
                 generalInfo={data.generalInfo}
+                readOnly={session.readOnly}
                 onChange={(analytical) =>
                   !session.readOnly && handleUpdate({ ...data, analytical })
                 }
@@ -753,6 +759,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 data={data.indicators}
                 scoreConfig={data.scoreConfig}
                 generalInfo={data.generalInfo}
+                readOnly={session.readOnly}
                 onChange={(indicators) =>
                   !session.readOnly && handleUpdate({ ...data, indicators })
                 }

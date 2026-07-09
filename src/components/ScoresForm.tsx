@@ -11,6 +11,7 @@ interface Props {
   generalInfo: AppData['generalInfo'];
   scoreConfig?: AppData['scoreConfig'];
   printMode?: boolean;
+  readOnly?: boolean;
   onChange: (data: AppData['scores']) => void;
   onConfigChange: (config?: ScoreConfig) => void;
   onClearScoresAndConfig?: () => void;
@@ -36,6 +37,7 @@ const scoreWidthStyle = (width: number, left?: number): React.CSSProperties => (
 const SCORE_LABEL_COLUMN_STYLE = scoreWidthStyle(136);
 const SCORE_INDICATOR_COLUMN_STYLE = scoreWidthStyle(44);
 const SCORE_NARROW_COLUMN_STYLE = scoreWidthStyle(44);
+const SCORE_BETWEEN_TERM_COLUMN_STYLE = scoreWidthStyle(53);
 const SCORE_SUMMARY_COLUMN_STYLE = scoreWidthStyle(84);
 
 const getIndicatorSlotCount = (unit: ScoreUnit) =>
@@ -49,7 +51,7 @@ const getUnitDisplayName = (unit: ScoreUnit, index: number) => {
   return trimmedName ? `${index + 1}. ${trimmedName}` : '';
 };
 
-export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, scoreConfig, printMode = false, onChange, onConfigChange, onClearScoresAndConfig }) => {
+export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, scoreConfig, printMode = false, readOnly = false, onChange, onConfigChange, onClearScoresAndConfig }) => {
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showAutoFillModal, setShowAutoFillModal] = useState(false);
@@ -59,6 +61,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
   };
 
   const handleChange = (studentId: string, field: string, value: string, maxScore?: number) => {
+    if (readOnly) return;
     const parsedValue = parseFloat(value);
     const upperLimit = typeof maxScore === 'number' ? Math.max(0, maxScore) : Number.POSITIVE_INFINITY;
     const numValue =
@@ -77,6 +80,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
   };
 
   const handleAutoFill = (minGrade: number, maxGrade: number, studentIds?: string[]) => {
+    if (readOnly) return;
     if (!scoreConfig) return;
 
     const newData = { ...data };
@@ -182,6 +186,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
     ),
   );
   const canEnterScores = Boolean(scoreConfig && hasConfiguredIndicators);
+  const canEditScores = canEnterScores && !readOnly;
   const storedScore = scoreConfig?.storedScore ?? 70;
   const storedPassingScore = Math.floor(storedScore / 2);
   const showUnitTotalColumns = !printMode;
@@ -214,10 +219,12 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
   };
 
   const handleClearData = () => {
+    if (readOnly) return;
     setShowClearConfirm(true);
   };
 
   const confirmClearData = () => {
+    if (readOnly) return;
     if (onClearScoresAndConfig) {
       onClearScoresAndConfig();
     } else {
@@ -230,7 +237,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
   return (
     <div className="relative flex w-full flex-col overflow-auto">
       {/* Clear Confirmation Overlay */}
-      {!printMode && showClearConfirm && (
+      {!printMode && !readOnly && showClearConfirm && (
         <ModalPortal>
           <div className="fixed inset-0 z-[120] grid min-h-dvh place-items-center overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-sm">
             <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-xl animate-in zoom-in-95 duration-200">
@@ -304,7 +311,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                 ))}
                 {showScoreSummaryColumns && (
                   <>
-                    <th rowSpan={2} className="bg-orange-excel" style={SCORE_NARROW_COLUMN_STYLE}><span className="writing-vertical inline-block">รวมคะแนนหน่วยการเรียนรู้ระหว่างภาคเรียน</span></th>
+                    <th rowSpan={2} className="bg-orange-excel" style={SCORE_BETWEEN_TERM_COLUMN_STYLE}><span className="writing-vertical inline-block">รวมคะแนนหน่วยการเรียนรู้ระหว่างภาคเรียน</span></th>
                     <th rowSpan={2} className="bg-orange-excel" style={SCORE_NARROW_COLUMN_STYLE}><span className="writing-vertical inline-block">คะแนนสอบกลางภาค</span></th>
                     <th rowSpan={2} className="bg-orange-excel" style={SCORE_NARROW_COLUMN_STYLE}><span className="writing-vertical inline-block">คะแนนสอบปลายภาค</span></th>
                     <th rowSpan={2} className="bg-orange-excel" style={SCORE_NARROW_COLUMN_STYLE}><span className="writing-vertical inline-block">รวมคะแนนตลอดภาคเรียน</span></th>
@@ -352,7 +359,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                 ))}
                 {showScoreSummaryColumns && (
                   <>
-                    <th className="bg-orange-excel">{storedScore}</th>
+                    <th className="bg-orange-excel" style={SCORE_BETWEEN_TERM_COLUMN_STYLE}>{storedScore}</th>
                     <th className="bg-orange-excel">10</th>
                     <th className="bg-orange-excel">20</th>
                     <th className="bg-orange-excel">100</th>
@@ -376,7 +383,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                 ))}
                 {showScoreSummaryColumns && (
                   <>
-                    <th className="bg-orange-excel">{storedPassingScore}</th>
+                    <th className="bg-orange-excel" style={SCORE_BETWEEN_TERM_COLUMN_STYLE}>{storedPassingScore}</th>
                     <th className="bg-orange-excel">5</th>
                     <th className="bg-orange-excel">10</th>
                     <th className="bg-orange-excel">50</th>
@@ -416,9 +423,9 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                                   className="excel-input score-input text-center"
                                   value={score[`u${uIdx}_i${iIdx}`] ?? ''}
                                   onMouseDown={(e) => {
-                                    if (!canEnterScores) {
+                                    if (!canEditScores) {
                                       e.preventDefault();
-                                      notifyMissingScoreConfig();
+                                      if (!readOnly) notifyMissingScoreConfig();
                                     }
                                   }}
                                   onChange={(e) =>
@@ -429,8 +436,8 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                                       u.indicators[iIdx]?.fullScore || 0,
                                     )
                                   }
-                                  readOnly={!canEnterScores}
-                                  aria-disabled={!canEnterScores}
+                                  readOnly={!canEditScores}
+                                  aria-disabled={!canEditScores}
                                 />
                               )
                             ) : null}
@@ -443,7 +450,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                     ))}
                     {showScoreSummaryColumns && (
                       <>
-                        <td className="text-blue-600 text-center font-medium bg-blue-50">{hasScoreData ? betweenTermTotal : ''}</td>
+                        <td className="text-blue-600 text-center font-medium bg-blue-50" style={SCORE_BETWEEN_TERM_COLUMN_STYLE}>{hasScoreData ? betweenTermTotal : ''}</td>
                         <td className="score-entry-cell">
                           <input
                             type="number"
@@ -452,14 +459,14 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                             className="excel-input score-input text-center text-blue-600"
                             value={score.midterm ?? ''}
                             onMouseDown={(e) => {
-                              if (!canEnterScores) {
+                              if (!canEditScores) {
                                 e.preventDefault();
-                                notifyMissingScoreConfig();
+                                if (!readOnly) notifyMissingScoreConfig();
                               }
                             }}
                             onChange={(e) => handleChange(student.id, 'midterm', e.target.value, 10)}
-                            readOnly={!canEnterScores}
-                            aria-disabled={!canEnterScores}
+                            readOnly={!canEditScores}
+                            aria-disabled={!canEditScores}
                           />
                         </td>
                         <td className="score-entry-cell">
@@ -470,14 +477,14 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                             className="excel-input score-input text-center text-blue-600"
                             value={score.final ?? ''}
                             onMouseDown={(e) => {
-                              if (!canEnterScores) {
+                              if (!canEditScores) {
                                 e.preventDefault();
-                                notifyMissingScoreConfig();
+                                if (!readOnly) notifyMissingScoreConfig();
                               }
                             }}
                             onChange={(e) => handleChange(student.id, 'final', e.target.value, 20)}
-                            readOnly={!canEnterScores}
-                            aria-disabled={!canEnterScores}
+                            readOnly={!canEditScores}
+                            aria-disabled={!canEditScores}
                           />
                         </td>
                         <td className="text-blue-600 text-center font-bold bg-blue-50">{hasScoreData ? total : ''}</td>
@@ -505,7 +512,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
         </div>
         </div>
 
-        {!printMode && (
+        {!printMode && !readOnly && (
         <div className="mt-6 flex justify-center gap-4">
           <button
             onClick={() => setShowConfigModal(true)}
@@ -540,7 +547,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
         )}
       </div>
 
-      {!printMode && (
+      {!printMode && !readOnly && (
         <ScoreConfigModal
           isOpen={showConfigModal}
           onClose={() => setShowConfigModal(false)}
@@ -550,7 +557,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
         />
       )}
 
-      {!printMode && (
+      {!printMode && !readOnly && (
         <AutoFillModal
           isOpen={showAutoFillModal}
           onClose={() => setShowAutoFillModal(false)}

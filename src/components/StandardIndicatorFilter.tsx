@@ -7,16 +7,27 @@ interface Props {
   subjectCode?: string;
   learningArea?: string;
   gradeLevel: string;
+  initialStandard?: string;
+  initialIndicators?: string[];
   onSelectIndicators: (standardCode: string, indicators: string[]) => void;
 }
 
-export const StandardIndicatorFilter: React.FC<Props> = ({ subjectName, subjectCode, learningArea, gradeLevel, onSelectIndicators }) => {
+export const StandardIndicatorFilter: React.FC<Props> = ({
+  subjectName,
+  subjectCode,
+  learningArea,
+  gradeLevel,
+  initialStandard = '',
+  initialIndicators = [],
+  onSelectIndicators,
+}) => {
   const [selectedSubject, setSelectedSubject] = useState<string>('');
-  const [selectedStandard, setSelectedStandard] = useState<string>('');
-  const [selectedIndicators, setSelectedIndicators] = useState<string[]>([]);
+  const [selectedIndicators, setSelectedIndicators] = useState<string[]>(initialIndicators);
   const [isManualMode, setIsManualMode] = useState<boolean>(false);
-  const [manualStandard, setManualStandard] = useState<string>('');
-  const [manualIndicators, setManualIndicators] = useState<string[]>(['']);
+  const [manualStandard, setManualStandard] = useState<string>(initialStandard);
+  const [manualIndicators, setManualIndicators] = useState<string[]>(
+    initialIndicators.length > 0 ? initialIndicators : [''],
+  );
   const [standards, setStandards] = useState<Standard[]>([]);
   const [loadingStandards, setLoadingStandards] = useState(false);
 
@@ -24,8 +35,9 @@ export const StandardIndicatorFilter: React.FC<Props> = ({ subjectName, subjectC
 
   useEffect(() => {
     setSelectedSubject(subjectName || learningArea || '');
-    setSelectedStandard('');
-    setSelectedIndicators([]);
+    setSelectedIndicators(initialIndicators);
+    setManualStandard(initialStandard);
+    setManualIndicators(initialIndicators.length > 0 ? initialIndicators : ['']);
     setIsManualMode(false);
   }, [subjectName, learningArea, gradeLevel, classLevel]);
 
@@ -37,41 +49,31 @@ export const StandardIndicatorFilter: React.FC<Props> = ({ subjectName, subjectC
     void fetchCurriculumStandards(area, classLevel, subjectName, { subjectCode }).then((data) => {
       if (!cancelled) {
         setStandards(data);
-        setSelectedStandard((current) =>
-          current && data.some((standard) => standard.code === current) ? current : '',
-        );
-        setSelectedIndicators([]);
         setLoadingStandards(false);
       }
     }).catch(() => {
       if (!cancelled) {
         setStandards([]);
-        setSelectedStandard('');
-        setSelectedIndicators([]);
         setLoadingStandards(false);
       }
     });
     return () => { cancelled = true; };
   }, [learningArea, subjectName, subjectCode, classLevel]);
 
-  const handleStandardChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const stdCode = e.target.value;
-    setSelectedStandard(stdCode);
-    setSelectedIndicators([]); // Reset indicators when standard changes
-  };
-
   const handleIndicatorToggle = (indCode: string) => {
-    setSelectedIndicators(prev => {
-      const newSelection = prev.includes(indCode)
-        ? prev.filter(code => code !== indCode)
-        : [...prev, indCode];
-      return newSelection;
-    });
+    setSelectedIndicators(prev =>
+      prev.includes(indCode) ? prev.filter(code => code !== indCode) : [...prev, indCode],
+    );
   };
 
   const handleSelectAll = (standard: Standard) => {
     const allCodes = standard.indicators.map(ind => ind.code);
-    setSelectedIndicators(allCodes);
+    setSelectedIndicators(prev => Array.from(new Set([...prev, ...allCodes])));
+  };
+
+  const handleDeselectStandard = (standard: Standard) => {
+    const codes = new Set(standard.indicators.map(ind => ind.code));
+    setSelectedIndicators(prev => prev.filter(code => !codes.has(code)));
   };
 
   const handleDeselectAll = () => {
@@ -97,17 +99,15 @@ export const StandardIndicatorFilter: React.FC<Props> = ({ subjectName, subjectC
   useEffect(() => {
     if (isManualMode) {
       const validIndicators = manualIndicators.filter(i => i.trim() !== '');
-      if (manualStandard && validIndicators.length > 0) {
-        onSelectIndicators(manualStandard, validIndicators);
-      }
-    } else {
-      if (selectedStandard && selectedIndicators.length > 0) {
-        onSelectIndicators(selectedStandard, selectedIndicators);
-      }
+      onSelectIndicators(manualStandard.trim(), validIndicators);
+      return;
     }
-  }, [selectedStandard, selectedIndicators, isManualMode, manualStandard, manualIndicators, onSelectIndicators]);
 
-  const currentStandard = standards.find(s => s.code === selectedStandard);
+    const selectedStandardCodes = standards
+      .filter(standard => standard.indicators.some(ind => selectedIndicators.includes(ind.code)))
+      .map(standard => standard.code);
+    onSelectIndicators(selectedStandardCodes.join(', '), selectedIndicators);
+  }, [selectedIndicators, isManualMode, manualStandard, manualIndicators, standards, onSelectIndicators]);
 
   return (
     <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-5">
@@ -116,12 +116,14 @@ export const StandardIndicatorFilter: React.FC<Props> = ({ subjectName, subjectC
         <div className="flex items-center space-x-2">
           <span className="text-sm text-slate-500">โหมดการกรอก:</span>
           <button
+            type="button"
             onClick={() => setIsManualMode(false)}
             className={`px-3 py-1 text-xs rounded-full transition-colors ${!isManualMode ? 'bg-blue-100 text-blue-700 font-medium' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
           >
             เลือกจากฐานข้อมูล
           </button>
           <button
+            type="button"
             onClick={() => setIsManualMode(true)}
             className={`px-3 py-1 text-xs rounded-full transition-colors ${isManualMode ? 'bg-blue-100 text-blue-700 font-medium' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
           >
@@ -129,13 +131,13 @@ export const StandardIndicatorFilter: React.FC<Props> = ({ subjectName, subjectC
           </button>
         </div>
       </div>
-      
+
       {!isManualMode ? (
         <div className="space-y-4 animate-in fade-in duration-300">
           <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 mb-4">
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1">ระดับชั้น</label>
-              <input 
+              <input
                 type="text"
                 value={classLevel}
                 readOnly
@@ -143,66 +145,71 @@ export const StandardIndicatorFilter: React.FC<Props> = ({ subjectName, subjectC
               />
             </div>
           </div>
-          
+
           {loadingStandards ? (
             <p className="text-sm text-slate-500 py-4 text-center">กำลังโหลดหลักสูตร...</p>
           ) : standards.length > 0 ? (
             <>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">มาตรฐานการเรียนรู้</label>
-                <select 
-                  value={selectedStandard} 
-                  onChange={handleStandardChange}
-                  className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-50"
+              <div className="flex items-center justify-between gap-3">
+                <label className="block text-sm font-medium text-slate-700">ตัวชี้วัดที่ต้องการประเมิน</label>
+                <button
+                  type="button"
+                  onClick={handleDeselectAll}
+                  className="text-xs font-medium text-slate-500 hover:text-slate-700"
                 >
-                  <option value="">-- เลือกมาตรฐานการเรียนรู้ --</option>
-                  {standards.map(std => (
-                    <option key={std.code} value={std.code}>
-                      {std.code} {std.description.substring(0, 80)}{std.description.length > 80 ? '...' : ''}
-                    </option>
-                  ))}
-                </select>
-                {currentStandard && (
-                  <p className="text-xs text-slate-500 mt-2 bg-slate-50 p-2 rounded border border-slate-100">{currentStandard.description}</p>
-                )}
+                  ยกเลิกทั้งหมด
+                </button>
               </div>
 
-              {currentStandard && (
-                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="block text-sm font-medium text-slate-700">ตัวชี้วัดที่ต้องการประเมิน</label>
-                    <div className="space-x-3">
-                      <button 
-                        onClick={() => handleSelectAll(currentStandard)}
-                        className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                      >
-                        เลือกทั้งหมด
-                      </button>
-                      <button 
-                        onClick={handleDeselectAll}
-                        className="text-xs text-slate-500 hover:text-slate-700 font-medium"
-                      >
-                        ยกเลิกทั้งหมด
-                      </button>
-                    </div>
-                  </div>
-                  <div className="space-y-2 p-3 border border-slate-200 rounded-lg bg-white">
-                    {currentStandard.indicators.map(ind => (
-                      <label key={ind.code} className="flex items-start space-x-3 cursor-pointer p-2 hover:bg-blue-50/50 rounded-md transition-colors border border-transparent hover:border-blue-100">
-                        <input 
-                          type="checkbox" 
-                          checked={selectedIndicators.includes(ind.code)}
-                          onChange={() => handleIndicatorToggle(ind.code)}
-                          className="mt-1 rounded text-blue-600 focus:ring-blue-500 w-4 h-4"
+              <div className="max-h-[360px] space-y-3 overflow-y-auto pr-1">
+                {standards.map(std => {
+                  const standardCodes = std.indicators.map(ind => ind.code);
+                  const selectedInStandard = standardCodes.filter(code => selectedIndicators.includes(code));
+                  const allSelected =
+                    standardCodes.length > 0 && selectedInStandard.length === standardCodes.length;
+
+                  return (
+                    <section key={std.code} className="rounded-xl border border-slate-200 bg-white p-3">
+                      <div className="flex items-start gap-3 border-b border-slate-100 pb-3">
+                        <input
+                          type="checkbox"
+                          checked={allSelected}
+                          onChange={() => allSelected ? handleDeselectStandard(std) : handleSelectAll(std)}
+                          className="mt-1 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                          aria-label={`เลือกตัวชี้วัดทั้งหมดของ ${std.code}`}
                         />
-                        <span className="text-sm text-slate-700 leading-relaxed">
-                          <span className="font-bold text-blue-900">{ind.code}</span> {selectedSubject !== 'พื้นฐานอาชีพ' && ind.description}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-bold text-blue-900">{std.code}</span>
+                            {selectedInStandard.length > 0 && (
+                              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700">
+                                เลือกแล้ว {selectedInStandard.length}/{standardCodes.length}
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-1 text-xs leading-relaxed text-slate-500">{std.description}</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 space-y-2">
+                        {std.indicators.map(ind => (
+                          <label key={ind.code} className="flex cursor-pointer items-start gap-3 rounded-md border border-transparent p-2 transition-colors hover:border-blue-100 hover:bg-blue-50/50">
+                            <input
+                              type="checkbox"
+                              checked={selectedIndicators.includes(ind.code)}
+                              onChange={() => handleIndicatorToggle(ind.code)}
+                              className="mt-1 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="text-sm leading-relaxed text-slate-700">
+                              <span className="font-bold text-blue-900">{ind.code}</span> {selectedSubject !== 'พื้นฐานอาชีพ' && ind.description}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
             </>
           ) : (
             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-700 text-sm text-center">
@@ -214,19 +221,20 @@ export const StandardIndicatorFilter: React.FC<Props> = ({ subjectName, subjectC
         <div className="space-y-4 animate-in fade-in duration-300">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">รหัสมาตรฐานการเรียนรู้</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={manualStandard}
               onChange={(e) => setManualStandard(e.target.value)}
               placeholder="เช่น ค 1.1"
               className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-          
+
           <div>
             <div className="flex justify-between items-center mb-2">
               <label className="block text-sm font-medium text-slate-700">รหัสตัวชี้วัด</label>
-              <button 
+              <button
+                type="button"
                 onClick={handleAddManualIndicator}
                 className="text-xs flex items-center text-blue-600 hover:text-blue-800 font-medium"
               >
@@ -236,15 +244,16 @@ export const StandardIndicatorFilter: React.FC<Props> = ({ subjectName, subjectC
             <div className="space-y-2">
               {manualIndicators.map((ind, idx) => (
                 <div key={idx} className="flex items-center space-x-2">
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={ind}
                     onChange={(e) => handleManualIndicatorChange(idx, e.target.value)}
                     placeholder={`ตัวชี้วัดที่ ${idx + 1} เช่น ค 1.1 ป.1/1`}
                     className="flex-1 border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                   {manualIndicators.length > 1 && (
-                    <button 
+                    <button
+                      type="button"
                       onClick={() => handleRemoveManualIndicator(idx)}
                       className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
                     >

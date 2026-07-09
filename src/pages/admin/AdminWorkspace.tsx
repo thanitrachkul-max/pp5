@@ -64,7 +64,7 @@ interface AdminWorkspaceProps {
   onOpenGradebook: (
     assignment: TeacherAssignmentView,
     gradebookId: string,
-    options?: { readOnly?: boolean },
+    options?: { readOnly?: boolean; returnPeriodKey?: string | null },
   ) => void | Promise<void>;
   onLogout: () => void;
 }
@@ -597,6 +597,8 @@ export const AdminWorkspace: React.FC<AdminWorkspaceProps> = ({
               <AssignmentsPage
                 currentUser={currentUser}
                 initialYearId={workspaceYearId}
+                readOnly={readOnly}
+                onOpenGradebook={onOpenGradebook}
                 initialClassLevelCode={assignmentFilter?.classLevelCode}
                 initialSemesterNumber={assignmentFilter?.semesterNumber}
                 drilldownLabel={

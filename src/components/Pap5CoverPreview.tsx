@@ -4,7 +4,7 @@ import { applyPap5OfficialDisplayDefaults } from "../lib/pap5Officials";
 import type { AppData, GradebookApprovalStatus } from "../types";
 
 type GeneralInfo = AppData["generalInfo"];
-type CoverMode = "edit" | "print";
+type CoverMode = "edit" | "preview" | "print";
 
 interface Pap5CoverPreviewProps {
   data: GeneralInfo;

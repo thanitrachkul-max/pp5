@@ -304,8 +304,10 @@ export const ClassroomsPage: React.FC<ClassroomsPageProps> = ({ currentUser, ini
   }, [teacherIdByExcelName]);
 
   const rawTeacherValueFor = useCallback(
-    (classroom: Classroom, field: HomeroomField): string =>
-      (classroom[field] as string | null | undefined) ?? excelTeacherIdFor(classroom, field),
+    (classroom: Classroom, field: HomeroomField): string => {
+      const value = classroom[field] as string | null | undefined;
+      return value === undefined ? excelTeacherIdFor(classroom, field) : value ?? '';
+    },
     [excelTeacherIdFor],
   );
 

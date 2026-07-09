@@ -24,6 +24,10 @@ import {
 } from '../../lib/gradebookStatusDisplay';
 import { supabase } from '../../lib/supabase';
 import {
+  fetchTeacherAssignments,
+  type TeacherAssignmentView,
+} from '../../lib/teacherGradebooks';
+import {
   parseAssignmentExcel,
   parseAssignmentWord,
   resolveAssignmentRows,
@@ -46,6 +50,12 @@ import type {
 interface AssignmentsPageProps {
   currentUser: AppUser;
   initialYearId?: string;
+  readOnly?: boolean;
+  onOpenGradebook?: (
+    assignment: TeacherAssignmentView,
+    gradebookId: string,
+    options?: { readOnly?: boolean; returnPeriodKey?: string | null },
+  ) => void | Promise<void>;
   initialClassLevelCode?: string;
   initialSemesterNumber?: number;
   drilldownLabel?: string;
@@ -307,6 +317,8 @@ function isMissingCoTeacherNameColumn(err: unknown): boolean {
 export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
   currentUser,
   initialYearId,
+  readOnly = false,
+  onOpenGradebook,
   initialClassLevelCode,
   initialSemesterNumber,
   drilldownLabel,
@@ -349,6 +361,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
   const [approvalReason, setApprovalReason] = useState('');
   const [bulkApprovalEdit, setBulkApprovalEdit] = useState<BulkApprovalEditState | null>(null);
   const [approvalSaving, setApprovalSaving] = useState(false);
+  const [openingGradebookAssignmentId, setOpeningGradebookAssignmentId] = useState<string | null>(null);
 
   const probeEntryWindowSupport = useCallback(async () => {
     const { error: probeError } = await supabase
@@ -737,6 +750,35 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
       approval_reason: gradebook?.approval_reason ?? '',
     });
     setShowAddModal(true);
+  };
+
+  const handleOpenAssignmentGradebook = async (assignment: AssignmentWithProgress) => {
+    if (!onOpenGradebook) return;
+
+    setOpeningGradebookAssignmentId(assignment.id);
+    setError('');
+
+    try {
+      const teacherAssignments = await fetchTeacherAssignments(assignment.teacher_id);
+      const matchedAssignment = teacherAssignments.find((item) => item.id === assignment.id);
+      const gradebookId =
+        matchedAssignment?.gradebook_id ?? normalizeGradebook(assignment.gradebooks)?.id ?? null;
+
+      if (!matchedAssignment || !gradebookId) {
+        setError('ยังไม่มีสมุด ปพ.5 สำหรับรายการนี้ ให้ครูเปิดสร้างจากหน้าครูก่อน');
+        return;
+      }
+
+      await onOpenGradebook(
+        { ...matchedAssignment, gradebook_id: gradebookId },
+        gradebookId,
+        { readOnly, returnPeriodKey: null },
+      );
+    } catch (err) {
+      setError(getErrorMessage(err, 'เปิดสมุด ปพ.5 ไม่สำเร็จ'));
+    } finally {
+      setOpeningGradebookAssignmentId(null);
+    }
   };
 
   const closeAssignmentModal = () => {
@@ -1866,8 +1908,12 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
               <tbody className="divide-y divide-slate-100">
                 {selectedAssignments.map((assignment, index) => {
                   return (
-                  <tr key={assignment.id} className="transition-colors hover:bg-slate-50/70">
-                    <td className="px-4 py-4 text-center">
+                  <tr
+                    key={assignment.id}
+                    onClick={() => void handleOpenAssignmentGradebook(assignment)}
+                    className="cursor-pointer transition-colors hover:bg-slate-50/70"
+                  >
+                    <td className="px-4 py-4 text-center" onClick={(event) => event.stopPropagation()}>
                       <input
                         type="checkbox"
                         checked={selectedAssignmentIds.has(assignment.id)}
@@ -1886,11 +1932,27 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                     <td className="px-4 py-4 text-center">
                       {renderAssignmentApprovalStatus(assignment)}
                     </td>
-                    <td className="px-2 py-4 text-center">
+                    <td className="px-2 py-4 text-center" onClick={(event) => event.stopPropagation()}>
                       {renderAssignmentApprovalActions(assignment)}
                     </td>
-                    <td className="px-4 py-4 text-center">
+                    <td className="px-4 py-4 text-center" onClick={(event) => event.stopPropagation()}>
                       <div className="flex justify-center gap-2">
+                        {onOpenGradebook && (
+                          <button
+                            type="button"
+                            onClick={() => void handleOpenAssignmentGradebook(assignment)}
+                            aria-label="เปิดสมุด ปพ.5"
+                            title="เปิดสมุด ปพ.5"
+                            disabled={openingGradebookAssignmentId === assignment.id}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50 text-slate-700 hover:bg-slate-100 disabled:cursor-wait disabled:opacity-60"
+                          >
+                            {openingGradebookAssignmentId === assignment.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Eye className="h-3.5 w-3.5" />
+                            )}
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => openEditModal(assignment)}
