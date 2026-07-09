@@ -722,15 +722,21 @@ export async function loadGradebookSession(
   const savedGeneralInfo =
     (data.general_info as Partial<AppData["generalInfo"]> | null) ?? {};
   const hasSavedRoster = Array.isArray(data.students);
+  const hasCurrentHomeroomTeachers = Boolean(
+    assignment.homeroom_teacher_1_name ||
+      assignment.homeroom_teacher_2_name ||
+      assignment.homeroom_teacher_3_name,
+  );
   const homeroomTeacher1 =
-    savedGeneralInfo.homeroomTeacher1 || assignment.homeroom_teacher_1_name;
+    assignment.homeroom_teacher_1_name || savedGeneralInfo.homeroomTeacher1 || "";
   const homeroomTeacher2 =
-    savedGeneralInfo.homeroomTeacher2 || assignment.homeroom_teacher_2_name;
+    assignment.homeroom_teacher_2_name || savedGeneralInfo.homeroomTeacher2 || "";
   const homeroomTeacher3 =
-    savedGeneralInfo.homeroomTeacher3 || assignment.homeroom_teacher_3_name;
-  const homeroomTeachers =
-    savedGeneralInfo.homeroomTeachers ||
-    buildHomeroomTeachersText(homeroomTeacher1, homeroomTeacher2, homeroomTeacher3);
+    assignment.homeroom_teacher_3_name || savedGeneralInfo.homeroomTeacher3 || "";
+  const homeroomTeachers = hasCurrentHomeroomTeachers
+    ? buildHomeroomTeachersText(homeroomTeacher1, homeroomTeacher2, homeroomTeacher3)
+    : savedGeneralInfo.homeroomTeachers ||
+      buildHomeroomTeachersText(homeroomTeacher1, homeroomTeacher2, homeroomTeacher3);
 
   const mergedGeneralInfo = await mergePap5OfficialsIntoGeneralInfo(
     assignment.school_id,

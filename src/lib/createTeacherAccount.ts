@@ -37,6 +37,40 @@ async function readFunctionErrorMessage(error: unknown): Promise<string | null> 
   return null;
 }
 
+async function updateTeacherAccountViaServer(
+  body: {
+    id: string;
+    username: string;
+    full_name: string;
+    title: string | null;
+    role: UserRole;
+    password?: string;
+    reset_password_to_username: boolean;
+  },
+): Promise<void> {
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  const accessToken = sessionData.session?.access_token;
+
+  if (sessionError || !accessToken) {
+    throw new Error('กรุณาเข้าสู่ระบบใหม่อีกครั้งก่อนแก้ไขบัญชีผู้ใช้งาน');
+  }
+
+  const response = await fetch('/api/update-teacher', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  const payload = await response.json().catch(() => null) as { error?: unknown; message?: unknown } | null;
+
+  if (!response.ok || payload?.error) {
+    const message = String(payload?.error ?? payload?.message ?? '').trim();
+    throw new Error(message || 'บันทึกไม่สำเร็จ');
+  }
+}
+
 export async function createTeacherAccount(input: CreateTeacherAccountInput): Promise<void> {
   const username = normalizeUsername(input.username);
   const password = (input.password ?? username).trim();
@@ -114,25 +148,32 @@ export async function updateTeacherAccount(input: UpdateTeacherAccountInput): Pr
     }
   }
 
-  const { data, error } = await supabase.rpc('admin_update_teacher_account', {
-    p_id: input.id,
-    p_username: username,
-    p_password: password,
-    p_full_name: body.full_name,
-    p_title: body.title,
-    p_role: body.role,
-  });
+  try {
+    await updateTeacherAccountViaServer(body);
+    return;
+  } catch (serverError) {
+    const { data, error } = await supabase.rpc('admin_update_teacher_account', {
+      p_id: input.id,
+      p_username: username,
+      p_password: password,
+      p_full_name: body.full_name,
+      p_title: body.title,
+      p_role: body.role,
+    });
 
-  if (error) {
-    if (error.message.includes('Could not find the function')) {
-      throw new Error(
-        'ยังแก้ไขผู้ใช้จากหน้าเว็บไม่ได้ เพราะ Edge Function update-teacher ที่ deploy อยู่ยังเป็นเวอร์ชันเก่า และฐานข้อมูลยังไม่มี RPC สำรอง `admin_update_teacher_account` — กรุณา deploy function หรือรัน migration `0036_admin_update_teacher_rpc.sql`',
-      );
+    if (error) {
+      if (error.message.includes('Could not find the function')) {
+        const serverMessage = serverError instanceof Error ? serverError.message : String(serverError ?? '');
+        throw new Error(
+          serverMessage ||
+            'ยังแก้ไขผู้ใช้จากหน้าเว็บไม่ได้ เพราะระบบสำรองสำหรับแก้บัญชีผู้ใช้ยังไม่พร้อมใช้งาน — กรุณาตรวจ Environment Variable `SUPABASE_SERVICE_ROLE_KEY` แล้ว deploy ใหม่',
+        );
+      }
+      throw error;
     }
-    throw error;
-  }
 
-  if (data && typeof data === 'object' && 'error' in data && data.error) {
-    throw new Error(String(data.error));
+    if (data && typeof data === 'object' && 'error' in data && data.error) {
+      throw new Error(String(data.error));
+    }
   }
 }

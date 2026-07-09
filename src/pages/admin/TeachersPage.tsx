@@ -198,6 +198,16 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
     setModalSuccessText('');
   };
 
+  const openAdd = () => {
+    setError('');
+    setMessage('');
+    setModalSaveState('idle');
+    setModalSuccessText('');
+    setForm(emptyForm());
+    setEditing(null);
+    setShowAddModal(true);
+  };
+
   const handleAddTeacher = async (event: React.FormEvent) => {
     event.preventDefault();
     setSaving(true);
@@ -260,6 +270,10 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
   };
 
   const openEdit = (teacher: TeacherRow) => {
+    setError('');
+    setMessage('');
+    setModalSaveState('idle');
+    setModalSuccessText('');
     setEditing(teacher);
     setForm({
       username: teacher.username ?? '',
@@ -319,11 +333,12 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
       }
 
       const successText = newPassword
-        ? 'บันทึกข้อมูลแล้ว และเปลี่ยนรหัสผ่านใหม่เรียบร้อยแล้ว'
-        : 'บันทึกข้อมูลแล้ว';
+        ? 'เปลี่ยนรหัสผ่านใหม่เรียบร้อยแล้ว'
+        : 'บันทึกข้อมูลเรียบร้อยแล้ว';
       setModalSaveState('success');
       setModalSuccessText(successText);
-      setMessage(successText);
+      setError('');
+      setMessage('บันทึกสำเร็จ');
       await loadTeachers();
       await new Promise((resolve) => window.setTimeout(resolve, 650));
       closeModal();
@@ -516,7 +531,7 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
         {canWrite && (
           <button
             type="button"
-            onClick={() => { setForm(emptyForm()); setEditing(null); setShowAddModal(true); }}
+            onClick={openAdd}
             className="btn btn-primary"
           >
             <UserPlus className="mr-2 h-4 w-4" />
