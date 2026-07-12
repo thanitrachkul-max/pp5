@@ -1429,7 +1429,14 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
       setReviewRows(resolved);
       setShowTeachTableUpload(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'อ่านไฟล์ตารางสอนไม่สำเร็จ');
+      console.error(`Teaching schedule ${format.toUpperCase()} import failed`, err);
+      const detail = err instanceof Error ? err.message : '';
+      const isTechnicalRuntimeError = /undefined is not|is not a function|is not an object|not iterable/i.test(detail);
+      setError(
+        format === 'pdf' && isTechnicalRuntimeError
+          ? 'ระบบ OCR เริ่มทำงานไม่สำเร็จ กรุณารีเฟรชหน้าแล้วอัปโหลด PDF ใหม่'
+          : detail || 'อ่านไฟล์ตารางสอนไม่สำเร็จ',
+      );
     } finally {
       setImporting(false);
     }

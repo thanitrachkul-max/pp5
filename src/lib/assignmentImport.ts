@@ -1,5 +1,7 @@
 import ExcelJS from 'exceljs';
 import JSZip from 'jszip';
+import { createWorker as createTesseractWorker, OEM } from 'tesseract.js';
+import tesseractWorkerUrl from 'tesseract.js/dist/worker.min.js?url';
 import type { Classroom, Profile, Subject, UserRole } from '../types';
 
 export interface AssignmentImportRow {
@@ -671,13 +673,6 @@ interface OcrWorkerLike {
   terminate(): Promise<unknown>;
 }
 
-interface TesseractModuleLike {
-  createWorker?: unknown;
-  default?: {
-    createWorker?: unknown;
-  };
-}
-
 interface RenderedPdfPage {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
@@ -723,12 +718,25 @@ const FALLBACK_VERTICAL_LINE_RATIOS = [
 const FALLBACK_ROW_LINE_RATIOS = [378 / 1192, 507 / 1192, 635 / 1192, 762 / 1192, 889 / 1192, 993 / 1192];
 
 async function createThaiOcrWorker(): Promise<OcrWorkerLike> {
-  const tesseract = (await import('tesseract.js')) as unknown as TesseractModuleLike;
-  const createWorker = tesseract.createWorker ?? tesseract.default?.createWorker;
-  if (typeof createWorker !== 'function') {
-    throw new Error('โหลด OCR สำหรับอ่าน PDF รูปภาพไม่สำเร็จ กรุณาลองรีเฟรชหน้าแล้วอัปโหลดใหม่');
+  const options = {
+    workerPath: tesseractWorkerUrl,
+    workerBlobURL: false,
+  };
+
+  try {
+    return (await createTesseractWorker('tha+eng', OEM.LSTM_ONLY, options)) as unknown as OcrWorkerLike;
+  } catch (initialError) {
+    console.warn('OCR worker startup failed; refreshing the language cache', initialError);
+    try {
+      return (await createTesseractWorker('tha+eng', OEM.LSTM_ONLY, {
+        ...options,
+        cacheMethod: 'refresh',
+      })) as unknown as OcrWorkerLike;
+    } catch (retryError) {
+      console.error('OCR worker startup failed after cache refresh', retryError);
+      throw new Error('เริ่มระบบ OCR ไม่สำเร็จ กรุณารีเฟรชหน้าแล้วอัปโหลด PDF ใหม่');
+    }
   }
-  return (await createWorker('tha+eng')) as unknown as OcrWorkerLike;
 }
 
 function luminance(data: Uint8ClampedArray, offset: number): number {
