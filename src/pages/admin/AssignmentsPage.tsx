@@ -29,6 +29,7 @@ import {
 } from '../../lib/teacherGradebooks';
 import {
   parseAssignmentExcel,
+  parseAssignmentPdf,
   parseAssignmentWord,
   resolveAssignmentRows,
   validateReviewRow,
@@ -74,6 +75,7 @@ interface AddForm {
 }
 
 type GradebookStatus = 'not_started' | 'in_progress' | 'completed';
+type TeachTableImportFormat = 'pdf' | 'word';
 
 const ENTRY_WINDOW_MIGRATION_HINT =
   'ฐานข้อมูลยังไม่มีคอลัมน์กำหนดช่วงเวลา กรุณารัน migration `supabase/migrations/0018_assignment_entry_window.sql` ใน Supabase SQL Editor แล้วลองใหม่';
@@ -342,6 +344,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
   const [importing, setImporting] = useState(false);
   const [reviewRows, setReviewRows] = useState<AssignmentReviewRow[] | null>(null);
   const [showTeachTableUpload, setShowTeachTableUpload] = useState(false);
+  const [teachTableImportFormat, setTeachTableImportFormat] = useState<TeachTableImportFormat>('word');
   const [reviewImportMeta, setReviewImportMeta] = useState<{
     fileName: string;
     rowCount: number;
@@ -1401,12 +1404,20 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     }
   };
 
-  const processTeachTableFile = async (file: File) => {
+  const openTeachTableUpload = (format: TeachTableImportFormat) => {
+    setError('');
+    setMessage('');
+    setReviewImportMeta(null);
+    setTeachTableImportFormat(format);
+    setShowTeachTableUpload(true);
+  };
+
+  const processTeachTableFile = async (file: File, format: TeachTableImportFormat) => {
     setImporting(true);
     setError('');
     setMessage('');
     try {
-      const rows = await parseAssignmentWord(file);
+      const rows = format === 'pdf' ? await parseAssignmentPdf(file) : await parseAssignmentWord(file);
       const resolved = applyReviewValidation(
         resolveAssignmentRows(rows, teachers, subjects, classrooms, { teacherRoles: ['teacher'] }),
       );
@@ -1428,7 +1439,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
-    await processTeachTableFile(file);
+    await processTeachTableFile(file, teachTableImportFormat);
   };
 
   const updateReviewRow = (key: string, patch: Partial<AssignmentReviewRow>) => {
@@ -1633,6 +1644,13 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     );
   };
 
+  const isTeachTablePdfImport = teachTableImportFormat === 'pdf';
+  const teachTableFormatLabel = isTeachTablePdfImport ? 'PDF' : 'Word';
+  const teachTableFileExtension = isTeachTablePdfImport ? '.pdf' : '.docx';
+  const teachTableAccept = isTeachTablePdfImport
+    ? '.pdf,application/pdf'
+    : '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
   return (
     <div className="space-y-6">
       {drilldownLabel && onDrilldownBack ? (
@@ -1659,10 +1677,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => {
-              setError('');
-              setShowTeachTableUpload(true);
-            }}
+            onClick={() => openTeachTableUpload('pdf')}
             disabled={importing}
             className="btn btn-secondary"
           >
@@ -1671,7 +1686,20 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
             ) : (
               <FileText className="mr-2 h-4 w-4" />
             )}
-            เพิ่มจากตารางสอน
+            เพิ่มตารางสอน (PDF)
+          </button>
+          <button
+            type="button"
+            onClick={() => openTeachTableUpload('word')}
+            disabled={importing}
+            className="btn btn-secondary"
+          >
+            {importing ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <FileText className="mr-2 h-4 w-4" />
+            )}
+            เพิ่มจากตารางสอน (Word)
           </button>
           <button
             type="button"
@@ -2433,7 +2461,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                 <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
                   <div>
                     <h3 className="text-lg font-bold text-slate-900">อัปโหลดตารางสอน</h3>
-                    <p className="mt-1 text-sm text-slate-500">เลือกไฟล์ Word (.docx) ก่อนตรวจสอบและนำเข้า</p>
+                    <p className="mt-1 text-sm text-slate-500">เลือกไฟล์ {teachTableFormatLabel} ({teachTableFileExtension}) ก่อนตรวจสอบและนำเข้า</p>
                   </div>
                   <button
                     type="button"
@@ -2446,9 +2474,18 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                 </div>
 
                 <div className="space-y-4 px-6 py-5">
+                  {error ? (
+                    <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+                      {error}
+                    </div>
+                  ) : null}
+
                   <div className="rounded-xl border border-blue-100 bg-blue-50/70 px-4 py-3 text-sm text-slate-600">
-                    <p className="font-semibold text-slate-800">รองรับไฟล์ตารางสอน Word</p>
+                    <p className="font-semibold text-slate-800">รองรับไฟล์ตารางสอน {teachTableFormatLabel}</p>
                     <ul className="mt-2 list-disc space-y-1 pl-5">
+                      {isTeachTablePdfImport ? (
+                        <li>PDF ข้อความจะอ่านได้เร็วที่สุด ส่วน PDF ที่เป็นรูปภาพจะใช้ OCR และอาจใช้เวลานานกว่า</li>
+                      ) : null}
                       <li>อ่านเฉพาะวิชาหลัก (มีรหัสวิชา 5 หลัก)</li>
                       <li>ไม่นำเข้ากิจกรรม เช่น ลูกเสือ, ชุมนุม, แนะแนว, หน้าเสาธง, อบรมคุณธรรม</li>
                       <li>ไม่มอบหมายให้รองผู้อำนวยการ / คณะบริหาร — เฉพาะครูผู้สอน</li>
@@ -2459,18 +2496,20 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                     {importing ? (
                       <>
                         <Loader2 className="mb-3 h-8 w-8 animate-spin text-blue-600" />
-                        <span className="text-sm font-semibold text-slate-700">กำลังอ่านไฟล์ตารางสอน...</span>
+                        <span className="text-sm font-semibold text-slate-700">
+                          {isTeachTablePdfImport ? 'กำลังอ่านไฟล์ตารางสอนและ OCR หากจำเป็น...' : 'กำลังอ่านไฟล์ตารางสอน...'}
+                        </span>
                       </>
                     ) : (
                       <>
                         <FileUp className="mb-3 h-8 w-8 text-blue-600" />
-                        <span className="text-sm font-semibold text-slate-800">คลิกเพื่อเลือกไฟล์ .docx</span>
+                        <span className="text-sm font-semibold text-slate-800">คลิกเพื่อเลือกไฟล์ {teachTableFileExtension}</span>
                         <span className="mt-1 text-xs text-slate-500">เช่น ตารางรวม ม.1, ป.1-3 หรือแยกรายชั้น</span>
                       </>
                     )}
                     <input
                       type="file"
-                      accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      accept={teachTableAccept}
                       className="hidden"
                       disabled={importing}
                       onChange={(e) => void handleTeachTableFileChange(e)}

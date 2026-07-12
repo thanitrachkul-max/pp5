@@ -75,6 +75,8 @@ function splitVendorChunk(id: string) {
   if (id.includes('file-saver')) return 'file-saver-vendor';
   if (id.includes('jszip')) return 'zip-vendor';
   if (id.includes('@react-pdf') || id.includes('fontkit')) return 'pdf-vendor';
+  if (id.includes('pdfjs-dist')) return 'pdfjs-vendor';
+  if (id.includes('tesseract.js')) return 'ocr-vendor';
   if (id.includes('recharts') || id.includes('d3-')) return 'charts-vendor';
   if (id.includes('lucide-react')) return 'icons-vendor';
 
