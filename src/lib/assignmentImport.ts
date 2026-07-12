@@ -719,6 +719,8 @@ const FALLBACK_ROW_LINE_RATIOS = [378 / 1192, 507 / 1192, 635 / 1192, 762 / 1192
 
 async function createThaiOcrWorker(): Promise<OcrWorkerLike> {
   const options = {
+    corePath: `${window.location.origin}/ocr/core`,
+    langPath: `${window.location.origin}/ocr`,
     workerPath: tesseractWorkerUrl,
     workerBlobURL: false,
   };
