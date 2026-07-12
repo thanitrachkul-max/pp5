@@ -1220,11 +1220,17 @@ export async function parseAssignmentPdfBuffer(buffer: ArrayBuffer): Promise<Ass
   try {
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
       const page = await pdf.getPage(pageNumber);
-      const content = await page.getTextContent();
-      for (const item of content.items) {
-        if (!isPdfTextItem(item)) continue;
-        const fragment = pdfFragmentFromTextItem(item, pageNumber);
-        if (fragment) fragments.push(fragment);
+      try {
+        const content = await page.getTextContent();
+        for (const item of content.items) {
+          if (!isPdfTextItem(item)) continue;
+          const fragment = pdfFragmentFromTextItem(item, pageNumber);
+          if (fragment) fragments.push(fragment);
+        }
+      } catch (error) {
+        console.warn(`PDF text extraction failed on page ${pageNumber}; using OCR instead`, error);
+        fragments.length = 0;
+        break;
       }
     }
 
