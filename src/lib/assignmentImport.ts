@@ -671,6 +671,13 @@ interface OcrWorkerLike {
   terminate(): Promise<unknown>;
 }
 
+interface TesseractModuleLike {
+  createWorker?: unknown;
+  default?: {
+    createWorker?: unknown;
+  };
+}
+
 interface RenderedPdfPage {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
@@ -716,7 +723,11 @@ const FALLBACK_VERTICAL_LINE_RATIOS = [
 const FALLBACK_ROW_LINE_RATIOS = [378 / 1192, 507 / 1192, 635 / 1192, 762 / 1192, 889 / 1192, 993 / 1192];
 
 async function createThaiOcrWorker(): Promise<OcrWorkerLike> {
-  const { createWorker } = await import('tesseract.js');
+  const tesseract = (await import('tesseract.js')) as unknown as TesseractModuleLike;
+  const createWorker = tesseract.createWorker ?? tesseract.default?.createWorker;
+  if (typeof createWorker !== 'function') {
+    throw new Error('โหลด OCR สำหรับอ่าน PDF รูปภาพไม่สำเร็จ กรุณาลองรีเฟรชหน้าแล้วอัปโหลดใหม่');
+  }
   return (await createWorker('tha+eng')) as unknown as OcrWorkerLike;
 }
 
