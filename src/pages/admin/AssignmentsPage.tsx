@@ -33,6 +33,7 @@ import {
   parseAssignmentWord,
   resolveAssignmentRows,
   validateReviewRow,
+  type AssignmentPdfProgress,
   type AssignmentReviewRow,
 } from '../../lib/assignmentImport';
 import { SUBJECTS_CATALOG } from '../../data/subjectsCatalog';
@@ -342,6 +343,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
   const [editingAssignment, setEditingAssignment] = useState<AssignmentWithProgress | null>(null);
   const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState('');
   const [reviewRows, setReviewRows] = useState<AssignmentReviewRow[] | null>(null);
   const [showTeachTableUpload, setShowTeachTableUpload] = useState(false);
   const [teachTableImportFormat, setTeachTableImportFormat] = useState<TeachTableImportFormat>('word');
@@ -1414,10 +1416,18 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
 
   const processTeachTableFile = async (file: File, format: TeachTableImportFormat) => {
     setImporting(true);
+    setImportProgress('');
     setError('');
     setMessage('');
     try {
-      const rows = format === 'pdf' ? await parseAssignmentPdf(file) : await parseAssignmentWord(file);
+      const updatePdfProgress = ({ phase, currentPage, totalPages }: AssignmentPdfProgress) => {
+        setImportProgress(
+          phase === 'ocr'
+            ? `กำลัง OCR หน้าที่ ${currentPage}/${totalPages}`
+            : `กำลังตรวจสอบ PDF หน้าที่ ${currentPage}/${totalPages}`,
+        );
+      };
+      const rows = format === 'pdf' ? await parseAssignmentPdf(file, updatePdfProgress) : await parseAssignmentWord(file);
       const resolved = applyReviewValidation(
         resolveAssignmentRows(rows, teachers, subjects, classrooms, { teacherRoles: ['teacher'] }),
       );
@@ -1439,6 +1449,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
       );
     } finally {
       setImporting(false);
+      setImportProgress('');
     }
   };
 
@@ -2504,7 +2515,9 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                       <>
                         <Loader2 className="mb-3 h-8 w-8 animate-spin text-blue-600" />
                         <span className="text-sm font-semibold text-slate-700">
-                          {isTeachTablePdfImport ? 'กำลังอ่านไฟล์ตารางสอนและ OCR หากจำเป็น...' : 'กำลังอ่านไฟล์ตารางสอน...'}
+                          {isTeachTablePdfImport
+                            ? importProgress || 'กำลังอ่านไฟล์ตารางสอนและ OCR หากจำเป็น...'
+                            : 'กำลังอ่านไฟล์ตารางสอน...'}
                         </span>
                       </>
                     ) : (

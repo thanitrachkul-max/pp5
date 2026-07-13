@@ -32,6 +32,14 @@ export interface AssignmentReviewRow {
   warnings: string[];
 }
 
+export interface AssignmentPdfProgress {
+  phase: 'text' | 'ocr';
+  currentPage: number;
+  totalPages: number;
+}
+
+type AssignmentPdfProgressCallback = (progress: AssignmentPdfProgress) => void;
+
 const HEADER_ALIASES: Record<Exclude<keyof AssignmentImportRow, 'coTeacherName'>, string[]> = {
   teacherName: ['ครู', 'ชื่อครู', 'ครูผู้สอน', 'ผู้สอน', 'teacher', 'teacher_name'],
   subjectCode: ['รหัสวิชา', 'รหัส', 'subject_code', 'code'],
@@ -669,14 +677,13 @@ interface OcrResultData {
 }
 
 interface OcrWorkerLike {
-  recognize(image: string, options?: unknown, output?: unknown): Promise<{ data: OcrResultData }>;
+  recognize(image: string | HTMLCanvasElement, options?: unknown, output?: unknown): Promise<{ data: OcrResultData }>;
   terminate(): Promise<unknown>;
 }
 
 interface RenderedPdfPage {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
-  dataUrl: string;
 }
 
 interface PdfPageLike {
@@ -1049,7 +1056,6 @@ async function renderPdfPage(page: PdfPageLike, scale = 2): Promise<RenderedPdfP
   return {
     canvas,
     context,
-    dataUrl: canvas.toDataURL('image/png'),
   };
 }
 
@@ -1058,7 +1064,10 @@ function clearRenderedPage(page: RenderedPdfPage) {
   page.canvas.height = 0;
 }
 
-async function parseImageOnlyPdfWithOcr(pdf: PdfDocumentLike): Promise<AssignmentImportRow[]> {
+async function parseImageOnlyPdfWithOcr(
+  pdf: PdfDocumentLike,
+  onProgress?: AssignmentPdfProgressCallback,
+): Promise<AssignmentImportRow[]> {
   if (typeof document === 'undefined') return [];
 
   const worker = await createThaiOcrWorker();
@@ -1067,13 +1076,14 @@ async function parseImageOnlyPdfWithOcr(pdf: PdfDocumentLike): Promise<Assignmen
 
   try {
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+      onProgress?.({ phase: 'ocr', currentPage: pageNumber, totalPages: pdf.numPages });
       const pdfPage = await pdf.getPage(pageNumber);
       const renderedPage = await renderPdfPage(pdfPage);
 
       try {
         const grid = detectScheduleGrid(renderedPage.canvas, renderedPage.context);
         const imageData = renderedPage.context.getImageData(0, 0, renderedPage.canvas.width, renderedPage.canvas.height);
-        const result = await worker.recognize(renderedPage.dataUrl, {}, { text: true, blocks: true });
+        const result = await worker.recognize(renderedPage.canvas, {}, { text: true, blocks: true });
         const maybeClassroomName = classroomNameFromHeading(result.data.text ?? '');
         if (maybeClassroomName) currentClassroomName = maybeClassroomName;
         if (!currentClassroomName) continue;
@@ -1210,7 +1220,10 @@ export async function parseAssignmentWord(file: File): Promise<AssignmentImportR
   return parseAssignmentWordBuffer(await file.arrayBuffer());
 }
 
-export async function parseAssignmentPdfBuffer(buffer: ArrayBuffer): Promise<AssignmentImportRow[]> {
+export async function parseAssignmentPdfBuffer(
+  buffer: ArrayBuffer,
+  onProgress?: AssignmentPdfProgressCallback,
+): Promise<AssignmentImportRow[]> {
   const pdfjs = await loadPdfJs();
   const loadingTask = pdfjs.getDocument({ data: new Uint8Array(buffer) });
   const pdf = await loadingTask.promise;
@@ -1219,6 +1232,7 @@ export async function parseAssignmentPdfBuffer(buffer: ArrayBuffer): Promise<Ass
 
   try {
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+      onProgress?.({ phase: 'text', currentPage: pageNumber, totalPages: pdf.numPages });
       const page = await pdf.getPage(pageNumber);
       try {
         const content = await page.getTextContent();
@@ -1235,7 +1249,7 @@ export async function parseAssignmentPdfBuffer(buffer: ArrayBuffer): Promise<Ass
     }
 
     if (fragments.length === 0) {
-      ocrRows = await parseImageOnlyPdfWithOcr(pdf as unknown as PdfDocumentLike);
+      ocrRows = await parseImageOnlyPdfWithOcr(pdf as unknown as PdfDocumentLike, onProgress);
     }
   } finally {
     await loadingTask.destroy();
@@ -1254,8 +1268,8 @@ export async function parseAssignmentPdfBuffer(buffer: ArrayBuffer): Promise<Ass
   return rows;
 }
 
-export async function parseAssignmentPdf(file: File): Promise<AssignmentImportRow[]> {
-  return parseAssignmentPdfBuffer(await file.arrayBuffer());
+export async function parseAssignmentPdf(file: File, onProgress?: AssignmentPdfProgressCallback): Promise<AssignmentImportRow[]> {
+  return parseAssignmentPdfBuffer(await file.arrayBuffer(), onProgress);
 }
 
 function compactName(value: string): string {
