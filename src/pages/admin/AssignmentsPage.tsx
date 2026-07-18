@@ -1423,7 +1423,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
       const updatePdfProgress = ({ phase, currentPage, totalPages }: AssignmentPdfProgress) => {
         setImportProgress(
           phase === 'ocr'
-            ? `กำลัง OCR หน้าที่ ${currentPage}/${totalPages}`
+            ? `กำลัง OCR ตารางห้องเรียน หน้า ${currentPage}/${totalPages}`
             : `กำลังตรวจสอบ PDF หน้าที่ ${currentPage}/${totalPages}`,
         );
       };
@@ -2502,7 +2502,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                     <p className="font-semibold text-slate-800">รองรับไฟล์ตารางสอน {teachTableFormatLabel}</p>
                     <ul className="mt-2 list-disc space-y-1 pl-5">
                       {isTeachTablePdfImport ? (
-                        <li>PDF ข้อความจะอ่านได้เร็วที่สุด ส่วน PDF ที่เป็นรูปภาพจะใช้ OCR และอาจใช้เวลานานกว่า</li>
+                        <li>PDF สแกนจะ OCR เฉพาะส่วนตารางห้องเรียน และข้ามหน้าตารางสอนรายบุคคลอัตโนมัติ</li>
                       ) : null}
                       <li>อ่านเฉพาะวิชาหลัก (มีรหัสวิชา 5 หลัก)</li>
                       <li>ไม่นำเข้ากิจกรรม เช่น ลูกเสือ, ชุมนุม, แนะแนว, หน้าเสาธง, อบรมคุณธรรม</li>

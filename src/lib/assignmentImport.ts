@@ -1,6 +1,6 @@
 import ExcelJS from 'exceljs';
 import JSZip from 'jszip';
-import { createWorker as createTesseractWorker, OEM } from 'tesseract.js';
+import { createWorker as createTesseractWorker, OEM, PSM } from 'tesseract.js';
 import tesseractWorkerUrl from 'tesseract.js/dist/worker.min.js?url';
 import type { Classroom, Profile, Subject, UserRole } from '../types';
 
@@ -56,7 +56,13 @@ function normalizeHeader(value: unknown): string {
 }
 
 function normalizeName(value: string): string {
-  return value.trim().replace(/\u200b/g, '').replace(/\s+/g, ' ').toLowerCase();
+  return value
+    .normalize('NFC')
+    .replace(/\u0e4d\u0e32/g, '\u0e33')
+    .trim()
+    .replace(/\u200b/g, '')
+    .replace(/\s+/g, ' ')
+    .toLowerCase();
 }
 
 function findColumnIndex(headers: string[], aliases: string[]): number {
@@ -118,7 +124,12 @@ function normalizeSubjectCode(value: string): string {
 }
 
 function normalizeTimetableText(value: string): string {
-  return normalizeThaiDigits(value).replace(/\u200b/g, '').replace(/\s+/g, ' ').trim();
+  return normalizeThaiDigits(value)
+    .normalize('NFC')
+    .replace(/\u0e4d\u0e32/g, '\u0e33')
+    .replace(/\u200b/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function stripTeacherPrefix(value: string): string {
@@ -161,6 +172,15 @@ function classroomNameFromHeading(text: string): string | null {
   if (compactShortPrimary) return `ป.${compactShortPrimary[1]}/${compactShortPrimary[2]}`;
 
   return null;
+}
+
+function isIndividualTeacherScheduleHeading(text: string): boolean {
+  const compact = normalizeTimetableText(text).replace(/\s+/g, '');
+  return (
+    compact.includes('รายบุคคล') ||
+    compact.includes('รายบคคล') ||
+    (compact.includes('จำนวน') && compact.includes('ชั่วโมง/สัปดาห์'))
+  );
 }
 
 function classroomNameFromTable(table: Element): string | null {
@@ -678,6 +698,7 @@ interface OcrResultData {
 
 interface OcrWorkerLike {
   recognize(image: string | HTMLCanvasElement, options?: unknown, output?: unknown): Promise<{ data: OcrResultData }>;
+  setParameters(params: Record<string, string>): Promise<unknown>;
   terminate(): Promise<unknown>;
 }
 
@@ -994,7 +1015,6 @@ function addOcrGridEntries(
   for (const band of grid.rowBands) {
     const verticalLines = verticalLinesForRow(imageData, width, band, grid.canonicalVerticalLines);
     const rowEntryKeys = new Set<string>();
-    const rowCodes = new Set<string>();
 
     const wordsInBox = (left: number, right: number) =>
       words.filter((word) => {
@@ -1006,20 +1026,14 @@ function addOcrGridEntries(
       left: number,
       right: number,
       cellText: string,
-      options?: { allowExistingCode?: boolean; maxTeachers?: number; maxSubjectNameLength?: number },
     ) => {
       const entries = extractTimetableEntriesFromText(cellText);
       const periods = Math.max(1, Math.min(4, Math.round((right - left) / grid.basePeriodWidth)));
 
       for (const entry of entries) {
-        if (options?.allowExistingCode === false && rowCodes.has(entry.code)) continue;
-        if (options?.maxTeachers !== undefined && entry.teachers.length > options.maxTeachers) continue;
-        if (options?.maxSubjectNameLength !== undefined && entry.subjectName.length > options.maxSubjectNameLength) continue;
-
         const key = `${entry.code}|${entry.teachers.map(compactName).sort().join('|')}`;
         if (rowEntryKeys.has(key)) continue;
         rowEntryKeys.add(key);
-        rowCodes.add(entry.code);
         addTimetableEntry(aggregates, classroomName, entry, periods);
       }
     };
@@ -1028,18 +1042,6 @@ function addOcrGridEntries(
       const left = verticalLines[columnIndex];
       const right = verticalLines[columnIndex + 1];
       addEntriesFromCell(left, right, ocrCellText(wordsInBox(left, right), band));
-    }
-
-    for (let columnIndex = 1; columnIndex < grid.canonicalVerticalLines.length - 1; columnIndex += 1) {
-      for (let span = 1; span <= 4 && columnIndex + span < grid.canonicalVerticalLines.length; span += 1) {
-        const left = grid.canonicalVerticalLines[columnIndex];
-        const right = grid.canonicalVerticalLines[columnIndex + span];
-        addEntriesFromCell(left, right, ocrCellText(wordsInBox(left, right), band), {
-          allowExistingCode: false,
-          maxTeachers: 3,
-          maxSubjectNameLength: 80,
-        });
-      }
     }
   }
 }
@@ -1059,6 +1061,83 @@ async function renderPdfPage(page: PdfPageLike, scale = 2): Promise<RenderedPdfP
   };
 }
 
+function cropCanvas(
+  source: HTMLCanvasElement,
+  left: number,
+  top: number,
+  right: number,
+  bottom: number,
+): HTMLCanvasElement {
+  const safeLeft = Math.max(0, Math.floor(left));
+  const safeTop = Math.max(0, Math.floor(top));
+  const safeRight = Math.min(source.width, Math.ceil(right));
+  const safeBottom = Math.min(source.height, Math.ceil(bottom));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, safeRight - safeLeft);
+  canvas.height = Math.max(1, safeBottom - safeTop);
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('ไม่สามารถสร้างพื้นที่ OCR ได้');
+  context.drawImage(
+    source,
+    safeLeft,
+    safeTop,
+    canvas.width,
+    canvas.height,
+    0,
+    0,
+    canvas.width,
+    canvas.height,
+  );
+  return canvas;
+}
+
+function clearCanvas(canvas: HTMLCanvasElement) {
+  canvas.width = 0;
+  canvas.height = 0;
+}
+
+function maskScheduleGridLines(
+  canvas: HTMLCanvasElement,
+  imageData: ImageData,
+  grid: ScheduleGrid,
+  tableTop: number,
+) {
+  const context = canvas.getContext('2d');
+  if (!context) return;
+
+  const verticalGutter = Math.max(5, Math.round(canvas.width * 0.0035));
+  const horizontalGutter = Math.max(4, Math.round(canvas.height * 0.012));
+  context.fillStyle = '#fff';
+
+  for (const band of grid.rowBands) {
+    const localTop = band.top - tableTop;
+    const localBottom = band.bottom - tableTop;
+    context.fillRect(0, localTop - horizontalGutter, canvas.width, horizontalGutter * 2 + 1);
+    context.fillRect(0, localBottom - horizontalGutter, canvas.width, horizontalGutter * 2 + 1);
+
+    for (const line of verticalLinesForRow(imageData, canvas.width, band, grid.canonicalVerticalLines)) {
+      context.fillRect(
+        line - verticalGutter,
+        localTop,
+        verticalGutter * 2 + 1,
+        Math.max(1, localBottom - localTop),
+      );
+    }
+  }
+}
+
+function offsetOcrWords(words: OcrWord[], offsetX: number, offsetY: number): OcrWord[] {
+  return words.map((word) => ({
+    ...word,
+    bbox: {
+      x0: word.bbox.x0 + offsetX,
+      y0: word.bbox.y0 + offsetY,
+      x1: word.bbox.x1 + offsetX,
+      y1: word.bbox.y1 + offsetY,
+    },
+  }));
+}
+
 function clearRenderedPage(page: RenderedPdfPage) {
   page.canvas.width = 0;
   page.canvas.height = 0;
@@ -1072,7 +1151,6 @@ async function parseImageOnlyPdfWithOcr(
 
   const worker = await createThaiOcrWorker();
   const aggregates = new Map<string, TimetableAggregate>();
-  let currentClassroomName = '';
 
   try {
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
@@ -1081,20 +1159,82 @@ async function parseImageOnlyPdfWithOcr(
       const renderedPage = await renderPdfPage(pdfPage);
 
       try {
+        // The sample PDF contains classroom schedules first, followed by many
+        // individual-teacher schedules. Read a small header crop first so those
+        // later pages can be skipped instead of running full-page OCR on all 18.
+        const headerBottom = Math.round(renderedPage.canvas.height * 0.245);
+        const headerCanvas = cropCanvas(
+          renderedPage.canvas,
+          Math.round(renderedPage.canvas.width * 0.05),
+          0,
+          Math.round(renderedPage.canvas.width * 0.95),
+          headerBottom,
+        );
+        let headerText = '';
+        try {
+          await worker.setParameters({
+            tessedit_pageseg_mode: PSM.SINGLE_BLOCK,
+            preserve_interword_spaces: '1',
+            user_defined_dpi: '144',
+          });
+          const headerResult = await worker.recognize(headerCanvas, {}, { text: true });
+          headerText = headerResult.data.text ?? '';
+        } finally {
+          clearCanvas(headerCanvas);
+        }
+
+        if (isIndividualTeacherScheduleHeading(headerText)) break;
+
+        const classroomName = classroomNameFromHeading(headerText);
+        if (!classroomName) {
+          console.warn(`OCR skipped PDF page ${pageNumber}: classroom heading was not recognized`);
+          continue;
+        }
+
         const grid = detectScheduleGrid(renderedPage.canvas, renderedPage.context);
-        const imageData = renderedPage.context.getImageData(0, 0, renderedPage.canvas.width, renderedPage.canvas.height);
-        const result = await worker.recognize(renderedPage.canvas, {}, { text: true, blocks: true });
-        const maybeClassroomName = classroomNameFromHeading(result.data.text ?? '');
-        if (maybeClassroomName) currentClassroomName = maybeClassroomName;
-        if (!currentClassroomName) continue;
+        const imageData = renderedPage.context.getImageData(
+          0,
+          0,
+          renderedPage.canvas.width,
+          renderedPage.canvas.height,
+        );
+        const firstBand = grid.rowBands[0];
+        const lastBand = grid.rowBands[grid.rowBands.length - 1];
+        if (!firstBand || !lastBand) continue;
+
+        const tableTop = Math.max(0, Math.floor(firstBand.top - renderedPage.canvas.height * 0.01));
+        const tableBottom = Math.min(
+          renderedPage.canvas.height,
+          Math.ceil(lastBand.bottom + renderedPage.canvas.height * 0.01),
+        );
+        const tableCanvas = cropCanvas(
+          renderedPage.canvas,
+          0,
+          tableTop,
+          renderedPage.canvas.width,
+          tableBottom,
+        );
+        maskScheduleGridLines(tableCanvas, imageData, grid, tableTop);
+        let words: OcrWord[] = [];
+        try {
+          await worker.setParameters({
+            tessedit_pageseg_mode: PSM.SPARSE_TEXT,
+            preserve_interword_spaces: '1',
+            user_defined_dpi: '144',
+          });
+          const result = await worker.recognize(tableCanvas, {}, { text: false, blocks: true });
+          words = offsetOcrWords(flattenOcrWords(result.data), 0, tableTop);
+        } finally {
+          clearCanvas(tableCanvas);
+        }
 
         addOcrGridEntries(
           aggregates,
           imageData,
           renderedPage.canvas.width,
           grid,
-          flattenOcrWords(result.data),
-          currentClassroomName,
+          words,
+          classroomName,
         );
       } finally {
         clearRenderedPage(renderedPage);
@@ -1387,7 +1527,6 @@ function resolveTeacherMatch(value: string, lookup: TeacherLookup): TeacherMatch
 
   const fuzzyMatches = lookup.candidates.filter((candidate) => {
     if (candidate.compactAlias === compact) return true;
-    if (candidate.firstName !== firstName && !candidate.compactAlias.startsWith(firstName)) return false;
     if (Math.abs(candidate.compactAlias.length - compact.length) > 2) return false;
     return editDistance(candidate.compactAlias, compact) <= 2;
   });
@@ -1397,17 +1536,159 @@ function resolveTeacherMatch(value: string, lookup: TeacherLookup): TeacherMatch
     return { teacherId: uniqueIds[0], confidence: 'fuzzy' };
   }
 
+  if (firstName.length >= 5) {
+    const firstNameIds = Array.from(new Set(
+      lookup.candidates
+        .filter((candidate) => candidate.firstName === firstName)
+        .map((candidate) => candidate.id),
+    ));
+    if (firstNameIds.length === 1) {
+      return { teacherId: firstNameIds[0], confidence: 'fuzzy' };
+    }
+  }
+
   return { teacherId: null, confidence: null };
 }
 
-function buildSubjectMaps(subjects: Subject[]) {
-  const byCode = new Map<string, string>();
-  const byName = new Map<string, string>();
-  for (const subject of subjects) {
-    byCode.set(subject.subject_code.trim().toLowerCase(), subject.id);
-    byName.set(normalizeName(subject.subject_name), subject.id);
+function approximatelyContains(value: string, candidate: string): boolean {
+  if (value.includes(candidate)) return true;
+  if (candidate.length < 8 || value.length < candidate.length - 2) return false;
+
+  const anchor = candidate.slice(0, 4);
+  const anchorIndex = value.indexOf(anchor);
+  if (anchorIndex < 0) return false;
+  const minLength = Math.max(6, candidate.length - 2);
+  const maxLength = Math.min(value.length, candidate.length + 2);
+  for (let start = Math.max(0, anchorIndex - 1); start <= Math.min(anchorIndex + 1, value.length - minLength); start += 1) {
+    for (let length = minLength; length <= maxLength && start + length <= value.length; length += 1) {
+      if (editDistance(value.slice(start, start + length), candidate) <= 2) return true;
+    }
   }
-  return { byCode, byName };
+  return false;
+}
+
+function containedTeacherIds(value: string, lookup: TeacherLookup, allowApproximate = false): string[] {
+  const compact = compactName(stripTeacherPrefix(value));
+  if (compact.length < 6) return [];
+
+  return Array.from(new Set(
+    lookup.candidates
+      .filter((candidate) => (
+        compact.includes(candidate.compactAlias) ||
+        (allowApproximate && approximatelyContains(compact, candidate.compactAlias))
+      ))
+      .map((candidate) => candidate.id),
+  ));
+}
+
+function normalizeSubjectNameForLookup(value: string): string {
+  return normalizeName(value)
+    .replace(/[()（）]/g, '')
+    .replace(/(?:เพิ่มเติม|พื้นฐาน)/g, '')
+    .replace(/[0-9๐-๙]+/g, '')
+    .replace(/[\s.,/\\\-_–—ฯ]+/g, '');
+}
+
+function classLevelFromClassroomName(value: string): string | null {
+  const compact = normalizeThaiDigits(value).replace(/\s+/g, '');
+  const match = compact.match(/([ปม])\.?([1-6])/u);
+  return match ? `${match[1]}.${match[2]}` : null;
+}
+
+interface SubjectLookup {
+  byCode: Map<string, Subject>;
+  byName: Map<string, Subject[]>;
+  subjects: Subject[];
+}
+
+type SubjectMatchMethod = 'code-exact' | 'name-exact' | 'code-fuzzy' | 'name-fuzzy';
+
+interface SubjectMatchResult {
+  subject: Subject | null;
+  method: SubjectMatchMethod | null;
+}
+
+function buildSubjectMaps(subjects: Subject[]): SubjectLookup {
+  const byCode = new Map<string, Subject>();
+  const byName = new Map<string, Subject[]>();
+  for (const subject of subjects) {
+    byCode.set(subject.subject_code.trim().toLowerCase(), subject);
+    const nameKey = normalizeSubjectNameForLookup(subject.subject_name);
+    byName.set(nameKey, [...(byName.get(nameKey) ?? []), subject]);
+  }
+  return { byCode, byName, subjects };
+}
+
+function uniqueSubjectForLevel(candidates: Subject[], classLevel: string | null): Subject | null {
+  const levelMatches = classLevel
+    ? candidates.filter((subject) => subject.default_class_level === classLevel)
+    : candidates;
+  return levelMatches.length === 1 ? levelMatches[0] : null;
+}
+
+function resolveSubjectMatch(
+  row: AssignmentImportRow,
+  lookup: SubjectLookup,
+): SubjectMatchResult {
+  const classLevel = classLevelFromClassroomName(row.classroomName);
+  const rawCode = normalizeSubjectCode(row.subjectCode).toLowerCase();
+  const exactCode = rawCode ? lookup.byCode.get(rawCode) : null;
+  if (
+    exactCode &&
+    (!classLevel || !exactCode.default_class_level || exactCode.default_class_level === classLevel)
+  ) {
+    return { subject: exactCode, method: 'code-exact' };
+  }
+
+  const nameKey = normalizeSubjectNameForLookup(row.subjectName);
+  const exactName = nameKey
+    ? uniqueSubjectForLevel(lookup.byName.get(nameKey) ?? [], classLevel)
+    : null;
+  if (exactName) return { subject: exactName, method: 'name-exact' };
+
+  const levelSubjects = classLevel
+    ? lookup.subjects.filter((subject) => subject.default_class_level === classLevel)
+    : lookup.subjects;
+
+  if (rawCode) {
+    const scored = levelSubjects
+      .map((subject) => ({
+        subject,
+        distance: editDistance(rawCode, subject.subject_code.toLowerCase()),
+      }))
+      .sort((a, b) => a.distance - b.distance);
+    if (scored[0] && scored[0].distance <= 2 && scored[1]?.distance !== scored[0].distance) {
+      return { subject: scored[0].subject, method: 'code-fuzzy' };
+    }
+  }
+
+  if (nameKey.length >= 5) {
+    const contained = levelSubjects.filter((subject) => {
+      const candidate = normalizeSubjectNameForLookup(subject.subject_name);
+      return candidate.includes(nameKey) || nameKey.includes(candidate);
+    });
+    if (contained.length === 1) return { subject: contained[0], method: 'name-fuzzy' };
+
+    const scored = levelSubjects
+      .map((subject) => {
+        const candidate = normalizeSubjectNameForLookup(subject.subject_name);
+        return {
+          subject,
+          distance: editDistance(nameKey, candidate),
+          maxDistance: Math.max(2, Math.floor(Math.min(nameKey.length, candidate.length) * 0.2)),
+        };
+      })
+      .sort((a, b) => a.distance - b.distance);
+    if (
+      scored[0] &&
+      scored[0].distance <= scored[0].maxDistance &&
+      scored[1]?.distance !== scored[0].distance
+    ) {
+      return { subject: scored[0].subject, method: 'name-fuzzy' };
+    }
+  }
+
+  return { subject: null, method: null };
 }
 
 function buildClassroomMap(classrooms: Classroom[]): Map<string, string> {
@@ -1433,50 +1714,123 @@ export function resolveAssignmentRows(
       ? teachers.filter((teacher) => allowedRoles.includes(teacher.role))
       : teachers;
   const teacherLookup = buildTeacherLookup(eligibleTeachers);
-  const { byCode, byName } = buildSubjectMaps(subjects);
+  const subjectLookup = buildSubjectMaps(subjects);
   const classroomMap = buildClassroomMap(classrooms);
+  const teacherById = new Map(eligibleTeachers.map((teacher) => [teacher.id, teacher]));
+  const displayTeacher = (teacherId: string) => {
+    const teacher = teacherById.get(teacherId);
+    return teacher ? [teacher.title, teacher.full_name].filter(Boolean).join(' ') : '';
+  };
 
-  return rows.map((row, index) => {
-    const issues: string[] = [];
-    const warnings: string[] = [];
-    const teacherMatch = resolveTeacherMatch(row.teacherName, teacherLookup);
-    const teacherId = teacherMatch.teacherId;
-    if (!teacherId) {
-      issues.push(allowedRoles ? 'ไม่พบครูผู้สอน' : 'ไม่พบครู');
-    } else if (teacherMatch.confidence === 'compact' || teacherMatch.confidence === 'fuzzy') {
-      warnings.push('กรุณาตรวจสอบ');
+  const expandedRows = rows.flatMap((row, index): AssignmentReviewRow[] => {
+    const directMatch = resolveTeacherMatch(row.teacherName, teacherLookup);
+    const containedIds = containedTeacherIds(
+      row.teacherName,
+      teacherLookup,
+      !directMatch.teacherId || normalizeTimetableText(row.teacherName).includes('คร'),
+    );
+    if (!directMatch.teacherId && containedIds.length === 0 && compactName(row.teacherName).length < 6) {
+      return [];
     }
+    const teacherMatches: TeacherMatchResult[] = containedIds.length > 0
+      ? containedIds.map((teacherId) => ({
+          teacherId,
+          confidence: directMatch.teacherId === teacherId ? directMatch.confidence : 'fuzzy',
+        }))
+      : [directMatch];
+    const coTeacherIds = new Set([
+      ...containedIds,
+      ...containedTeacherIds(row.coTeacherName ?? '', teacherLookup),
+    ]);
 
-    let subjectId: string | null = null;
-    if (row.subjectCode) {
-      subjectId = byCode.get(row.subjectCode.toLowerCase()) ?? null;
-    }
-    if (!subjectId && row.subjectName) {
-      subjectId = byName.get(normalizeName(row.subjectName)) ?? null;
-    }
-    if (!subjectId) issues.push('ไม่พบวิชา');
+    return teacherMatches.map((teacherMatch, teacherIndex) => {
+      const issues: string[] = [];
+      const warnings: string[] = [];
+      const teacherId = teacherMatch.teacherId;
+      if (!teacherId) {
+        issues.push(allowedRoles ? 'ไม่พบครูผู้สอน' : 'ไม่พบครู');
+      } else if (teacherMatch.confidence === 'compact' || teacherMatch.confidence === 'fuzzy') {
+        warnings.push('กรุณาตรวจสอบ');
+      }
+      if (containedIds.length > 1) {
+        warnings.push('ระบบแยกรายชื่อครูหลายคนจากข้อความ OCR กรุณาตรวจสอบ');
+      }
 
-    const classroomId = classroomMap.get(normalizeName(row.classroomName)) ?? null;
-    if (!classroomId) issues.push('ไม่พบห้อง');
+      const subjectMatch = resolveSubjectMatch(row, subjectLookup);
+      const matchedSubject = subjectMatch.subject;
+      const subjectId = matchedSubject?.id ?? null;
+      if (!subjectId) issues.push('ไม่พบวิชา');
+      if (
+        matchedSubject &&
+        row.subjectCode &&
+        normalizeSubjectCode(row.subjectCode).toLowerCase() !== matchedSubject.subject_code.toLowerCase()
+      ) {
+        warnings.push('ระบบแก้รหัสวิชาที่ OCR อ่านคลาดเคลื่อน กรุณาตรวจสอบ');
+      } else if (subjectMatch.method === 'code-fuzzy' || subjectMatch.method === 'name-fuzzy') {
+        warnings.push('ระบบจับคู่วิชาจากข้อความ OCR กรุณาตรวจสอบ');
+      }
 
-    return {
-      key: `row-${index}`,
-      line: index + 2,
-      teacherName: row.teacherName,
-      teacherId,
-      teacherMatchConfidence: teacherMatch.confidence,
-      coTeacherName: row.coTeacherName ?? '',
-      subjectCode: row.subjectCode,
-      subjectName: row.subjectName,
-      subjectId,
-      classroomName: row.classroomName,
-      classroomId,
-      hoursPerWeek: row.hoursPerWeek,
-      hoursPerSemester: row.hoursPerSemester,
-      issues,
-      warnings,
-    };
+      const classroomId = classroomMap.get(normalizeName(row.classroomName)) ?? null;
+      if (!classroomId) issues.push('ไม่พบห้อง');
+      const canonicalCoTeachers = Array.from(coTeacherIds)
+        .filter((id) => id !== teacherId)
+        .map(displayTeacher)
+        .filter(Boolean);
+
+      return {
+        key: `row-${index}-${teacherIndex}`,
+        line: index + 2,
+        teacherName: teacherId ? displayTeacher(teacherId) : row.teacherName,
+        teacherId,
+        teacherMatchConfidence: teacherMatch.confidence,
+        coTeacherName: canonicalCoTeachers.length > 0
+          ? canonicalCoTeachers.join(', ')
+          : (row.coTeacherName ?? ''),
+        subjectCode: matchedSubject?.subject_code ?? row.subjectCode,
+        subjectName: matchedSubject?.subject_name ?? row.subjectName,
+        subjectId,
+        classroomName: row.classroomName,
+        classroomId,
+        hoursPerWeek: row.hoursPerWeek,
+        hoursPerSemester: row.hoursPerSemester,
+        issues,
+        warnings,
+      };
+    });
   });
+
+  const mergedRows = new Map<string, AssignmentReviewRow>();
+  for (const row of expandedRows) {
+    const mergeKey = row.teacherId && row.subjectId && row.classroomId
+      ? `${row.teacherId}|${row.subjectId}|${row.classroomId}`
+      : row.key;
+    const existing = mergedRows.get(mergeKey);
+    if (!existing) {
+      mergedRows.set(mergeKey, row);
+      continue;
+    }
+
+    const hoursPerWeek = Math.max(existing.hoursPerWeek ?? 0, row.hoursPerWeek ?? 0) || null;
+    const hoursPerSemester = Math.max(existing.hoursPerSemester ?? 0, row.hoursPerSemester ?? 0) || null;
+    mergedRows.set(mergeKey, {
+      ...existing,
+      hoursPerWeek,
+      hoursPerSemester,
+      issues: Array.from(new Set([...existing.issues, ...row.issues])),
+      warnings: Array.from(new Set([...existing.warnings, ...row.warnings])),
+      coTeacherName: Array.from(new Set(
+        [existing.coTeacherName, row.coTeacherName]
+          .flatMap((value) => value.split(',').map((item) => item.trim()))
+          .filter(Boolean),
+      )).join(', '),
+    });
+  }
+
+  return Array.from(mergedRows.values()).map((row, index) => ({
+    ...row,
+    key: `row-${index}`,
+    line: index + 2,
+  }));
 }
 
 export function validateReviewRow(row: AssignmentReviewRow): AssignmentReviewRow {

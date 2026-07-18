@@ -136,6 +136,14 @@ function homeroomMigrationMessage(error: unknown, field: HomeroomField): string 
   return getErrorMessage(error, 'บันทึกครูประจำชั้นไม่สำเร็จ');
 }
 
+function isMissingMoveRpc(error: unknown): boolean {
+  const message = getErrorMessage(error, '');
+  return (
+    message.includes('admin_move_homeroom_teacher') &&
+    (message.includes('Could not find') || message.includes('schema cache') || message.includes('PGRST202'))
+  );
+}
+
 export const ClassroomsPage: React.FC<ClassroomsPageProps> = ({ currentUser, initialYearId }) => {
   const [years, setYears] = useState<AcademicYear[]>([]);
   const [selectedYearId, setSelectedYearId] = useState(initialYearId ?? '');
@@ -386,6 +394,67 @@ export const ClassroomsPage: React.FC<ClassroomsPageProps> = ({ currentUser, ini
     }
   }, [classrooms, homeroomTeacher3Supported]);
 
+  const moveHomeroomTeacher = useCallback(async (
+    classroomId: string,
+    field: HomeroomField,
+    teacherId: string,
+  ) => {
+    const previous = classrooms;
+    setSaving(true);
+    setError('');
+    setMessage('');
+    setClassrooms((items) => items.map((item) => {
+      const next = { ...item };
+      for (const homeroomField of HOMEROOM_FIELDS) {
+        if (next[homeroomField] === teacherId) next[homeroomField] = null;
+      }
+      if (next.id === classroomId) next[field] = teacherId;
+      return next;
+    }));
+
+    try {
+      const { error: moveError } = await supabase.rpc('admin_move_homeroom_teacher', {
+        p_classroom_id: classroomId,
+        p_field: field,
+        p_teacher_id: teacherId,
+      });
+
+      if (moveError && !isMissingMoveRpc(moveError)) throw moveError;
+
+      if (moveError) {
+        // Compatibility fallback while migration 0037 has not been applied yet.
+        // Clear the selected teacher's old slot first; replacing the target slot
+        // automatically leaves the former target teacher unassigned.
+        for (const classroom of classrooms) {
+          for (const homeroomField of HOMEROOM_FIELDS) {
+            if (classroom.id === classroomId && homeroomField === field) continue;
+            if (rawTeacherValueFor(classroom, homeroomField) !== teacherId) continue;
+
+            const { error: clearError } = await supabase
+              .from('classrooms')
+              .update({ [homeroomField]: null })
+              .eq('id', classroom.id);
+            if (clearError) throw clearError;
+          }
+        }
+
+        const { error: targetError } = await supabase
+          .from('classrooms')
+          .update({ [field]: teacherId })
+          .eq('id', classroomId);
+        if (targetError) throw targetError;
+      }
+
+      setMessage('ย้ายและบันทึกครูประจำชั้นแล้ว');
+    } catch (err) {
+      setClassrooms(previous);
+      await loadClassrooms();
+      setError(getErrorMessage(err, 'ย้ายครูประจำชั้นไม่สำเร็จ'));
+    } finally {
+      setSaving(false);
+    }
+  }, [classrooms, loadClassrooms, rawTeacherValueFor]);
+
   const handleHomeroomSelect = (classroomId: string, field: HomeroomField, value: string) => {
     const classroom = classrooms.find((item) => item.id === classroomId);
     if (!classroom || saving) return;
@@ -395,6 +464,7 @@ export const ClassroomsPage: React.FC<ClassroomsPageProps> = ({ currentUser, ini
 
     if (newTeacherId === oldTeacherId) return;
 
+    setError('');
     setMessage('');
 
     if (!newTeacherId) {
@@ -438,43 +508,21 @@ export const ClassroomsPage: React.FC<ClassroomsPageProps> = ({ currentUser, ini
       return;
     }
 
-    void applyHomeroomUpdates([{ classroomId, field, teacherId: newTeacherId }]);
+    void moveHomeroomTeacher(classroomId, field, newTeacherId);
   };
 
   const confirmDuplicateAssignment = () => {
     if (!dialog || dialog.kind !== 'duplicate') return;
-    const { classroomId, field, newTeacherId, existingSlot } = dialog;
+    const { classroomId, field, newTeacherId } = dialog;
     setDialog(null);
-    void applyHomeroomUpdates([
-      { classroomId: existingSlot.classroomId, field: existingSlot.field, teacherId: null },
-      { classroomId, field, teacherId: newTeacherId },
-    ]);
+    void moveHomeroomTeacher(classroomId, field, newTeacherId);
   };
 
   const confirmReplaceLeaveEmpty = () => {
     if (!dialog || dialog.kind !== 'replace') return;
-    const { classroomId, field, newTeacherId, newTeacherSlot } = dialog;
+    const { classroomId, field, newTeacherId } = dialog;
     setDialog(null);
-    const updates: HomeroomUpdate[] = [];
-    if (newTeacherSlot) {
-      updates.push({
-        classroomId: newTeacherSlot.classroomId,
-        field: newTeacherSlot.field,
-        teacherId: null,
-      });
-    }
-    updates.push({ classroomId, field, teacherId: newTeacherId });
-    void applyHomeroomUpdates(updates);
-  };
-
-  const confirmReplaceSwap = () => {
-    if (!dialog || dialog.kind !== 'replace' || !dialog.newTeacherSlot) return;
-    const { classroomId, field, oldTeacherId, newTeacherId, newTeacherSlot } = dialog;
-    setDialog(null);
-    void applyHomeroomUpdates([
-      { classroomId: newTeacherSlot.classroomId, field: newTeacherSlot.field, teacherId: oldTeacherId },
-      { classroomId, field, teacherId: newTeacherId },
-    ]);
+    void moveHomeroomTeacher(classroomId, field, newTeacherId);
   };
 
   const syncHomeroomsFromExcel = async () => {
@@ -723,6 +771,22 @@ export const ClassroomsPage: React.FC<ClassroomsPageProps> = ({ currentUser, ini
   const dialogTeacherName = dialog
     ? teacherNameById.get(dialog.newTeacherId) ?? 'ครูที่เลือก'
     : '';
+  const dialogOriginSlot = dialog
+    ? dialog.kind === 'duplicate'
+      ? dialog.existingSlot
+      : dialog.newTeacherSlot
+    : null;
+  const dialogOriginClassroom = dialogOriginSlot
+    ? classrooms.find((classroom) => classroom.id === dialogOriginSlot.classroomId) ?? null
+    : null;
+  const dialogOriginRemainingTeacherNames = dialogOriginClassroom && dialog
+    ? HOMEROOM_FIELDS
+        .filter((field) => field !== dialogOriginSlot?.field)
+        .map((field) => teacherValueFor(dialogOriginClassroom, field))
+        .filter((teacherId) => Boolean(teacherId) && teacherId !== dialog.newTeacherId)
+        .map((teacherId) => teacherNameById.get(teacherId) ?? '')
+        .filter(Boolean)
+    : [];
 
   return (
     <div className="space-y-6">
@@ -1112,7 +1176,20 @@ export const ClassroomsPage: React.FC<ClassroomsPageProps> = ({ currentUser, ini
                     <span className="font-semibold text-slate-800">{dialogTeacherName}</span> ถูกมอบหมายที่{' '}
                     <span className="font-semibold text-slate-800">{slotDescription(dialog.existingSlot)}</span> แล้ว
                     <br />
-                    หากยืนยันทำรายการ รายชื่อครูที่ตำแหน่งเดิมจะหายไป
+                    หากยืนยัน ระบบจะย้ายครูคนนี้มาห้องใหม่และล้างชื่อออกจากตำแหน่งเดิม
+                    {dialogOriginRemainingTeacherNames.length > 0 ? (
+                      <>
+                        <br />
+                        ห้องเดิมจะเหลือครูประจำชั้น: <span className="font-semibold text-slate-800">
+                          {dialogOriginRemainingTeacherNames.join(' / ')}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <br />
+                        <span className="font-semibold text-amber-700">ห้องเดิมจะไม่มีครูประจำชั้นและเป็นห้องว่าง</span>
+                      </>
+                    )}
                   </p>
                 ) : (
                   <>
@@ -1130,8 +1207,21 @@ export const ClassroomsPage: React.FC<ClassroomsPageProps> = ({ currentUser, ini
                           {slotDescription(dialog.newTeacherSlot)}
                         </span>
                         <br />
-                        เลือกว่าจะให้ครูทั้งสอง <span className="font-semibold">สลับตำแหน่งกัน</span> หรือ{' '}
-                        <span className="font-semibold">แทนที่แล้วปล่อยตำแหน่งเดิมว่าง</span>
+                        เมื่อยืนยัน ครูคนนี้จะถูกล้างออกจากตำแหน่งเดิม ส่วนครูที่ถูกแทนที่จะไปอยู่ในรายการ
+                        <span className="font-semibold"> ยังไม่ได้มอบหมาย</span> โดยไม่มีการสลับตำแหน่ง
+                        {dialogOriginRemainingTeacherNames.length > 0 ? (
+                          <>
+                            <br />
+                            ห้องเดิมจะเหลือครูประจำชั้น: <span className="font-semibold text-slate-800">
+                              {dialogOriginRemainingTeacherNames.join(' / ')}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <br />
+                            <span className="font-semibold text-amber-700">ห้องเดิมจะไม่มีครูประจำชั้นและเป็นห้องว่าง</span>
+                          </>
+                        )}
                       </p>
                     ) : (
                       <p className="mt-2 text-sm leading-relaxed text-slate-600">
@@ -1157,20 +1247,11 @@ export const ClassroomsPage: React.FC<ClassroomsPageProps> = ({ currentUser, ini
               </button>
               {dialog.kind === 'duplicate' ? (
                 <button type="button" onClick={confirmDuplicateAssignment} className="btn btn-primary">
-                  ยืนยัน (ล้างตำแหน่งเดิม)
+                  ยืนยันย้ายครู
                 </button>
-              ) : dialog.newTeacherSlot ? (
-                <>
-                  <button type="button" onClick={confirmReplaceSwap} className="btn btn-primary">
-                    สลับตำแหน่งกัน
-                  </button>
-                  <button type="button" onClick={confirmReplaceLeaveEmpty} className="btn btn-secondary">
-                    แทนที่ — ตำแหน่งเดิมว่าง
-                  </button>
-                </>
               ) : (
                 <button type="button" onClick={confirmReplaceLeaveEmpty} className="btn btn-primary">
-                  ยืนยันแทนที่
+                  ยืนยันย้ายและแทนที่
                 </button>
               )}
             </div>
