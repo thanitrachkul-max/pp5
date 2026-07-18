@@ -9,6 +9,8 @@ interface Props {
   data: AppData['attributes'];
   generalInfo: AppData['generalInfo'];
   printMode?: boolean;
+  printStudentNumberOffset?: number;
+  printPageNote?: string;
   readOnly?: boolean;
   onChange: (data: AppData['attributes']) => void;
 }
@@ -30,7 +32,7 @@ function buildClassTermTitle(generalInfo: AppData['generalInfo']) {
   ].filter(Boolean).join(' ');
 }
 
-export const Attributes5_8Form: React.FC<Props> = ({ students, data, generalInfo, printMode = false, readOnly = false, onChange }) => {
+export const Attributes5_8Form: React.FC<Props> = ({ students, data, generalInfo, printMode = false, printStudentNumberOffset = 0, printPageNote, readOnly = false, onChange }) => {
   const [showAutoFillModal, setShowAutoFillModal] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
@@ -139,7 +141,7 @@ export const Attributes5_8Form: React.FC<Props> = ({ students, data, generalInfo
         {printMode ? (
           <div className="attribute-print-heading">
             <span>ผลการประเมินคุณลักษณะอันพึงประสงค์ 5-8</span>
-            <span>{classTermTitle}</span>
+            <span>{classTermTitle}{printPageNote ? ` (${printPageNote})` : ''}</span>
           </div>
         ) : (
           <div className="mb-3 grid gap-2 lg:grid-cols-[1fr_auto_1fr] lg:items-start">
@@ -242,7 +244,7 @@ export const Attributes5_8Form: React.FC<Props> = ({ students, data, generalInfo
 
                 return (
                   <tr key={student ? student.id : `empty-${index}`}>
-                    <td className="text-center sticky left-0 z-10 bg-white" style={{ width: '48px', minWidth: '48px', maxWidth: '48px' }}>{index + 1}</td>
+                    <td className="text-center sticky left-0 z-10 bg-white" style={{ width: '48px', minWidth: '48px', maxWidth: '48px' }}>{printStudentNumberOffset + index + 1}</td>
                     <td className="text-center sticky z-10 bg-white" style={{ left: '48px', width: '128px', minWidth: '128px', maxWidth: '128px' }}>{student?.studentId ?? ''}</td>
                     <td className="text-center sticky z-10 bg-white" style={{ left: '176px', width: '180px', minWidth: '180px', maxWidth: '180px' }}>{student?.citizenId ?? ''}</td>
                     <td className="text-left px-2 sticky z-10 bg-white border-r-2 border-r-slate-400" style={{ left: '356px', width: '292px', minWidth: '292px', maxWidth: '292px' }}>{student?.name ?? ''}</td>

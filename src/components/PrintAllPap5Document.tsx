@@ -14,10 +14,13 @@ import { ScoresForm } from "./ScoresForm";
 import { StudentsForm } from "./StudentsForm";
 import type { AppData, GradebookApprovalStatus } from "../types";
 import {
+  getAnalyticalPrintRanges,
   getAttendancePrintMonthRanges,
+  getAttributePrintRanges,
   getPap5PrintPageSpecs,
   getScoreSummaryPrintRanges,
   type ScoreSummaryPrintRange,
+  type StudentEvaluationPrintRange,
 } from "../utils/pap5PrintLayout";
 
 interface PrintAllPap5DocumentProps {
@@ -126,37 +129,66 @@ function ScoreSummaryOriginalPrintPage({
 function AttributesOriginalPrintPage({
   data,
   range,
+  studentRange,
   pageNumber,
 }: {
   data: AppData;
   range: "1-4" | "5-8";
+  studentRange: StudentEvaluationPrintRange;
   pageNumber?: number;
 }) {
   const Form = range === "1-4" ? AttributesForm : Attributes5_8Form;
+  const students = data.students.slice(
+    studentRange.studentStartIndex,
+    studentRange.studentEndIndex,
+  );
+  const printPageNote = studentRange.totalPages > 1
+    ? `หน้า ${studentRange.pageNumber}/${studentRange.totalPages}`
+    : undefined;
 
   return (
     <section className="print-page landscape attribute-print-page original-tab-print-page">
       <PrintPageNumber pageNumber={pageNumber} />
       <Form
-        students={data.students}
+        students={students}
         data={data.attributes}
         generalInfo={data.generalInfo}
         printMode
+        printStudentNumberOffset={studentRange.studentStartIndex}
+        printPageNote={printPageNote}
         onChange={noop}
       />
     </section>
   );
 }
 
-function AnalyticalOriginalPrintPage({ data, pageNumber }: { data: AppData; pageNumber?: number }) {
+function AnalyticalOriginalPrintPage({
+  data,
+  studentRange,
+  pageNumber,
+}: {
+  data: AppData;
+  studentRange: StudentEvaluationPrintRange;
+  pageNumber?: number;
+}) {
+  const students = data.students.slice(
+    studentRange.studentStartIndex,
+    studentRange.studentEndIndex,
+  );
+  const printPageNote = studentRange.totalPages > 1
+    ? `หน้า ${studentRange.pageNumber}/${studentRange.totalPages}`
+    : undefined;
+
   return (
     <section className="print-page landscape analytical-print-page original-tab-print-page">
       <PrintPageNumber pageNumber={pageNumber} />
       <AnalyticalForm
-        students={data.students}
+        students={students}
         data={data.analytical}
         generalInfo={data.generalInfo}
         printMode
+        printStudentNumberOffset={studentRange.studentStartIndex}
+        printPageNote={printPageNote}
         onChange={noop}
       />
     </section>
@@ -193,6 +225,9 @@ export function PrintAllPap5Document({
 }: PrintAllPap5DocumentProps) {
   const attendanceRanges = getAttendancePrintMonthRanges(data.generalInfo);
   const scoreSummaryRanges = getScoreSummaryPrintRanges(data);
+  const attributeOneToFourRanges = getAttributePrintRanges(data, "1-4");
+  const attributeFiveToEightRanges = getAttributePrintRanges(data, "5-8");
+  const analyticalRanges = getAnalyticalPrintRanges(data);
   let nextPageNumber = 2;
 
   return (
@@ -217,9 +252,35 @@ export function PrintAllPap5Document({
           <ScoreSummaryOriginalPrintPage data={data} range={range} pageNumber={nextPageNumber++} />
         </React.Fragment>
       ))}
-      <AttributesOriginalPrintPage data={data} range="1-4" pageNumber={nextPageNumber++} />
-      <AttributesOriginalPrintPage data={data} range="5-8" pageNumber={nextPageNumber++} />
-      <AnalyticalOriginalPrintPage data={data} pageNumber={nextPageNumber++} />
+      {attributeOneToFourRanges.map((range) => (
+        <React.Fragment key={range.id}>
+          <AttributesOriginalPrintPage
+            data={data}
+            range="1-4"
+            studentRange={range}
+            pageNumber={nextPageNumber++}
+          />
+        </React.Fragment>
+      ))}
+      {attributeFiveToEightRanges.map((range) => (
+        <React.Fragment key={range.id}>
+          <AttributesOriginalPrintPage
+            data={data}
+            range="5-8"
+            studentRange={range}
+            pageNumber={nextPageNumber++}
+          />
+        </React.Fragment>
+      ))}
+      {analyticalRanges.map((range) => (
+        <React.Fragment key={range.id}>
+          <AnalyticalOriginalPrintPage
+            data={data}
+            studentRange={range}
+            pageNumber={nextPageNumber++}
+          />
+        </React.Fragment>
+      ))}
       <IndicatorOriginalPrintPage data={data} pageNumber={nextPageNumber++} />
       <ExplanationOriginalPrintPage page="first" pageNumber={nextPageNumber++} />
       <ExplanationOriginalPrintPage page="next" pageNumber={nextPageNumber++} />
@@ -239,6 +300,9 @@ export function Pap5SingleOriginalPrintPage({
   const attendanceRanges = getAttendancePrintMonthRanges(data.generalInfo);
   const attendancePage = attendanceRanges.find((range) => range.id === pageId);
   const scoreSummaryRange = getScoreSummaryPrintRanges(data).find((range) => range.id === pageId);
+  const attributeOneToFourRange = getAttributePrintRanges(data, "1-4").find((range) => range.id === pageId);
+  const attributeFiveToEightRange = getAttributePrintRanges(data, "5-8").find((range) => range.id === pageId);
+  const analyticalRange = getAnalyticalPrintRanges(data).find((range) => range.id === pageId);
   const pageIndex = getPap5PrintPageSpecs(data).findIndex((spec) => spec.id === pageId);
   const pageNumber = pageIndex > 0 ? pageIndex + 1 : undefined;
   const page =
@@ -257,12 +321,12 @@ export function Pap5SingleOriginalPrintPage({
       <ScoreOriginalPrintPage data={data} pageNumber={pageNumber} />
     ) : scoreSummaryRange ? (
       <ScoreSummaryOriginalPrintPage data={data} range={scoreSummaryRange} pageNumber={pageNumber} />
-    ) : pageId === "attributes-1-4" ? (
-      <AttributesOriginalPrintPage data={data} range="1-4" pageNumber={pageNumber} />
-    ) : pageId === "attributes-5-8" ? (
-      <AttributesOriginalPrintPage data={data} range="5-8" pageNumber={pageNumber} />
-    ) : pageId === "analytical" ? (
-      <AnalyticalOriginalPrintPage data={data} pageNumber={pageNumber} />
+    ) : attributeOneToFourRange ? (
+      <AttributesOriginalPrintPage data={data} range="1-4" studentRange={attributeOneToFourRange} pageNumber={pageNumber} />
+    ) : attributeFiveToEightRange ? (
+      <AttributesOriginalPrintPage data={data} range="5-8" studentRange={attributeFiveToEightRange} pageNumber={pageNumber} />
+    ) : analyticalRange ? (
+      <AnalyticalOriginalPrintPage data={data} studentRange={analyticalRange} pageNumber={pageNumber} />
     ) : pageId === "indicators" ? (
       <IndicatorOriginalPrintPage data={data} pageNumber={pageNumber} />
     ) : pageId === "explanation" ? (
