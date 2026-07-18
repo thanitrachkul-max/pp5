@@ -654,6 +654,7 @@ function buildGeneralInfo(
 export async function ensureGradebook(
   assignment: TeacherAssignmentView,
   teacher: AppUser,
+  options?: { adminCreate?: boolean },
 ): Promise<string> {
   if (assignment.gradebook_id) return assignment.gradebook_id;
 
@@ -674,6 +675,31 @@ export async function ensureGradebook(
     assignment.learning_area,
     baseGeneralInfo,
   );
+
+  if (options?.adminCreate) {
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !sessionData.session?.access_token) {
+      throw sessionError ?? new Error('ไม่พบเซสชันผู้ดูแลระบบ');
+    }
+
+    const response = await fetch('/api/create-gradebook', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${sessionData.session.access_token}`,
+      },
+      body: JSON.stringify({
+        assignmentId: assignment.id,
+        generalInfo: general_info,
+        students,
+      }),
+    });
+    const result = await response.json().catch(() => ({})) as { id?: string; error?: string };
+    if (!response.ok || !result.id) {
+      throw new Error(result.error || 'ผู้ดูแลระบบสร้างสมุด ปพ.5 ไม่สำเร็จ');
+    }
+    return result.id;
+  }
 
   const { data, error } = await supabase
     .from("gradebooks")

@@ -5,8 +5,6 @@ import {
   HardDrive,
   Loader2,
   Server,
-  ToggleLeft,
-  ToggleRight,
 } from 'lucide-react';
 import { ThaiDateCalendarInput } from '../../components/ThaiDateCalendarInput';
 import { fetchActivityLogs, logActivity, resolveActivityLogCategory, type ActivityLogRow } from '../../lib/activityLog';
@@ -79,6 +77,44 @@ const STUDY_PERIOD_MIGRATION_HINT =
   'ฐานข้อมูลยังไม่มีคอลัมน์ระยะเวลาเรียน กรุณารัน migration `supabase/migrations/0027_study_period_dates.sql` ใน Supabase SQL Editor';
 
 const PRIMARY_LEVEL_CODES = ['ป.1', 'ป.2', 'ป.3', 'ป.4', 'ป.5', 'ป.6'] as const;
+
+interface EntryToggleProps {
+  enabled: boolean;
+  disabled?: boolean;
+  saving?: boolean;
+  onToggle: () => void;
+  ariaLabel: string;
+}
+
+function EntryToggle({ enabled, disabled = false, saving = false, onToggle, ariaLabel }: EntryToggleProps) {
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-3">
+      <button
+        type="button"
+        role="switch"
+        aria-checked={enabled}
+        aria-label={ariaLabel}
+        disabled={disabled || saving}
+        onClick={onToggle}
+        className={`relative inline-flex h-10 w-24 shrink-0 items-center rounded-full px-3 text-sm font-black tracking-wide text-white shadow-inner transition disabled:cursor-not-allowed disabled:opacity-50 ${
+          enabled ? 'justify-start bg-emerald-500' : 'justify-end bg-slate-300'
+        }`}
+      >
+        <span>{enabled ? 'ON' : 'OFF'}</span>
+        <span
+          className={`absolute left-1 top-1 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md transition-transform ${
+            enabled ? 'translate-x-14' : 'translate-x-0'
+          }`}
+        >
+          {saving ? <Loader2 className="h-4 w-4 animate-spin text-slate-500" /> : null}
+        </span>
+      </button>
+      <span className={`text-sm font-extrabold ${enabled ? 'text-emerald-700' : 'text-slate-500'}`}>
+        {enabled ? 'กำลังเปิดการกรอก' : 'ปิดการกรอกแล้ว'}
+      </span>
+    </div>
+  );
+}
 
 const SYSTEM_HEALTH_MIGRATION_HINT =
   'ยังไม่มีฟังก์ชันวัดขนาดฐานข้อมูลจริง กรุณารัน migration `supabase/migrations/0020_system_health_rpc.sql` หรือ `0022_primary_entry_and_activity_role.sql`';
@@ -846,25 +882,13 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                 <p className="mt-1 text-sm text-slate-500">
                   เปิด/ปิดการแสดงและกรอก ปพ.5 ระดับประถมศึกษาในปีการศึกษา {selectedYear?.year_be ?? '—'}
                 </p>
-                <button
-                  type="button"
-                  disabled={!canWrite || savingPrimary || !primaryToggleSupported}
-                  onClick={() => void togglePrimaryEntry()}
-                  className={`mt-3 inline-flex items-center rounded-xl px-3 py-2 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-50 ${
-                    primaryEntryEnabled
-                      ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
-                      : 'bg-slate-100 text-slate-600 ring-1 ring-slate-200'
-                  }`}
-                >
-                  {savingPrimary ? (
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  ) : primaryEntryEnabled ? (
-                    <ToggleRight className="mr-2 h-5 w-5" />
-                  ) : (
-                    <ToggleLeft className="mr-2 h-5 w-5" />
-                  )}
-                  {primaryEntryEnabled ? 'เปิดการกรอก ปพ.5 ระดับประถมแล้ว' : 'ปิดการกรอก ปพ.5 ระดับประถม'}
-                </button>
+                <EntryToggle
+                  enabled={primaryEntryEnabled}
+                  disabled={!canWrite || !primaryToggleSupported}
+                  saving={savingPrimary}
+                  onToggle={() => void togglePrimaryEntry()}
+                  ariaLabel="เปิดหรือปิดการกรอก ปพ.5 ระดับประถมศึกษา"
+                />
               </div>
 
               <div className="w-full space-y-4 lg:max-w-3xl">
@@ -945,23 +969,13 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                     <p className="mt-1 text-sm text-slate-500">
                       เปิด/ปิดให้ครูกรอก ปพ.5 ในภาคนี้ และกำหนดช่วงวันที่ได้รับอนุญาต
                     </p>
-                    <button
-                      type="button"
-                      disabled={!canWrite || semester.saving || !gradeEntryToggleSupported}
-                      onClick={() => void toggleSemesterEnabled(semester)}
-                      className={`mt-3 inline-flex items-center rounded-xl px-3 py-2 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-50 ${
-                        semester.draftEnabled
-                          ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
-                          : 'bg-slate-100 text-slate-600 ring-1 ring-slate-200'
-                      }`}
-                    >
-                      {semester.draftEnabled ? (
-                        <ToggleRight className="mr-2 h-5 w-5" />
-                      ) : (
-                        <ToggleLeft className="mr-2 h-5 w-5" />
-                      )}
-                      {semester.draftEnabled ? 'เปิดการกรอก ปพ.5 แล้ว' : 'ปิดการกรอก ปพ.5'}
-                    </button>
+                    <EntryToggle
+                      enabled={semester.draftEnabled}
+                      disabled={!canWrite || !gradeEntryToggleSupported}
+                      saving={semester.saving}
+                      onToggle={() => void toggleSemesterEnabled(semester)}
+                      ariaLabel={`เปิดหรือปิดการกรอก ปพ.5 ภาคเรียนที่ ${semester.semester_number}`}
+                    />
                   </div>
 
                   <div className="w-full space-y-4 lg:max-w-3xl">
