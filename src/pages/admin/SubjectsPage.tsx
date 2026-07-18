@@ -309,11 +309,16 @@ export const SubjectsPage: React.FC<SubjectsPageProps> = ({ currentUser }) => {
     setMessage('');
 
     try {
-      const { error: deleteError } = await supabase
+      const { data: deletedRows, error: deleteError } = await supabase
         .from('subjects')
         .delete()
-        .eq('id', deleteTarget.id);
+        .eq('id', deleteTarget.id)
+        .eq('school_id', currentUser.schoolId)
+        .select('id');
       if (deleteError) throw deleteError;
+      if (!deletedRows?.length) {
+        throw new Error('ลบรายวิชาไม่สำเร็จ หรือบัญชีนี้ไม่มีสิทธิ์ลบข้อมูลดังกล่าว');
+      }
       setMessage(`ลบรายวิชา ${deleteTarget.subject_code} เรียบร้อยแล้ว`);
       setDeleteTarget(null);
       setSelectedSubjectIds((current) => {
@@ -417,12 +422,17 @@ export const SubjectsPage: React.FC<SubjectsPageProps> = ({ currentUser }) => {
     setError('');
     setMessage('');
     try {
-      const { error: deleteError } = await supabase
+      const { data: deletedRows, error: deleteError } = await supabase
         .from('subjects')
         .delete()
-        .in('id', ids);
+        .in('id', ids)
+        .eq('school_id', currentUser.schoolId)
+        .select('id');
       if (deleteError) throw deleteError;
-      setMessage(`ลบรายวิชา ${ids.length.toLocaleString('th-TH')} รายการเรียบร้อยแล้ว`);
+      if ((deletedRows?.length ?? 0) !== ids.length) {
+        throw new Error(`ลบได้ ${deletedRows?.length ?? 0} จาก ${ids.length} รายการ กรุณารีเฟรชและตรวจสอบสิทธิ์อีกครั้ง`);
+      }
+      setMessage(`ลบรายวิชา ${deletedRows.length.toLocaleString('th-TH')} รายการเรียบร้อยแล้ว`);
       setSelectedSubjectIds(new Set());
       setBulkDeleteMode(null);
       await loadData();

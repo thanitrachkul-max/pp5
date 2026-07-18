@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { CheckCircle2, Crown, Loader2, Pencil, ShieldCheck, Trash2, UserPlus, Users, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Crown, Loader2, Pencil, ShieldCheck, Trash2, UserPlus, Users, X } from 'lucide-react';
 import { canManageAdminData, isSuperAdmin, ROLE_LABELS } from '../../lib/auth';
-import { createTeacherAccount, updateTeacherAccount } from '../../lib/createTeacherAccount';
+import { createTeacherAccount, deleteTeacherAccount, updateTeacherAccount } from '../../lib/createTeacherAccount';
 import { supabase } from '../../lib/supabase';
 import type { AppUser, Profile, UserRole } from '../../types';
 
@@ -136,6 +136,8 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
   const [saving, setSaving] = useState(false);
   const [modalSaveState, setModalSaveState] = useState<ModalSaveState>('idle');
   const [modalSuccessText, setModalSuccessText] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<TeacherRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const canWrite = !readOnly && canManageAdminData(currentUser);
   const canEditSuperAdmin = isSuperAdmin(currentUser);
 
@@ -351,7 +353,7 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
     }
   };
 
-  const deleteUser = async (teacher: TeacherRow) => {
+  const requestDeleteUser = (teacher: TeacherRow) => {
     if (!canWrite) {
       setError('บัญชีนี้ดูข้อมูลได้อย่างเดียว');
       return;
@@ -367,24 +369,28 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
       return;
     }
 
-    if (!teacher.is_active) return;
-
-    if (!window.confirm(`ลบบัญชี "${teacher.full_name}" ใช่หรือไม่?\nบัญชีนี้จะถูกปิดใช้งานและไม่แสดงเป็นบัญชีที่ใช้งานอยู่`)) return;
-
     setError('');
     setMessage('');
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ is_active: false })
-      .eq('id', teacher.id);
+    setDeleteTarget(teacher);
+  };
 
-    if (updateError) {
-      setError(updateError.message);
-      return;
+  const confirmDeleteUser = async () => {
+    if (!deleteTarget) return;
+
+    const target = deleteTarget;
+    setDeleting(true);
+    setError('');
+    setMessage('');
+    try {
+      await deleteTeacherAccount(target.id);
+      setDeleteTarget(null);
+      setMessage(`ลบบัญชี ${displayName(target)} ออกจากระบบและฐานข้อมูลเรียบร้อยแล้ว`);
+      await loadTeachers();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'ลบบัญชีผู้ใช้งานไม่สำเร็จ');
+    } finally {
+      setDeleting(false);
     }
-
-    setMessage('ลบบัญชีผู้ใช้งานเรียบร้อยแล้ว');
-    await loadTeachers();
   };
 
   const toggleUserActive = async (teacher: TeacherRow) => {
@@ -496,8 +502,8 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
                         </button>
                         <button
                           type="button"
-                          onClick={() => void deleteUser(teacher)}
-                          disabled={teacher.id === currentUser.id || !teacher.is_active}
+                          onClick={() => requestDeleteUser(teacher)}
+                          disabled={teacher.id === currentUser.id}
                           className="inline-flex items-center rounded-lg bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-100 disabled:bg-slate-100 disabled:text-slate-400 disabled:opacity-60"
                         >
                           <Trash2 className="mr-1 h-3.5 w-3.5" />
@@ -582,6 +588,45 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
           })}
         </div>
       )}
+
+      {deleteTarget && createPortal((
+        <div className="fixed inset-0 z-[220] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-2xl">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-red-600">
+              <AlertTriangle className="h-8 w-8" />
+            </div>
+            <h3 className="text-xl font-extrabold text-slate-900">ยืนยันลบบัญชีถาวร</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              ต้องการลบบัญชี <span className="font-bold text-slate-900">{displayName(deleteTarget)}</span> ออกจากระบบจริงใช่หรือไม่
+            </p>
+            <div className="mt-3 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-left text-sm leading-6 text-red-700">
+              บัญชี Auth, โปรไฟล์ และข้อมูล ปพ.5 ที่ผูกกับบัญชีนี้จะถูกลบจากฐานข้อมูล ไม่ใช่เพียงการปิดใช้งาน
+            </div>
+            {!deleteTarget.is_active && (
+              <p className="mt-3 text-xs font-semibold text-slate-500">บัญชีนี้อยู่ในสถานะปิดใช้งาน แต่ยังลบถาวรได้</p>
+            )}
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleting}
+                className="flex-1 rounded-xl bg-slate-100 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-200 disabled:opacity-60"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={() => void confirmDeleteUser()}
+                disabled={deleting}
+                className="inline-flex flex-1 items-center justify-center rounded-xl bg-red-600 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-60"
+              >
+                {deleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                ลบบัญชีถาวร
+              </button>
+            </div>
+          </div>
+        </div>
+      ), document.body)}
 
       {modalOpen && createPortal((
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">

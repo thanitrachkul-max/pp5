@@ -9,6 +9,7 @@ import {
   Info,
   Loader2,
   Plus,
+  Trash2,
   UserPlus,
   Users,
   X,
@@ -128,6 +129,7 @@ interface ConfirmDialogState {
   message: string;
   confirmLabel: string;
   cancelLabel?: string;
+  tone?: 'default' | 'danger';
   onConfirm: () => Promise<void> | void;
 }
 
@@ -467,24 +469,18 @@ export const StudentsPage: React.FC<StudentsPageProps> = ({ currentUser, initial
     return enrollments.find((row) => row.id === selectedEnrollmentId) ?? null;
   }, [enrollments, selectedEnrollmentId]);
 
-  useEffect(() => {
-    if (!selectedEnrollment) {
-      setStudentEditForm(emptyStudentEditForm());
-      setEditingStudent(false);
-      return;
-    }
-
-    setStudentEditForm(enrollmentToStudentEditForm(selectedEnrollment));
-    setEditingStudent(false);
-  }, [selectedEnrollment]);
-
   const resetAddModal = () => {
     setShowAddModal(false);
     setAddMode('menu');
     setSingleForm(emptySingleForm());
   };
 
-  const openStudentDetails = (enrollmentId: string) => {
+  const openStudentDetails = (enrollmentId: string, editMode = false) => {
+    const enrollment = enrollments.find((row) => row.id === enrollmentId);
+    if (!enrollment) return;
+
+    setStudentEditForm(enrollmentToStudentEditForm(enrollment));
+    setEditingStudent(editMode);
     setSelectedEnrollmentId(enrollmentId);
   };
 
@@ -742,6 +738,39 @@ export const StudentsPage: React.FC<StudentsPageProps> = ({ currentUser, initial
     });
   };
 
+  const requestDeleteStudent = (enrollment: EnrollmentRow) => {
+    const name = studentName(enrollment.students);
+    setError('');
+    setImportMessage('');
+    setConfirmDialog({
+      title: 'ยืนยันลบนักเรียนถาวร',
+      message:
+        `ต้องการลบ "${name}" ออกจากฐานข้อมูลจริงใช่หรือไม่?\n` +
+        'ข้อมูลการลงทะเบียนของนักเรียนคนนี้ทุกปีการศึกษาจะถูกลบตามไปด้วย และไม่สามารถกู้คืนจากหน้านี้ได้',
+      confirmLabel: 'ลบนักเรียนถาวร',
+      tone: 'danger',
+      onConfirm: async () => {
+        if (!currentUser.schoolId) throw new Error('ไม่พบข้อมูลโรงเรียน');
+
+        const { data: deletedRows, error: deleteError } = await supabase
+          .from('students')
+          .delete()
+          .eq('id', enrollment.students.id)
+          .eq('school_id', currentUser.schoolId)
+          .select('id');
+
+        if (deleteError) throw deleteError;
+        if (!deletedRows?.length) {
+          throw new Error('ลบนักเรียนไม่สำเร็จ หรือบัญชีนี้ไม่มีสิทธิ์ลบข้อมูลดังกล่าว');
+        }
+
+        if (selectedEnrollmentId === enrollment.id) closeStudentDetails();
+        setImportMessage(`ลบ ${name} ออกจากฐานข้อมูลเรียบร้อยแล้ว`);
+        await loadEnrollments();
+      },
+    });
+  };
+
   return (
     <div className="space-y-4">
       <FilterBar>
@@ -842,7 +871,7 @@ export const StudentsPage: React.FC<StudentsPageProps> = ({ currentUser, initial
           </div>
         ) : (
           <div className="max-h-[calc(100vh-230px)] overflow-auto">
-            <table className="w-full min-w-[1180px] table-fixed border-collapse text-sm">
+            <table className="w-full min-w-[1360px] table-fixed border-collapse text-sm">
               <thead className="sticky top-0 z-30 bg-[#0f172a] text-slate-100 shadow-md">
                 <tr>
                   <th className="w-16 bg-[#0f172a] px-4 py-3 text-center align-middle font-semibold">ลำดับ</th>
@@ -853,6 +882,7 @@ export const StudentsPage: React.FC<StudentsPageProps> = ({ currentUser, initial
                   <th className="w-52 bg-[#0f172a] px-4 py-3 text-center align-middle font-semibold">ครูประจำชั้น คนที่ 1</th>
                   <th className="w-52 bg-[#0f172a] px-4 py-3 text-center align-middle font-semibold">ครูประจำชั้น คนที่ 2</th>
                   <th className="w-52 bg-[#0f172a] px-4 py-3 text-center align-middle font-semibold">ครูประจำชั้น คนที่ 3</th>
+                  <th className="w-40 bg-[#0f172a] px-4 py-3 text-center align-middle font-semibold">จัดการ</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -903,6 +933,34 @@ export const StudentsPage: React.FC<StudentsPageProps> = ({ currentUser, initial
                       </td>
                       <td className="truncate px-4 py-3 text-center text-slate-700" title={teachers[2] ?? ''}>
                         {teachers[2] || '—'}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openStudentDetails(row.id, true);
+                            }}
+                            className="inline-flex items-center rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 transition hover:bg-blue-100"
+                            aria-label={`แก้ไขข้อมูล ${studentName(st)}`}
+                          >
+                            <Edit3 className="mr-1 h-3.5 w-3.5" />
+                            แก้ไข
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              requestDeleteStudent(row);
+                            }}
+                            className="inline-flex items-center rounded-lg bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 transition hover:bg-red-100"
+                            aria-label={`ลบ ${studentName(st)}`}
+                          >
+                            <Trash2 className="mr-1 h-3.5 w-3.5" />
+                            ลบ
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -1152,7 +1210,9 @@ export const StudentsPage: React.FC<StudentsPageProps> = ({ currentUser, initial
       {confirmDialog && (
         <div className="fixed inset-0 z-[260] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-2xl">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+            <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ${
+              confirmDialog.tone === 'danger' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'
+            }`}>
               <AlertTriangle className="h-8 w-8" />
             </div>
             <h3 className="mb-2 text-xl font-bold text-slate-900">{confirmDialog.title}</h3>
@@ -1170,7 +1230,9 @@ export const StudentsPage: React.FC<StudentsPageProps> = ({ currentUser, initial
                 type="button"
                 onClick={() => void runConfirmDialog()}
                 disabled={confirmBusy}
-                className="inline-flex flex-1 items-center justify-center rounded-xl bg-blue-700 py-2.5 font-bold text-white hover:bg-blue-800 disabled:opacity-60"
+                className={`inline-flex flex-1 items-center justify-center rounded-xl py-2.5 font-bold text-white disabled:opacity-60 ${
+                  confirmDialog.tone === 'danger' ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-700 hover:bg-blue-800'
+                }`}
               >
                 {confirmBusy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {confirmDialog.confirmLabel}

@@ -14,6 +14,12 @@ export interface UpdateTeacherAccountInput extends CreateTeacherAccountInput {
   id: string;
 }
 
+interface AccountMutationResponse {
+  ok?: boolean;
+  error?: unknown;
+  message?: unknown;
+}
+
 function isEdgeFunctionUnavailable(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error ?? '');
   return (
@@ -68,6 +74,30 @@ async function updateTeacherAccountViaServer(
   if (!response.ok || payload?.error) {
     const message = String(payload?.error ?? payload?.message ?? '').trim();
     throw new Error(message || 'บันทึกไม่สำเร็จ');
+  }
+}
+
+async function deleteTeacherAccountViaServer(id: string): Promise<void> {
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  const accessToken = sessionData.session?.access_token;
+
+  if (sessionError || !accessToken) {
+    throw new Error('กรุณาเข้าสู่ระบบใหม่อีกครั้งก่อนลบบัญชีผู้ใช้งาน');
+  }
+
+  const response = await fetch('/api/delete-teacher', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ id }),
+  });
+  const payload = await response.json().catch(() => null) as AccountMutationResponse | null;
+
+  if (!response.ok || payload?.error || payload?.ok !== true) {
+    const message = String(payload?.error ?? payload?.message ?? '').trim();
+    throw new Error(message || 'ลบบัญชีผู้ใช้งานไม่สำเร็จ');
   }
 }
 
@@ -167,6 +197,52 @@ export async function updateTeacherAccount(input: UpdateTeacherAccountInput): Pr
         throw new Error(
           serverMessage ||
             'ยังแก้ไขผู้ใช้จากหน้าเว็บไม่ได้ เพราะระบบสำรองสำหรับแก้บัญชีผู้ใช้ยังไม่พร้อมใช้งาน — กรุณาตรวจ Environment Variable `SUPABASE_SERVICE_ROLE_KEY` แล้ว deploy ใหม่',
+        );
+      }
+      throw error;
+    }
+
+    if (data && typeof data === 'object' && 'error' in data && data.error) {
+      throw new Error(String(data.error));
+    }
+  }
+}
+
+export async function deleteTeacherAccount(id: string): Promise<void> {
+  const targetId = id.trim();
+  if (!targetId) throw new Error('ไม่พบบัญชีผู้ใช้งานที่ต้องการลบ');
+
+  try {
+    const { data, error } = await supabase.functions.invoke('delete-teacher', {
+      body: { id: targetId },
+    });
+    if (error) {
+      const detail = await readFunctionErrorMessage(error);
+      throw new Error(detail || error.message);
+    }
+    if (data?.error) throw new Error(String(data.error));
+    if (data?.ok === true) return;
+    throw new Error('Edge Function ตอบกลับไม่สมบูรณ์');
+  } catch (edgeError) {
+    if (!isEdgeFunctionUnavailable(edgeError)) {
+      throw edgeError instanceof Error ? edgeError : new Error('ลบบัญชีผู้ใช้งานไม่สำเร็จ');
+    }
+  }
+
+  try {
+    await deleteTeacherAccountViaServer(targetId);
+    return;
+  } catch (serverError) {
+    const { data, error } = await supabase.rpc('admin_delete_user_account', {
+      p_id: targetId,
+    });
+
+    if (error) {
+      if (error.message.includes('Could not find the function')) {
+        const serverMessage = serverError instanceof Error ? serverError.message : String(serverError ?? '');
+        throw new Error(
+          serverMessage ||
+            'ระบบลบบัญชียังไม่พร้อมใช้งาน กรุณา deploy API/Edge Function หรือลง migration สำหรับลบบัญชีผู้ใช้',
         );
       }
       throw error;
