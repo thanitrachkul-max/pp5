@@ -46,6 +46,18 @@ function buildHomeroomTeachersText(data: GeneralInfo): string {
     .join(" ");
 }
 
+function coverTeacherNames(data: GeneralInfo): string[] {
+  return [data.teacherName, data.teacherName2, data.teacherName3]
+    .map((name) => name?.replace(/\s+/g, " ").trim())
+    .filter((name): name is string => Boolean(name));
+}
+
+function teacherNamesText(data: GeneralInfo): string {
+  const names = coverTeacherNames(data);
+  if (names.length <= 1) return names[0] ?? "";
+  return names.map((name, index) => `${index + 1}. ${name}`).join("  ");
+}
+
 function getAvg(keys: string[], attrs: Record<string, unknown> | undefined) {
   let sum = 0;
   let count = 0;
@@ -297,8 +309,14 @@ export function Pap5CoverPreview({
       ? displayGeneralInfo.logoUrl
       : DEFAULT_LOGO_URL;
   const summary = buildCoverSummary(appData);
-  const hasSecondTeacher = Boolean(displayGeneralInfo.teacherName2?.trim());
-  const showSecondTeacherField = editable || hasSecondTeacher;
+  const teacherNames = coverTeacherNames(displayGeneralInfo);
+  const teacherFields = (teacherNames.length > 0
+    ? teacherNames
+    : [""]
+  ).map((value, index) => ({
+    name: (["teacherName", "teacherName2", "teacherName3"] as const)[index],
+    value,
+  }));
   const getPercent = (count: number) => {
     if (summary.totalStudents === 0) return "0";
     return Math.round((count / summary.totalStudents) * 100).toString();
@@ -450,29 +468,23 @@ export function Pap5CoverPreview({
           <span>ชั่วโมง/ภาคเรียน</span>
         </div>
 
-        <div className="flex justify-center items-center gap-2 mb-2">
-          <span>{showSecondTeacherField ? "ครูผู้สอน 1." : "ครูผู้สอน"}</span>
-          <TextField
-            name="teacherName"
-            value={displayGeneralInfo.teacherName}
-            widthClass={showSecondTeacherField ? "w-48" : "w-72"}
-            highlighted
-            editable={editable}
-            onChange={handleChange}
-          />
-          {showSecondTeacherField && (
-            <>
-              <span>2.</span>
-              <TextField
-                name="teacherName2"
-                value={displayGeneralInfo.teacherName2 || ""}
-                widthClass="w-48"
-                highlighted
-                editable={editable}
-                onChange={handleChange}
-              />
-            </>
-          )}
+        <div className="mb-2 flex items-center justify-center gap-2 text-center">
+          <span className="shrink-0">ครูผู้สอน</span>
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+            {teacherFields.map((teacher, index) => (
+              <span key={teacher.name} className="inline-flex items-center justify-center gap-1">
+                {teacherFields.length > 1 ? <span>{index + 1}.</span> : null}
+                <TextField
+                  name={teacher.name}
+                  value={teacher.value}
+                  widthClass={teacherFields.length === 1 ? "w-72" : teacherFields.length === 2 ? "w-48" : "w-36"}
+                  highlighted
+                  editable={editable}
+                  onChange={handleChange}
+                />
+              </span>
+            ))}
+          </div>
         </div>
 
         <div className="flex justify-center items-center gap-1 mb-4">
@@ -583,11 +595,7 @@ export function Pap5CoverPreview({
 
           <SignatureLine
             label="ครูผู้สอน"
-            name={
-              displayGeneralInfo.teacherName2
-                ? `1. ${displayGeneralInfo.teacherName}  2. ${displayGeneralInfo.teacherName2}`
-                : displayGeneralInfo.teacherName
-            }
+            name={teacherNamesText(displayGeneralInfo)}
           />
           <SignatureLine label="หัวหน้ากลุ่มสาระการเรียนรู้" name={displayGeneralInfo.headOfLearningArea} />
           <SignatureLine label="หัวหน้างานวัดและประเมินผล" name={displayGeneralInfo.headOfEvaluation} />

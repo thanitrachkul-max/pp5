@@ -30,9 +30,11 @@ const TEACHER_ASSIGNMENT_SELECT_BASE = `
   semester_id,
   hours_per_week,
   hours_per_semester,
+  co_teacher_name,
   entry_start_date,
   entry_end_date,
   schools:school_id(name),
+  profiles:teacher_id(title, full_name),
   subjects:subject_id(subject_code, subject_name, learning_area),
   classrooms:classroom_id(
     id,
@@ -71,9 +73,11 @@ const TEACHER_ASSIGNMENT_SELECT_WITH_THIRD = `
   semester_id,
   hours_per_week,
   hours_per_semester,
+  co_teacher_name,
   entry_start_date,
   entry_end_date,
   schools:school_id(name),
+  profiles:teacher_id(title, full_name),
   subjects:subject_id(subject_code, subject_name, learning_area),
   classrooms:classroom_id(
     id,
@@ -160,6 +164,8 @@ export interface TeacherAssignmentView {
   subject_code: string;
   subject_name: string;
   learning_area: string;
+  teacher_name: string;
+  co_teacher_name: string | null;
   classroom_id: string;
   classroom_name: string;
   class_level_code: string;
@@ -220,9 +226,11 @@ type RawAssignment = {
   semester_id: string;
   hours_per_week: number | null;
   hours_per_semester: number | null;
+  co_teacher_name: string | null;
   entry_start_date: string | null;
   entry_end_date: string | null;
   schools: { name: string } | null;
+  profiles: { title: string | null; full_name: string } | null;
   subjects: {
     subject_code: string;
     subject_name: string;
@@ -469,6 +477,8 @@ export async function fetchTeacherAssignments(
       subject_code: subject.subject_code,
       subject_name: subject.subject_name,
       learning_area: subject.learning_area,
+      teacher_name: formatProfileName(row.profiles),
+      co_teacher_name: row.co_teacher_name,
       classroom_id: classroom.id,
       classroom_name: classroom.name,
       class_level_code: classroom.class_level_code,
@@ -612,6 +622,35 @@ function buildHomeroomTeachersText(
     .join(" ");
 }
 
+function assignedTeacherNames(
+  assignment: TeacherAssignmentView,
+  fallbackPrimaryName = "",
+): string[] {
+  const coTeachers = (assignment.co_teacher_name ?? "")
+    .split(/[,;\n]+/)
+    .map((name) => name.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+  const primaryName = (assignment.teacher_name || fallbackPrimaryName)
+    .replace(/\s+/g, " ")
+    .trim();
+  const uniqueNames: string[] = [];
+
+  [primaryName, ...coTeachers].forEach((name) => {
+    if (!name) return;
+    const normalized = name.replace(/\s+/g, "").toLocaleLowerCase("th-TH");
+    if (
+      uniqueNames.some(
+        (current) => current.replace(/\s+/g, "").toLocaleLowerCase("th-TH") === normalized,
+      )
+    ) {
+      return;
+    }
+    uniqueNames.push(name);
+  });
+
+  return uniqueNames.slice(0, 3);
+}
+
 function buildGeneralInfo(
   assignment: TeacherAssignmentView,
   teacher: AppUser,
@@ -621,6 +660,7 @@ function buildGeneralInfo(
   const homeroomTeacher1 = assignment.homeroom_teacher_1_name;
   const homeroomTeacher2 = assignment.homeroom_teacher_2_name;
   const homeroomTeacher3 = assignment.homeroom_teacher_3_name;
+  const teachers = assignedTeacherNames(assignment, teacher.name);
 
   return {
     schoolName: assignment.school_name,
@@ -635,8 +675,9 @@ function buildGeneralInfo(
     totalHours: hoursPerWeek || "1",
     hoursPerWeek,
     hoursPerSemester,
-    teacherName: teacher.name,
-    teacherName2: "",
+    teacherName: teachers[0] ?? "",
+    teacherName2: teachers[1] ?? "",
+    teacherName3: teachers[2] ?? "",
     homeroomTeacher1,
     homeroomTeacher2,
     homeroomTeacher3,
@@ -763,18 +804,38 @@ export async function loadGradebookSession(
     ? buildHomeroomTeachersText(homeroomTeacher1, homeroomTeacher2, homeroomTeacher3)
     : savedGeneralInfo.homeroomTeachers ||
       buildHomeroomTeachersText(homeroomTeacher1, homeroomTeacher2, homeroomTeacher3);
+  const teachers = assignedTeacherNames(assignment, savedGeneralInfo.teacherName || "");
+  const hoursPerWeek = String(
+    assignment.hours_per_week ?? savedGeneralInfo.hoursPerWeek ?? "",
+  );
+  const hoursPerSemester = String(
+    assignment.hours_per_semester ?? savedGeneralInfo.hoursPerSemester ?? "",
+  );
 
   const mergedGeneralInfo = await mergePap5OfficialsIntoGeneralInfo(
     assignment.school_id,
     assignment.learning_area,
     {
       ...appData.generalInfo,
-      schoolName: savedGeneralInfo.schoolName || assignment.school_name,
+      schoolName: assignment.school_name,
+      agencyName: savedGeneralInfo.agencyName || DEFAULT_AGENCY_NAME,
       logoUrl:
         savedGeneralInfo.logoUrl &&
         savedGeneralInfo.logoUrl !== LEGACY_LOGO_URL
           ? savedGeneralInfo.logoUrl
           : DEFAULT_LOGO_URL,
+      gradeLevel: assignment.classroom_name,
+      semester: String(assignment.semester_number),
+      academicYear: String(assignment.year_be),
+      subjectCode: assignment.subject_code,
+      subjectName: assignment.subject_name,
+      learningArea: assignment.learning_area,
+      totalHours: hoursPerWeek || savedGeneralInfo.totalHours || "1",
+      hoursPerWeek,
+      hoursPerSemester,
+      teacherName: teachers[0] ?? "",
+      teacherName2: teachers[1] ?? "",
+      teacherName3: teachers[2] ?? "",
       homeroomTeacher1,
       homeroomTeacher2,
       homeroomTeacher3,

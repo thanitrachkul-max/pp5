@@ -125,13 +125,11 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
   const [data, setData] = useState<AppData>(session.data);
   const [approvalStatus, setApprovalStatus] = useState<GradebookApprovalStatus | null>(session.approval_status);
   const [activeTab, setActiveTab] = useState("general");
-  const [renderedTab, setRenderedTab] = useState("general");
   const [exportingPdf, setExportingPdf] = useState(false);
   const [printingPap5, setPrintingPap5] = useState(false);
   const [pdfPreviewError, setPdfPreviewError] = useState<string | null>(null);
   const [pdfDownloadStatus, setPdfDownloadStatus] = useState<PdfDownloadStatus | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const tabSwitchFrame = useRef<number | null>(null);
   const latestData = useRef(data);
   latestData.current = data;
   const gradebookStats = useMemo(() => computeGradebookStats(data), [data]);
@@ -326,17 +324,6 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
   const handleTabChange = useCallback(
     (nextTab: string) => {
       setActiveTab(nextTab);
-
-      if (tabSwitchFrame.current !== null) {
-        window.cancelAnimationFrame(tabSwitchFrame.current);
-      }
-
-      tabSwitchFrame.current = window.requestAnimationFrame(() => {
-        tabSwitchFrame.current = window.requestAnimationFrame(() => {
-          setRenderedTab(nextTab);
-          tabSwitchFrame.current = null;
-        });
-      });
     },
     [],
   );
@@ -462,10 +449,6 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
 
   useEffect(() => {
     return () => {
-      if (tabSwitchFrame.current !== null) {
-        window.cancelAnimationFrame(tabSwitchFrame.current);
-        tabSwitchFrame.current = null;
-      }
       if (saveTimer.current) {
         clearTimeout(saveTimer.current);
         saveTimer.current = null;
@@ -675,20 +658,18 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                   isDocumentPreviewTab ? "gradebook-folder-content-document" : ""
                 }`}
               >
-                <div key={renderedTab} className="gradebook-paper-turn">
+                <div key={activeTab} className="gradebook-paper-turn">
 
-            {renderedTab === "general" && (
+            {activeTab === "general" && (
               <GeneralInfoForm
                 data={data.generalInfo}
                 appData={data}
                 approvalStatus={approvalStatus}
-                readOnly={session.readOnly}
-                onChange={(generalInfo) =>
-                  !session.readOnly && handleUpdate({ ...data, generalInfo })
-                }
+                readOnly
+                onChange={() => undefined}
               />
             )}
-            {renderedTab === "students" && (
+            {activeTab === "students" && (
               <StudentsForm
                 data={data.students}
                 generalInfo={data.generalInfo}
@@ -703,7 +684,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 onPersistStudentEdit={handlePersistStudentEdit}
               />
             )}
-            {renderedTab === "scores" && (
+            {activeTab === "scores" && (
               <ScoresForm
                 students={data.students}
                 data={data.scores}
@@ -721,7 +702,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 }
               />
             )}
-            {renderedTab === "attributes1_4" && (
+            {activeTab === "attributes1_4" && (
               <AttributesForm
                 students={data.students}
                 data={data.attributes}
@@ -732,7 +713,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 }
               />
             )}
-            {renderedTab === "attributes5_8" && (
+            {activeTab === "attributes5_8" && (
               <Attributes5_8Form
                 students={data.students}
                 data={data.attributes}
@@ -743,7 +724,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 }
               />
             )}
-            {renderedTab === "analytical" && (
+            {activeTab === "analytical" && (
               <AnalyticalForm
                 students={data.students}
                 data={data.analytical}
@@ -754,7 +735,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 }
               />
             )}
-            {renderedTab === "indicators" && (
+            {activeTab === "indicators" && (
               <IndicatorsForm
                 data={data.indicators}
                 scoreConfig={data.scoreConfig}
@@ -765,8 +746,8 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 }
               />
             )}
-            {renderedTab === "instructions1" && <Instructions1Form />}
-            {renderedTab === "instructions2" && <Instructions2Form />}
+            {activeTab === "instructions1" && <Instructions1Form />}
+            {activeTab === "instructions2" && <Instructions2Form />}
                 </div>
               </div>
             </div>

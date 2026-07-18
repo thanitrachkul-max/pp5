@@ -212,7 +212,11 @@ export const AdminWorkspace: React.FC<AdminWorkspaceProps> = ({
   void onOpenTeacherView;
 
   const contentMaxWidth =
-    activeTab === 'students' || activeTab === 'curriculum' || activeTab === 'student-roster-edits' || activeTab === 'main'
+    activeTab === 'students' ||
+    activeTab === 'subjects' ||
+    activeTab === 'curriculum' ||
+    activeTab === 'student-roster-edits' ||
+    activeTab === 'main'
       ? 'max-w-none'
       : activeTab === 'home' || activeTab === 'assignments'
         ? 'max-w-7xl'

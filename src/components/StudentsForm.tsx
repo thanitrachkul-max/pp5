@@ -4,6 +4,10 @@ import { AppData, Student } from "../types";
 import { AlertTriangle, Check, Pencil, X, Upload, Download, Trash2, Plus } from "lucide-react";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
+import {
+  attendanceDateKey,
+  buildShiftedAttendanceSchedule,
+} from "../lib/attendanceSchedule";
 
 const THAI_MONTHS_FULL = [
   "มกราคม",
@@ -42,9 +46,7 @@ function parsePositiveInteger(...values: Array<string | number | null | undefine
 }
 
 function dateKeyForDate(date: Date) {
-  const monthStr = String(date.getMonth() + 1).padStart(2, "0");
-  const dayStr = String(date.getDate()).padStart(2, "0");
-  return `${monthStr}-${dayStr}`;
+  return attendanceDateKey(date);
 }
 
 function defaultStudyPeriod(generalInfo: AppData["generalInfo"]) {
@@ -560,7 +562,6 @@ export const StudentsForm: React.FC<Props> = ({
     const end = parseDate(endDate);
     const totalHoursNeeded = currentHoursPerWeek * 20;
 
-    let currentHour = 1;
     const newHoursMap: Record<string, string> = {};
     const newRecords: Record<string, Record<string, string>> = {};
 
@@ -568,97 +569,15 @@ export const StudentsForm: React.FC<Props> = ({
       newRecords[student.id] = {};
     });
 
-    if (startDate && endDate) {
-      const validDates = dates.filter((date) => {
-        const monthStr = String(date.getMonth() + 1).padStart(2, "0");
-        const dayStr = String(date.getDate()).padStart(2, "0");
-        const dateKey = `${monthStr}-${dayStr}`;
-        return (
-          date.getTime() >= start.getTime() &&
-          date.getTime() <= end.getTime() &&
-          !holidays[dateKey]
-        );
+    if (startDate && endDate && start.getTime() <= end.getTime()) {
+      const plan = buildShiftedAttendanceSchedule({
+        startDate: start,
+        schedule,
+        holidays,
+        totalHours: totalHoursNeeded,
       });
-
-      let lastAssignedIndex = -1;
-      const scheduleDays: { dateKey: string; hours: number }[] = [];
-
-      for (let i = 0; i < validDates.length; i++) {
-        if (currentHour > totalHoursNeeded) break;
-
-        const date = validDates[i];
-        const monthStr = String(date.getMonth() + 1).padStart(2, "0");
-        const dayStr = String(date.getDate()).padStart(2, "0");
-        const dateKey = `${monthStr}-${dayStr}`;
-
-        const dayOfWeek = date.getDay();
-        const scheduleItem = schedule.find((s) => s.dayOfWeek === dayOfWeek);
-
-        if (scheduleItem) {
-          const hoursForDay = scheduleItem.hours;
-          const endHour = Math.min(
-            currentHour + hoursForDay - 1,
-            totalHoursNeeded,
-          );
-
-          if (currentHour === endHour) {
-            newHoursMap[dateKey] = `${currentHour}`;
-          } else {
-            newHoursMap[dateKey] = `${currentHour}-${endHour}`;
-          }
-          scheduleDays.push({ dateKey, hours: endHour - currentHour + 1 });
-          currentHour = endHour + 1;
-          lastAssignedIndex = i;
-        }
-      }
-
-      // Second pass: If we still need hours, fill the next available valid dates
-      if (currentHour <= totalHoursNeeded && lastAssignedIndex !== -1) {
-        for (let i = lastAssignedIndex + 1; i < validDates.length; i++) {
-          if (currentHour > totalHoursNeeded) break;
-
-          const date = validDates[i];
-          const monthStr = String(date.getMonth() + 1).padStart(2, "0");
-          const dayStr = String(date.getDate()).padStart(2, "0");
-          const dateKey = `${monthStr}-${dayStr}`;
-
-          if (!newHoursMap[dateKey]) {
-            newHoursMap[dateKey] = `${currentHour}`;
-            scheduleDays.push({ dateKey, hours: 1 });
-            currentHour++;
-            lastAssignedIndex = i;
-          }
-        }
-      }
-
-      // Third pass: If STILL need hours (ran out of valid dates), dump to the last assigned date
-      if (currentHour <= totalHoursNeeded && lastAssignedIndex !== -1) {
-        const date = validDates[lastAssignedIndex];
-        const monthStr = String(date.getMonth() + 1).padStart(2, "0");
-        const dayStr = String(date.getDate()).padStart(2, "0");
-        const lastAssignedDateKey = `${monthStr}-${dayStr}`;
-
-        const existingHours = newHoursMap[lastAssignedDateKey];
-        let addedHours = 0;
-        if (existingHours) {
-          const parts = existingHours.split("-");
-          const startH = parts[0];
-          newHoursMap[lastAssignedDateKey] = `${startH}-${totalHoursNeeded}`;
-          addedHours = totalHoursNeeded - currentHour + 1;
-          const day = scheduleDays.find(
-            (d) => d.dateKey === lastAssignedDateKey,
-          );
-          if (day) day.hours += addedHours;
-        } else {
-          newHoursMap[lastAssignedDateKey] =
-            `${currentHour}-${totalHoursNeeded}`;
-          addedHours = totalHoursNeeded - currentHour + 1;
-          scheduleDays.push({
-            dateKey: lastAssignedDateKey,
-            hours: addedHours,
-          });
-        }
-      }
+      const scheduleDays = plan.scheduleDays;
+      Object.assign(newHoursMap, plan.hoursMap);
 
       // Assign attendance based on targetPercentage
       currentStudents.forEach((student) => {
@@ -694,20 +613,16 @@ export const StudentsForm: React.FC<Props> = ({
   };
 
   const { dates, holidays, thaiMonths, thaiMonthsShort } = useMemo(() => {
-    const academicYearStr = generalInfo.academicYear || "2568";
-    const semester = generalInfo.semester || "1";
-    const academicYear = parseInt(academicYearStr) - 543;
-
-    let currentDate =
-      semester === "1"
-        ? new Date(academicYear, 4, 10)
-        : new Date(academicYear, 9, 25);
-    while (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
+    const [startYear, startMonth, startDay] = effectiveStudyStartDate.split("-").map(Number);
+    let currentDate = startYear && startMonth && startDay
+      ? new Date(startYear, startMonth - 1, startDay)
+      : new Date();
+    const daysSinceMonday = (currentDate.getDay() + 6) % 7;
+    currentDate.setDate(currentDate.getDate() - daysSinceMonday);
 
     const calculatedDates: Date[] = [];
-    for (let i = 0; i < 100; i++) {
+    // 20 teaching weeks plus one buffer week for sessions shifted by holidays.
+    for (let i = 0; i < 105; i++) {
       calculatedDates.push(new Date(currentDate));
       currentDate.setDate(currentDate.getDate() + 1);
       while (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
@@ -765,7 +680,7 @@ export const StudentsForm: React.FC<Props> = ({
         "ธ.ค.",
       ],
     };
-  }, [generalInfo.academicYear, generalInfo.semester]);
+  }, [effectiveStudyStartDate]);
 
   const selectedPrintDates = useMemo(() => {
     if (!printDateMonths?.length) return dates;

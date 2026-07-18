@@ -293,7 +293,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                   <br />
                   ประชาชน
                 </th>
-                <th rowSpan={5} className="bg-orange-excel sticky z-20 border-r-2 border-r-slate-400" style={scoreWidthStyle(SCORE_STUDENT_NAME_WIDTH, SCORE_STUDENT_NAME_LEFT)}>ชื่อ - สกุล</th>
+                <th rowSpan={5} className="score-student-name-column bg-orange-excel sticky z-20 border-r-2 border-r-slate-400" style={scoreWidthStyle(SCORE_STUDENT_NAME_WIDTH, SCORE_STUDENT_NAME_LEFT)}>ชื่อ - สกุล</th>
                 <th colSpan={scoreTableCols} className="bg-orange-excel">บันทึกคะแนนวัดและประเมินผลการเรียนรู้</th>
                 {showScoreSummaryColumns && (
                   <th colSpan={8} className="bg-orange-excel">ภาคเรียนที่ {generalInfo.semester}</th>
@@ -330,7 +330,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                 {units.map((u, uIdx) => (
                   <React.Fragment key={`ind-row-${uIdx}`}>
                     {getIndicatorSlotIndexes(u).map((iIdx) => (
-                      <th key={`ind-${uIdx}-${iIdx}`} className="bg-orange-excel" style={SCORE_INDICATOR_COLUMN_STYLE}>
+                      <th key={`ind-${uIdx}-${iIdx}`} className="score-unit-score-column bg-orange-excel" style={SCORE_INDICATOR_COLUMN_STYLE}>
                         <span className="writing-vertical inline-block">{u.indicators[iIdx]?.code || ''}</span>
                       </th>
                     ))}
@@ -348,7 +348,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                 {units.map((u, uIdx) => (
                   <React.Fragment key={`full-row-${uIdx}`}>
                     {getIndicatorSlotIndexes(u).map((iIdx) => (
-                      <th key={`full-${uIdx}-${iIdx}`} className="bg-orange-excel" style={SCORE_INDICATOR_COLUMN_STYLE}>
+                      <th key={`full-${uIdx}-${iIdx}`} className="score-unit-score-column bg-orange-excel" style={SCORE_INDICATOR_COLUMN_STYLE}>
                         {u.indicators[iIdx]?.fullScore || ''}
                       </th>
                     ))}
@@ -372,7 +372,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                 {units.map((u, uIdx) => (
                   <React.Fragment key={`pass-row-${uIdx}`}>
                     {getIndicatorSlotIndexes(u).map((iIdx) => (
-                      <th key={`pass-${uIdx}-${iIdx}`} className="bg-orange-excel" style={SCORE_INDICATOR_COLUMN_STYLE}>
+                      <th key={`pass-${uIdx}-${iIdx}`} className="score-unit-score-column bg-orange-excel" style={SCORE_INDICATOR_COLUMN_STYLE}>
                         {u.indicators[iIdx]?.passingScore || ''}
                       </th>
                     ))}
@@ -406,12 +406,12 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                     <td className="text-center sticky left-0 z-10 bg-white" style={scoreWidthStyle(SCORE_STUDENT_NO_WIDTH)}>{index + 1}</td>
                     <td className="text-center sticky z-10 bg-white" style={scoreWidthStyle(SCORE_STUDENT_CODE_WIDTH, SCORE_STUDENT_CODE_LEFT)}>{student.studentId}</td>
                     <td className="text-center sticky z-10 bg-white" style={scoreWidthStyle(SCORE_CITIZEN_ID_WIDTH, SCORE_CITIZEN_ID_LEFT)}>{student.citizenId}</td>
-                    <td className="text-left px-2 sticky z-10 bg-white border-r-2 border-r-slate-400" style={scoreWidthStyle(SCORE_STUDENT_NAME_WIDTH, SCORE_STUDENT_NAME_LEFT)}>{student.name}</td>
+                    <td className="score-student-name-column text-left px-2 sticky z-10 bg-white border-r-2 border-r-slate-400" style={scoreWidthStyle(SCORE_STUDENT_NAME_WIDTH, SCORE_STUDENT_NAME_LEFT)}>{student.name}</td>
                     <td className="bg-slate-50" style={SCORE_LABEL_COLUMN_STYLE}></td>
                     {units.map((u, uIdx) => (
                       <React.Fragment key={`score-cells-${uIdx}`}>
                         {getIndicatorSlotIndexes(u).map((iIdx) => (
-                          <td key={`cell-${uIdx}-${iIdx}`} className="score-entry-cell" style={SCORE_INDICATOR_COLUMN_STYLE}>
+                          <td key={`cell-${uIdx}-${iIdx}`} className="score-entry-cell score-unit-score-column" style={SCORE_INDICATOR_COLUMN_STYLE}>
                             {u.indicators[iIdx] ? (
                               printMode ? (
                                 <span className="score-print-cell-value">{score[`u${uIdx}_i${iIdx}`] ?? ''}</span>

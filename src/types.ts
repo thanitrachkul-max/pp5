@@ -238,6 +238,7 @@ export interface AppData {
     hoursPerSemester: string;
     teacherName: string;
     teacherName2: string;
+    teacherName3: string;
     homeroomTeacher1: string;
     homeroomTeacher2: string;
     homeroomTeacher3: string;
