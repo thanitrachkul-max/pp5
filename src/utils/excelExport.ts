@@ -234,10 +234,14 @@ export const exportToExcel = async (data: any) => {
   sheet1.getCell("D15").alignment = rightAlign;
   sheet1.getCell("D15").font = fontBold;
   sheet1.mergeCells("F15:L15");
-  let teacherText = data.generalInfo.teacherName || "";
-  if (data.generalInfo.teacherName2) {
-    teacherText = `1. ${data.generalInfo.teacherName}  2. ${data.generalInfo.teacherName2}`;
-  }
+  const teacherNames = [
+    data.generalInfo.teacherName,
+    data.generalInfo.teacherName2,
+    data.generalInfo.teacherName3,
+  ].filter(Boolean);
+  const teacherText = teacherNames.length > 1
+    ? teacherNames.map((name, index) => `${index + 1}. ${name}`).join("  ")
+    : teacherNames[0] || "";
   sheet1.getCell("F15").value = teacherText;
   sheet1.getCell("F15").alignment = centerAlign;
   sheet1.getCell("F15").fill = fillYellow;

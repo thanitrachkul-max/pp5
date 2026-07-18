@@ -12,7 +12,10 @@ import {
   LogOut,
   RefreshCw,
   Send,
+  Users,
+  X,
 } from 'lucide-react';
+import { ModalPortal } from '../../components/ModalPortal';
 import { isAdmin } from '../../lib/auth';
 import {
   gradebookStatusClassName,
@@ -254,6 +257,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const [openingId, setOpeningId] = useState<string | null>(null);
   const [submittingAssignmentId, setSubmittingAssignmentId] = useState<string | null>(null);
   const [revisionModalAssignment, setRevisionModalAssignment] = useState<TeacherAssignmentView | null>(null);
+  const [periodChooser, setPeriodChooser] = useState<TeacherPeriod | null>(null);
   const [acknowledgingId, setAcknowledgingId] = useState<string | null>(null);
   const [resubmittingId, setResubmittingId] = useState<string | null>(null);
   const [selectedPeriodKey, setSelectedPeriodKey] = useState<string | null>(() => initialPeriodKey);
@@ -792,7 +796,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     return (
                     <tr
                       key={period.key}
-                      onClick={() => setSelectedPeriodKey(period.key)}
+                      onClick={() => setPeriodChooser(period)}
                       className="cursor-pointer transition-colors hover:bg-slate-50/70"
                     >
                       <td className="px-4 py-4 text-center">
@@ -833,7 +837,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                               void handleShowRevisionReason(submission.revision);
                               return;
                             }
-                            setSelectedPeriodKey(period.key);
+                            setPeriodChooser(period);
                           }}
                           className={`inline-flex min-w-[154px] items-center justify-center rounded-lg px-3 py-2 text-xs font-extrabold transition hover:brightness-95 ${submission.className}`}
                         >
@@ -863,6 +867,81 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         <p className="text-sm font-semibold text-slate-500">KSP GradeBook V 1.0</p>
         <p className="mt-0.5 text-xs text-slate-400">โรงเรียนกาฬสินธุ์ปัญญานุกูล จังหวัดกาฬสินธุ์</p>
       </footer>
+
+      {periodChooser && (
+        <ModalPortal>
+          <div
+            className="fixed inset-0 z-[85] grid min-h-dvh place-items-center bg-slate-900/55 p-4 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="teacher-workspace-title"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setPeriodChooser(null);
+            }}
+          >
+            <div className="w-full max-w-3xl overflow-hidden rounded-3xl border border-white/70 bg-white shadow-2xl">
+              <div className="flex items-start justify-between border-b border-slate-100 px-6 py-5 sm:px-8">
+                <div>
+                  <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-blue-600">
+                    เลือกประเภทการบันทึกข้อมูล
+                  </p>
+                  <h3 id="teacher-workspace-title" className="mt-1 text-xl font-extrabold text-slate-900">
+                    ปีการศึกษา {periodChooser.yearBe} ภาคเรียนที่ {periodChooser.semesterNumber}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPeriodChooser(null)}
+                  className="grid h-10 w-10 place-items-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                  aria-label="ปิดหน้าต่างเลือกประเภทการบันทึก"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="grid gap-4 p-6 sm:grid-cols-2 sm:p-8">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedPeriodKey(periodChooser.key);
+                    setPeriodChooser(null);
+                  }}
+                  className="group flex min-h-52 flex-col items-start rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-6 text-left shadow-sm transition duration-150 hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-100"
+                >
+                  <span className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-200">
+                    <BookOpen className="h-6 w-6" />
+                  </span>
+                  <span className="mt-6 text-lg font-extrabold text-slate-900">บันทึกข้อมูล ปพ.5</span>
+                  <span className="mt-2 text-sm leading-6 text-slate-500">
+                    เปิดรายวิชาที่ได้รับมอบหมายเพื่อบันทึกเวลาเรียน คะแนน และผลการประเมิน
+                  </span>
+                  <span className="mt-auto pt-5 text-sm font-extrabold text-blue-700 transition group-hover:translate-x-1">
+                    เปิด {periodChooser.items.length} รายวิชา <ChevronRight className="inline h-4 w-4" />
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMessage('เมนูบันทึกข้อมูลกิจกรรมพัฒนาผู้เรียนกำลังอยู่ระหว่างพัฒนา');
+                    setPeriodChooser(null);
+                  }}
+                  className="group flex min-h-52 flex-col items-start rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-6 text-left shadow-sm transition duration-150 hover:-translate-y-0.5 hover:border-emerald-400 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                >
+                  <span className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-200">
+                    <Users className="h-6 w-6" />
+                  </span>
+                  <span className="mt-6 text-lg font-extrabold text-slate-900">บันทึกข้อมูลกิจกรรมพัฒนาผู้เรียน</span>
+                  <span className="mt-2 text-sm leading-6 text-slate-500">
+                    พื้นที่สำหรับบันทึกกิจกรรมพัฒนาผู้เรียน จะเปิดใช้งานในขั้นตอนถัดไป
+                  </span>
+                  <span className="mt-auto pt-5 text-sm font-extrabold text-emerald-700">เร็ว ๆ นี้</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
 
       {revisionModalAssignment && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">

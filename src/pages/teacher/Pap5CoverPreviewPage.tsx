@@ -77,6 +77,7 @@ const sampleData: AppData = {
     hoursPerSemester: "20",
     teacherName: "ธนัท ธนพัฒน์ธัชกุล",
     teacherName2: "",
+    teacherName3: "",
     homeroomTeacher1: "นายธนัท ธนพัฒน์ธัชกุล",
     homeroomTeacher2: "นาย ธนัท ธนพัฒน์ธัชกุล",
     homeroomTeacher3: "นางธีราพร เจริญยิ่ง",

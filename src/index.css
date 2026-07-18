@@ -408,7 +408,7 @@ input[type="number"] {
   min-height: 100%;
   transform-origin: left center;
   backface-visibility: hidden;
-  animation: gradebook-paper-turn-in 240ms cubic-bezier(0.18, 0.82, 0.22, 1) both;
+  animation: gradebook-paper-turn-in 140ms cubic-bezier(0.18, 0.82, 0.22, 1) both;
   will-change: opacity, transform;
 }
 
@@ -422,7 +422,7 @@ input[type="number"] {
     linear-gradient(90deg, rgba(15, 23, 42, 0.18), rgba(255, 255, 255, 0.36) 34%, rgba(255, 255, 255, 0) 68%);
   opacity: 0;
   transform: translateX(-12%);
-  animation: gradebook-paper-glint 240ms cubic-bezier(0.18, 0.82, 0.22, 1) both;
+  animation: gradebook-paper-glint 140ms cubic-bezier(0.18, 0.82, 0.22, 1) both;
 }
 
 .gradebook-folder-content-document {
@@ -1188,12 +1188,16 @@ main table:not(.excel-table) tbody td {
   width: 22mm;
 }
 
+.pap5-score-summary-table .col-name {
+  width: 42.32mm;
+}
+
 .pap5-score-summary-table .col-no {
   width: 11mm;
 }
 
 .pap5-score-summary-table .unit-summary-col {
-  width: 17mm;
+  width: 15.64mm;
 }
 
 .pap5-score-summary-table .final-summary-col,
@@ -1462,8 +1466,8 @@ main table:not(.excel-table) tbody td {
   }
 
   .score-print-page.original-tab-print-page {
-    padding: 22mm 6mm 10mm 16mm !important;
-    justify-content: flex-start !important;
+    padding: 22mm 16mm 10mm !important;
+    justify-content: center !important;
   }
 
   .summary-print-page {
@@ -1515,9 +1519,12 @@ main table:not(.excel-table) tbody td {
     background: #ffffff !important;
   }
 
-  .pap5-original-print-document .attendance-print-page.original-tab-print-page > div,
-  .pap5-original-print-document .score-print-page.original-tab-print-page > div {
+  .pap5-original-print-document .attendance-print-page.original-tab-print-page > div {
     max-width: 275mm !important;
+  }
+
+  .pap5-original-print-document .score-print-page.original-tab-print-page > div {
+    max-width: 265mm !important;
   }
 
   .pap5-original-print-document .original-tab-print-page > div > div {
@@ -1981,6 +1988,18 @@ main table:not(.excel-table) tbody td {
     width: 30mm !important;
     min-width: 30mm !important;
     max-width: 30mm !important;
+  }
+
+  .pap5-original-print-document .score-print-page .score-student-name-column {
+    width: 54.3mm !important;
+    min-width: 54.3mm !important;
+    max-width: 54.3mm !important;
+  }
+
+  .pap5-original-print-document .score-print-page .score-unit-score-column {
+    width: 11.04mm !important;
+    min-width: 11.04mm !important;
+    max-width: 11.04mm !important;
   }
 
   .pap5-original-print-document .attendance-print-page [style*="248px"],

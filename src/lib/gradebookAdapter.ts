@@ -26,6 +26,7 @@ const DEFAULT_GENERAL_INFO: AppData["generalInfo"] = {
   hoursPerSemester: "20",
   teacherName: "",
   teacherName2: "",
+  teacherName3: "",
   homeroomTeacher1: "",
   homeroomTeacher2: "",
   homeroomTeacher3: "",
