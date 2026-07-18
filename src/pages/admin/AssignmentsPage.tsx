@@ -24,16 +24,15 @@ import {
 } from '../../lib/gradebookStatusDisplay';
 import { supabase } from '../../lib/supabase';
 import {
+  ensureGradebook,
   fetchTeacherAssignments,
   type TeacherAssignmentView,
 } from '../../lib/teacherGradebooks';
 import {
   parseAssignmentExcel,
-  parseAssignmentPdf,
   parseAssignmentWord,
   resolveAssignmentRows,
   validateReviewRow,
-  type AssignmentPdfProgress,
   type AssignmentReviewRow,
 } from '../../lib/assignmentImport';
 import { SUBJECTS_CATALOG } from '../../data/subjectsCatalog';
@@ -76,8 +75,6 @@ interface AddForm {
 }
 
 type GradebookStatus = 'not_started' | 'in_progress' | 'completed';
-type TeachTableImportFormat = 'pdf' | 'word';
-
 const ENTRY_WINDOW_MIGRATION_HINT =
   'ฐานข้อมูลยังไม่มีคอลัมน์กำหนดช่วงเวลา กรุณารัน migration `supabase/migrations/0018_assignment_entry_window.sql` ใน Supabase SQL Editor แล้วลองใหม่';
 const APPROVAL_MIGRATION_HINT =
@@ -343,10 +340,8 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
   const [editingAssignment, setEditingAssignment] = useState<AssignmentWithProgress | null>(null);
   const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState(false);
-  const [importProgress, setImportProgress] = useState('');
   const [reviewRows, setReviewRows] = useState<AssignmentReviewRow[] | null>(null);
   const [showTeachTableUpload, setShowTeachTableUpload] = useState(false);
-  const [teachTableImportFormat, setTeachTableImportFormat] = useState<TeachTableImportFormat>('word');
   const [reviewImportMeta, setReviewImportMeta] = useState<{
     fileName: string;
     rowCount: number;
@@ -766,13 +761,32 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     try {
       const teacherAssignments = await fetchTeacherAssignments(assignment.teacher_id);
       const matchedAssignment = teacherAssignments.find((item) => item.id === assignment.id);
-      const gradebookId =
-        matchedAssignment?.gradebook_id ?? normalizeGradebook(assignment.gradebooks)?.id ?? null;
-
-      if (!matchedAssignment || !gradebookId) {
-        setError('ยังไม่มีสมุด ปพ.5 สำหรับรายการนี้ ให้ครูเปิดสร้างจากหน้าครูก่อน');
+      if (!matchedAssignment) {
+        setError('ไม่พบข้อมูลรายวิชาที่มอบหมาย กรุณารีเฟรชแล้วลองใหม่');
         return;
       }
+
+      const teacherProfile = assignment.teacher;
+      if (!teacherProfile) {
+        setError('ไม่พบข้อมูลครูผู้สอนสำหรับรายการนี้');
+        return;
+      }
+
+      const gradebookId = matchedAssignment.gradebook_id
+        ?? normalizeGradebook(assignment.gradebooks)?.id
+        ?? await ensureGradebook(
+          matchedAssignment,
+          {
+            id: assignment.teacher_id,
+            username: teacherProfile.username ?? '',
+            name: [teacherProfile.title, teacherProfile.full_name].filter(Boolean).join(' '),
+            role: 'teacher',
+            schoolId: assignment.school_id,
+            isActive: true,
+            title: teacherProfile.title ?? null,
+          },
+          { adminCreate: true },
+        );
 
       await onOpenGradebook(
         { ...matchedAssignment, gradebook_id: gradebookId },
@@ -1360,7 +1374,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
 
   const applyReviewValidation = (rows: AssignmentReviewRow[]): AssignmentReviewRow[] => {
     const existingAssignmentKeys = new Set(
-      assignments.map((assignment) => `${assignment.teacher_id}|${assignment.subject_id}|${assignment.classroom_id}`),
+      assignments.map((assignment) => `${assignment.subject_id}|${assignment.classroom_id}`),
     );
     const seenAssignmentKeys = new Set<string>();
 
@@ -1369,9 +1383,9 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
       const issues = new Set(base.issues);
 
       if (base.teacherId && base.subjectId && base.classroomId) {
-        const key = `${base.teacherId}|${base.subjectId}|${base.classroomId}`;
+        const key = `${base.subjectId}|${base.classroomId}`;
         if (existingAssignmentKeys.has(key)) {
-          issues.add('มีรายการมอบหมายนี้แล้ว');
+          issues.add('มีรายวิชานี้ในห้องแล้ว');
         }
         if (seenAssignmentKeys.has(key)) {
           issues.add('ซ้ำในไฟล์');
@@ -1406,28 +1420,19 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     }
   };
 
-  const openTeachTableUpload = (format: TeachTableImportFormat) => {
+  const openTeachTableUpload = () => {
     setError('');
     setMessage('');
     setReviewImportMeta(null);
-    setTeachTableImportFormat(format);
     setShowTeachTableUpload(true);
   };
 
-  const processTeachTableFile = async (file: File, format: TeachTableImportFormat) => {
+  const processTeachTableFile = async (file: File) => {
     setImporting(true);
-    setImportProgress('');
     setError('');
     setMessage('');
     try {
-      const updatePdfProgress = ({ phase, currentPage, totalPages }: AssignmentPdfProgress) => {
-        setImportProgress(
-          phase === 'ocr'
-            ? `กำลัง OCR ตารางห้องเรียน หน้า ${currentPage}/${totalPages}`
-            : `กำลังตรวจสอบ PDF หน้าที่ ${currentPage}/${totalPages}`,
-        );
-      };
-      const rows = format === 'pdf' ? await parseAssignmentPdf(file, updatePdfProgress) : await parseAssignmentWord(file);
+      const rows = await parseAssignmentWord(file);
       const resolved = applyReviewValidation(
         resolveAssignmentRows(rows, teachers, subjects, classrooms, { teacherRoles: ['teacher'] }),
       );
@@ -1439,17 +1444,11 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
       setReviewRows(resolved);
       setShowTeachTableUpload(false);
     } catch (err) {
-      console.error(`Teaching schedule ${format.toUpperCase()} import failed`, err);
+      console.error('Teaching schedule Word import failed', err);
       const detail = err instanceof Error ? err.message : '';
-      const isTechnicalRuntimeError = /undefined is not|is not a function|is not an object|not iterable/i.test(detail);
-      setError(
-        format === 'pdf' && isTechnicalRuntimeError
-          ? 'ระบบ OCR เริ่มทำงานไม่สำเร็จ กรุณารีเฟรชหน้าแล้วอัปโหลด PDF ใหม่'
-          : detail || 'อ่านไฟล์ตารางสอนไม่สำเร็จ',
-      );
+      setError(detail || 'อ่านไฟล์ตารางสอน Word ไม่สำเร็จ');
     } finally {
       setImporting(false);
-      setImportProgress('');
     }
   };
 
@@ -1457,7 +1456,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
-    await processTeachTableFile(file, teachTableImportFormat);
+    await processTeachTableFile(file);
   };
 
   const updateReviewRow = (key: string, patch: Partial<AssignmentReviewRow>) => {
@@ -1496,7 +1495,13 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
         classroom_id: row.classroomId!,
         hours_per_week: row.hoursPerWeek,
         hours_per_semester: row.hoursPerSemester,
-        co_teacher_name: row.coTeacherName || null,
+        co_teacher_name: row.coTeacherIds
+          .map((teacherId, index) => {
+            const teacher = teachers.find((item) => item.id === teacherId);
+            return teacher ? teacherLabel(teacher) : row.teacherSourceNames[index + 1] ?? '';
+          })
+          .filter(Boolean)
+          .join(', ') || null,
         status: 'pending' as const,
         created_by: currentUser.id,
       }));
@@ -1527,7 +1532,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
       setMessage(
         `นำเข้า ${validRows.length} รายการ (สถานะ: ปิดไว้ก่อน)` +
           (skipped > 0 ? ` · ข้าม ${skipped} แถวที่มีปัญหา` : '') +
-          (importedWithoutCoTeacherName ? ' · ฐานยังไม่มีคอลัมน์ครูร่วม จึงนำเข้าโดยไม่บันทึกชื่อครูร่วม' : '')
+          (importedWithoutCoTeacherName ? ' · ฐานยังไม่มีคอลัมน์ครูผู้สอนเพิ่มเติม จึงบันทึกเฉพาะครูผู้สอน 1' : '')
       );
       setReviewRows(null);
       setReviewImportMeta(null);
@@ -1540,6 +1545,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
   };
 
   const teacherLabel = (t: Profile) => `${t.title ? t.title + ' ' : ''}${t.full_name}`;
+  const teachingStaff = teachers.filter((teacher) => teacher.role === 'teacher');
 
   const subjectSemesterLabel = (assignment: AssignmentWithProgress) => {
     const semester = assignment.subject?.semester_number ?? semesters.find((item) => item.id === assignment.semester_id)?.semester_number;
@@ -1562,6 +1568,42 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     if (items.length === 0) return fallback;
     if (items.length <= 4) return items.join(', ');
     return `${items.slice(0, 4).join(', ')} +${items.length - 4}`;
+  };
+
+  const updateReviewTeacher = (key: string, teacherIndex: number, teacherId: string) => {
+    setReviewRows((prev) =>
+      applyReviewValidation(prev?.map((row) => {
+        if (row.key !== key) return row;
+
+        const selectedIds = [row.teacherId ?? '', row.coTeacherIds[0] ?? '', row.coTeacherIds[1] ?? ''];
+        selectedIds[teacherIndex] = teacherId;
+        if (teacherId) {
+          selectedIds.forEach((id, index) => {
+            if (index !== teacherIndex && id === teacherId) selectedIds[index] = '';
+          });
+        }
+
+        const selectedProfiles = selectedIds.map((id) => teachers.find((teacher) => teacher.id === id) ?? null);
+        const teacherNames = selectedProfiles.map((profile, index) => (
+          profile ? teacherLabel(profile) : (row.teacherSourceNames[index] ?? '')
+        ));
+        const coTeacherMatchConfidences = [...(row.coTeacherMatchConfidences ?? [])];
+        if (teacherIndex > 0) coTeacherMatchConfidences[teacherIndex - 1] = teacherId ? 'manual' : null;
+
+        return validateReviewRow({
+          ...row,
+          teacherId: selectedIds[0] || null,
+          teacherName: teacherNames[0] || row.teacherName,
+          teacherMatchConfidence: teacherIndex === 0 ? (teacherId ? 'manual' : null) : row.teacherMatchConfidence,
+          coTeacherIds: selectedIds.slice(1),
+          coTeacherName: teacherNames.slice(1).filter(Boolean).join(', '),
+          coTeacherMatchConfidences,
+          warnings: (row.warnings ?? []).filter(
+            (warning) => !warning.includes(`ครูผู้สอน ${teacherIndex + 1}`),
+          ),
+        });
+      }) ?? []) || null,
+    );
   };
 
   const renderAssignmentApprovalStatus = (assignment: AssignmentWithProgress) => {
@@ -1662,12 +1704,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     );
   };
 
-  const isTeachTablePdfImport = teachTableImportFormat === 'pdf';
-  const teachTableFormatLabel = isTeachTablePdfImport ? 'PDF' : 'Word';
-  const teachTableFileExtension = isTeachTablePdfImport ? '.pdf' : '.docx';
-  const teachTableAccept = isTeachTablePdfImport
-    ? '.pdf,application/pdf'
-    : '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+  const teachTableAccept = '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
   return (
     <div className="space-y-6">
@@ -1695,20 +1732,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => openTeachTableUpload('pdf')}
-            disabled={importing}
-            className="btn btn-secondary"
-          >
-            {importing ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <FileText className="mr-2 h-4 w-4" />
-            )}
-            เพิ่มตารางสอน (PDF)
-          </button>
-          <button
-            type="button"
-            onClick={() => openTeachTableUpload('word')}
+            onClick={openTeachTableUpload}
             disabled={importing}
             className="btn btn-secondary"
           >
@@ -2479,7 +2503,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                 <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
                   <div>
                     <h3 className="text-lg font-bold text-slate-900">อัปโหลดตารางสอน</h3>
-                    <p className="mt-1 text-sm text-slate-500">เลือกไฟล์ {teachTableFormatLabel} ({teachTableFileExtension}) ก่อนตรวจสอบและนำเข้า</p>
+                    <p className="mt-1 text-sm text-slate-500">เลือกไฟล์ Word (.docx) ก่อนตรวจสอบและนำเข้า</p>
                   </div>
                   <button
                     type="button"
@@ -2499,12 +2523,11 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                   ) : null}
 
                   <div className="rounded-xl border border-blue-100 bg-blue-50/70 px-4 py-3 text-sm text-slate-600">
-                    <p className="font-semibold text-slate-800">รองรับไฟล์ตารางสอน {teachTableFormatLabel}</p>
+                    <p className="font-semibold text-slate-800">รองรับไฟล์ตารางสอน Word</p>
                     <ul className="mt-2 list-disc space-y-1 pl-5">
-                      {isTeachTablePdfImport ? (
-                        <li>PDF สแกนจะ OCR เฉพาะส่วนตารางห้องเรียน และข้ามหน้าตารางสอนรายบุคคลอัตโนมัติ</li>
-                      ) : null}
+                      <li>ใช้ข้อมูลตารางจากไฟล์ Word โดยตรง จึงรวดเร็วและแม่นยำกว่า OCR จาก PDF</li>
                       <li>อ่านเฉพาะวิชาหลัก (มีรหัสวิชา 5 หลัก)</li>
+                      <li>รวมรายวิชาเดียวกันเป็นหนึ่งแถว พร้อมครูผู้สอนสูงสุด 3 คน</li>
                       <li>ไม่นำเข้ากิจกรรม เช่น ลูกเสือ, ชุมนุม, แนะแนว, หน้าเสาธง, อบรมคุณธรรม</li>
                       <li>ไม่มอบหมายให้รองผู้อำนวยการ / คณะบริหาร — เฉพาะครูผู้สอน</li>
                     </ul>
@@ -2515,15 +2538,13 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                       <>
                         <Loader2 className="mb-3 h-8 w-8 animate-spin text-blue-600" />
                         <span className="text-sm font-semibold text-slate-700">
-                          {isTeachTablePdfImport
-                            ? importProgress || 'กำลังอ่านไฟล์ตารางสอนและ OCR หากจำเป็น...'
-                            : 'กำลังอ่านไฟล์ตารางสอน...'}
+                          กำลังอ่านไฟล์ตารางสอน Word...
                         </span>
                       </>
                     ) : (
                       <>
                         <FileUp className="mb-3 h-8 w-8 text-blue-600" />
-                        <span className="text-sm font-semibold text-slate-800">คลิกเพื่อเลือกไฟล์ {teachTableFileExtension}</span>
+                        <span className="text-sm font-semibold text-slate-800">คลิกเพื่อเลือกไฟล์ .docx</span>
                         <span className="mt-1 text-xs text-slate-500">เช่น ตารางรวม ม.1, ป.1-3 หรือแยกรายชั้น</span>
                       </>
                     )}
@@ -2557,7 +2578,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
         createPortal(
           <div className="fixed inset-0 z-[200] overflow-y-auto bg-slate-900/50 backdrop-blur-sm">
             <div className="flex min-h-full items-center justify-center p-4 sm:p-6">
-              <div className="my-8 flex w-full max-w-5xl max-h-[min(90vh,calc(100vh-3rem))] flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
+              <div className="my-8 flex w-full max-w-[96rem] max-h-[min(90vh,calc(100vh-3rem))] flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
                 <div className="flex shrink-0 items-center justify-between border-b border-slate-100 p-6">
                   <div>
                     <h3 className="text-lg font-bold text-slate-900">ตรวจสอบก่อนนำเข้า</h3>
@@ -2581,15 +2602,16 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                 </div>
 
                 <div className="min-h-0 flex-1 overflow-y-auto">
-                  <table className="w-full border-collapse text-sm">
+                  <table className="w-full min-w-[1380px] border-collapse text-sm">
                     <thead>
                       <tr>
                         <th className="sticky top-0 z-20 w-12 border-b border-slate-200 bg-slate-50 px-3 py-2.5 text-left font-semibold text-slate-600 shadow-[inset_0_-1px_0_0_rgb(226,232,240)]">แถว</th>
-                        <th className="sticky top-0 z-20 border-b border-slate-200 bg-slate-50 px-3 py-2.5 text-left font-semibold text-slate-600 shadow-[inset_0_-1px_0_0_rgb(226,232,240)]">ครูหลัก</th>
-                        <th className="sticky top-0 z-20 border-b border-slate-200 bg-slate-50 px-3 py-2.5 text-left font-semibold text-slate-600 shadow-[inset_0_-1px_0_0_rgb(226,232,240)]">ครูร่วม</th>
-                        <th className="sticky top-0 z-20 border-b border-slate-200 bg-slate-50 px-3 py-2.5 text-left font-semibold text-slate-600 shadow-[inset_0_-1px_0_0_rgb(226,232,240)]">วิชา</th>
+                        <th className="sticky top-0 z-20 min-w-64 border-b border-slate-200 bg-slate-50 px-3 py-2.5 text-left font-semibold text-slate-600 shadow-[inset_0_-1px_0_0_rgb(226,232,240)]">รหัสวิชา / ชื่อวิชา</th>
+                        <th className="sticky top-0 z-20 min-w-56 border-b border-slate-200 bg-slate-50 px-3 py-2.5 text-left font-semibold text-slate-600 shadow-[inset_0_-1px_0_0_rgb(226,232,240)]">ครูผู้สอน 1</th>
+                        <th className="sticky top-0 z-20 min-w-56 border-b border-slate-200 bg-slate-50 px-3 py-2.5 text-left font-semibold text-slate-600 shadow-[inset_0_-1px_0_0_rgb(226,232,240)]">ครูผู้สอน 2</th>
+                        <th className="sticky top-0 z-20 min-w-56 border-b border-slate-200 bg-slate-50 px-3 py-2.5 text-left font-semibold text-slate-600 shadow-[inset_0_-1px_0_0_rgb(226,232,240)]">ครูผู้สอน 3</th>
                         <th className="sticky top-0 z-20 border-b border-slate-200 bg-slate-50 px-3 py-2.5 text-left font-semibold text-slate-600 shadow-[inset_0_-1px_0_0_rgb(226,232,240)]">ห้อง</th>
-                        <th className="sticky top-0 z-20 border-b border-slate-200 bg-slate-50 px-3 py-2.5 text-left font-semibold text-slate-600 shadow-[inset_0_-1px_0_0_rgb(226,232,240)]">ปัญหา</th>
+                        <th className="sticky top-0 z-20 min-w-60 border-b border-slate-200 bg-slate-50 px-3 py-2.5 text-left font-semibold text-slate-600 shadow-[inset_0_-1px_0_0_rgb(226,232,240)]">หมายเหตุ</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2606,21 +2628,6 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                         >
                           <td className="px-3 py-3 text-slate-500">{row.line}</td>
                           <td className="px-3 py-3">
-                            <div className="mb-1 text-xs text-slate-500">{row.teacherName}</div>
-                            <SearchableTeacherSelect
-                              value={row.teacherId ?? ''}
-                              teachers={teachers}
-                              getLabel={teacherLabel}
-                              placeholder="— เลือกครู —"
-                              onChange={(teacherId) =>
-                                updateReviewRow(row.key, { teacherId: teacherId || null })
-                              }
-                            />
-                          </td>
-                          <td className="px-3 py-3 text-xs font-medium text-slate-600">
-                            {row.coTeacherName || '—'}
-                          </td>
-                          <td className="px-3 py-3">
                             <div className="mb-1 text-xs text-slate-500">
                               {row.subjectCode} {row.subjectName}
                             </div>
@@ -2635,6 +2642,28 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                               ))}
                             </select>
                           </td>
+                          {[0, 1, 2].map((teacherIndex) => {
+                            const teacherId = teacherIndex === 0
+                              ? row.teacherId ?? ''
+                              : row.coTeacherIds[teacherIndex - 1] ?? '';
+                            const sourceName = row.teacherSourceNames[teacherIndex] ?? '';
+                            return (
+                              <td key={teacherIndex} className="px-3 py-3 align-top">
+                                <div className="mb-1 min-h-4 truncate text-xs text-slate-500" title={sourceName}>
+                                  {sourceName || '—'}
+                                </div>
+                                <SearchableTeacherSelect
+                                  value={teacherId}
+                                  teachers={teachingStaff}
+                                  getLabel={teacherLabel}
+                                  placeholder={`— เลือกครูผู้สอน ${teacherIndex + 1} —`}
+                                  onChange={(nextTeacherId) =>
+                                    updateReviewTeacher(row.key, teacherIndex, nextTeacherId)
+                                  }
+                                />
+                              </td>
+                            );
+                          })}
                           <td className="px-3 py-3">
                             <div className="mb-1 text-xs text-slate-500">{row.classroomName}</div>
                             <select

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ChevronDown, FileText, Loader2, Search } from 'lucide-react';
 import { ROLE_LABELS } from '../../lib/auth';
-import { fetchTeacherAssignments, type TeacherAssignmentView } from '../../lib/teacherGradebooks';
+import { ensureGradebook, fetchTeacherAssignments, type TeacherAssignmentView } from '../../lib/teacherGradebooks';
 import { progressTone } from '../../lib/progressTone';
 import { supabase } from '../../lib/supabase';
 import type { AppUser, Profile } from '../../types';
@@ -118,16 +118,26 @@ export const AdminGradebookEntryPage: React.FC<AdminGradebookEntryPageProps> = (
     };
   }, [filteredRows]);
 
-  const handleOpenGradebook = async (assignment: TeacherAssignmentView) => {
-    if (!assignment.gradebook_id) {
-      setError('ยังไม่มีสมุด ปพ.5 สำหรับรายการนี้ ให้ครูเปิดสร้างจากหน้าครูก่อน');
-      return;
-    }
-
+  const handleOpenGradebook = async (assignment: TeacherAssignmentView, teacher: TeacherGradebookRow) => {
     setOpeningId(assignment.id);
     setError('');
     try {
-      onOpenGradebook(assignment, assignment.gradebook_id, { readOnly });
+      const gradebookId = assignment.gradebook_id ?? await ensureGradebook(
+        assignment,
+        {
+          id: teacher.id,
+          username: teacher.username ?? '',
+          name: [teacher.title, teacher.full_name].filter(Boolean).join(' '),
+          role: teacher.role,
+          schoolId: teacher.school_id,
+          isActive: teacher.is_active,
+          title: teacher.title,
+        },
+        { adminCreate: true },
+      );
+      onOpenGradebook({ ...assignment, gradebook_id: gradebookId }, gradebookId, { readOnly });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'เปิดสมุด ปพ.5 ไม่สำเร็จ');
     } finally {
       setOpeningId(null);
     }
@@ -140,7 +150,7 @@ export const AdminGradebookEntryPage: React.FC<AdminGradebookEntryPageProps> = (
           <p className="text-sm font-bold text-blue-900">สถานะงานของครู</p>
           <h2 className="mt-1 text-2xl font-bold text-slate-900">ดูหน้ากรอกเกรดของครู</h2>
           <p className="mt-2 text-sm text-slate-500">
-            เลือกครูเพื่อดูรายการมอบหมายและเปิดสมุด ปพ.5 ที่ครูสร้างไว้แล้ว
+            เลือกครูและเปิดหน้ากรอก ปพ.5 ได้ทันที ระบบจะสร้างสมุดให้อัตโนมัติหากยังไม่มี
           </p>
         </div>
         <button
@@ -273,8 +283,8 @@ export const AdminGradebookEntryPage: React.FC<AdminGradebookEntryPageProps> = (
                               </div>
                               <button
                                 type="button"
-                                onClick={() => void handleOpenGradebook(assignment)}
-                                disabled={!assignment.gradebook_id || openingId === assignment.id}
+                                onClick={() => void handleOpenGradebook(assignment, teacher)}
+                                disabled={openingId === assignment.id}
                                 className="btn btn-primary"
                               >
                                 {openingId === assignment.id ? (

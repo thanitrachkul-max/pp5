@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AlertTriangle, CheckCircle2, Crown, Loader2, Pencil, ShieldCheck, Trash2, UserPlus, Users, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Crown, Loader2, Pencil, Search, ShieldCheck, Trash2, UserPlus, Users, X } from 'lucide-react';
 import { canManageAdminData, isSuperAdmin, ROLE_LABELS } from '../../lib/auth';
 import { createTeacherAccount, deleteTeacherAccount, updateTeacherAccount } from '../../lib/createTeacherAccount';
 import { supabase } from '../../lib/supabase';
@@ -138,6 +138,7 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
   const [modalSuccessText, setModalSuccessText] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<TeacherRow | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const canWrite = !readOnly && canManageAdminData(currentUser);
   const canEditSuperAdmin = isSuperAdmin(currentUser);
 
@@ -156,16 +157,29 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
   }, [canEditSuperAdmin]);
 
   const groupedTeachers = useMemo(() => {
+    const keyword = searchTerm.trim().toLocaleLowerCase('th-TH');
+    const filteredTeachers = keyword
+      ? teachers.filter((teacher) => {
+          const searchable = [
+            displayName(teacher),
+            teacher.username ?? '',
+            ROLE_LABELS[teacher.role],
+            teacher.role,
+          ].join(' ').toLocaleLowerCase('th-TH');
+          return searchable.includes(keyword);
+        })
+      : teachers;
+
     return roleGroups
       .map((group) => ({
         ...group,
         rows: sortGroupRows(
-          teachers.filter((teacher) => displayGroupKey(teacher) === group.key),
+          filteredTeachers.filter((teacher) => displayGroupKey(teacher) === group.key),
           group.key,
         ),
       }))
       .filter((group) => group.rows.length > 0);
-  }, [teachers]);
+  }, [searchTerm, teachers]);
 
   const loadTeachers = useCallback(async () => {
     setLoading(true);
@@ -534,16 +548,29 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
             จัดการบัญชีผู้ดูแลระบบ ผู้บริหาร และผู้ใช้งาน โดยใช้ username เป็นรหัสผ่านเริ่มต้นอัตโนมัติ
           </p>
         </div>
-        {canWrite && (
-          <button
-            type="button"
-            onClick={openAdd}
-            className="btn btn-primary"
-          >
-            <UserPlus className="mr-2 h-4 w-4" />
-            เพิ่มผู้ใช้งาน
-          </button>
-        )}
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+          <label className="relative w-full sm:w-72">
+            <span className="sr-only">ค้นหาผู้ใช้งาน</span>
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              type="search"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="ค้นหาชื่อ หรือ Username"
+              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+            />
+          </label>
+          {canWrite && (
+            <button
+              type="button"
+              onClick={openAdd}
+              className="btn btn-primary whitespace-nowrap"
+            >
+              <UserPlus className="mr-2 h-4 w-4" />
+              เพิ่มผู้ใช้งาน
+            </button>
+          )}
+        </div>
       </div>
 
       {error && (
@@ -563,7 +590,11 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({
         </div>
       ) : (
         <div className="space-y-5">
-          {groupedTeachers.map((group) => {
+          {groupedTeachers.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center text-sm text-slate-400">
+              ไม่พบผู้ใช้งานตามคำค้นหา
+            </div>
+          ) : groupedTeachers.map((group) => {
             const Icon = group.icon;
 
             return (

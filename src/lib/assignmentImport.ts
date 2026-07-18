@@ -1,7 +1,5 @@
 import ExcelJS from 'exceljs';
 import JSZip from 'jszip';
-import { createWorker as createTesseractWorker, OEM, PSM } from 'tesseract.js';
-import tesseractWorkerUrl from 'tesseract.js/dist/worker.min.js?url';
 import type { Classroom, Profile, Subject, UserRole } from '../types';
 
 export interface AssignmentImportRow {
@@ -21,6 +19,9 @@ export interface AssignmentReviewRow {
   teacherId: string | null;
   teacherMatchConfidence?: 'exact' | 'compact' | 'fuzzy' | 'manual' | null;
   coTeacherName: string;
+  coTeacherIds: string[];
+  coTeacherMatchConfidences?: Array<'exact' | 'compact' | 'fuzzy' | 'manual' | null>;
+  teacherSourceNames: string[];
   subjectCode: string;
   subjectName: string;
   subjectId: string | null;
@@ -589,15 +590,16 @@ function aggregateToImportRows(row: TimetableAggregate): AssignmentImportRow[] {
     })
     .map(([teacher]) => teacher);
 
-  return teachers.map((teacherName) => ({
+  const [teacherName = '', ...coTeachers] = teachers.slice(0, 3);
+  return [{
     teacherName,
-    coTeacherName: teachers.filter((teacher) => teacher !== teacherName).join(', '),
+    coTeacherName: coTeachers.join(', '),
     subjectCode: row.subjectCode,
     subjectName: row.subjectName,
     classroomName: row.classroomName,
-    hoursPerWeek: row.teacherPeriods.get(teacherName) ?? row.periods,
-    hoursPerSemester: (row.teacherPeriods.get(teacherName) ?? row.periods) * 20,
-  }));
+    hoursPerWeek: row.periods,
+    hoursPerSemester: row.periods * 20,
+  }];
 }
 
 function addPdfBandEntries(
@@ -744,21 +746,27 @@ const FALLBACK_VERTICAL_LINE_RATIOS = [
 ];
 
 const FALLBACK_ROW_LINE_RATIOS = [378 / 1192, 507 / 1192, 635 / 1192, 762 / 1192, 889 / 1192, 993 / 1192];
+const OCR_PSM_SINGLE_BLOCK = '6';
+const OCR_PSM_SPARSE_TEXT = '11';
 
 async function createThaiOcrWorker(): Promise<OcrWorkerLike> {
+  const [{ createWorker, OEM }, workerModule] = await Promise.all([
+    import('tesseract.js'),
+    import('tesseract.js/dist/worker.min.js?url'),
+  ]);
   const options = {
     corePath: `${window.location.origin}/ocr/core`,
     langPath: `${window.location.origin}/ocr`,
-    workerPath: tesseractWorkerUrl,
+    workerPath: workerModule.default,
     workerBlobURL: false,
   };
 
   try {
-    return (await createTesseractWorker('tha+eng', OEM.LSTM_ONLY, options)) as unknown as OcrWorkerLike;
+    return (await createWorker('tha+eng', OEM.LSTM_ONLY, options)) as unknown as OcrWorkerLike;
   } catch (initialError) {
     console.warn('OCR worker startup failed; refreshing the language cache', initialError);
     try {
-      return (await createTesseractWorker('tha+eng', OEM.LSTM_ONLY, {
+      return (await createWorker('tha+eng', OEM.LSTM_ONLY, {
         ...options,
         cacheMethod: 'refresh',
       })) as unknown as OcrWorkerLike;
@@ -1173,7 +1181,7 @@ async function parseImageOnlyPdfWithOcr(
         let headerText = '';
         try {
           await worker.setParameters({
-            tessedit_pageseg_mode: PSM.SINGLE_BLOCK,
+            tessedit_pageseg_mode: OCR_PSM_SINGLE_BLOCK,
             preserve_interword_spaces: '1',
             user_defined_dpi: '144',
           });
@@ -1218,7 +1226,7 @@ async function parseImageOnlyPdfWithOcr(
         let words: OcrWord[] = [];
         try {
           await worker.setParameters({
-            tessedit_pageseg_mode: PSM.SPARSE_TEXT,
+            tessedit_pageseg_mode: OCR_PSM_SPARSE_TEXT,
             preserve_interword_spaces: '1',
             user_defined_dpi: '144',
           });
@@ -1525,15 +1533,19 @@ function resolveTeacherMatch(value: string, lookup: TeacherLookup): TeacherMatch
   const compact = compactName(normalized);
   if (!firstName || compact.length < 6) return { teacherId: null, confidence: null };
 
-  const fuzzyMatches = lookup.candidates.filter((candidate) => {
-    if (candidate.compactAlias === compact) return true;
-    if (Math.abs(candidate.compactAlias.length - compact.length) > 2) return false;
-    return editDistance(candidate.compactAlias, compact) <= 2;
-  });
+  const fuzzyScoreByTeacher = new Map<string, number>();
+  for (const candidate of lookup.candidates) {
+    const maxDistance = Math.max(2, Math.min(4, Math.floor(Math.min(candidate.compactAlias.length, compact.length) * 0.2)));
+    if (Math.abs(candidate.compactAlias.length - compact.length) > maxDistance) continue;
+    const distance = editDistance(candidate.compactAlias, compact);
+    if (distance > maxDistance) continue;
+    const currentBest = fuzzyScoreByTeacher.get(candidate.id);
+    if (currentBest === undefined || distance < currentBest) fuzzyScoreByTeacher.set(candidate.id, distance);
+  }
 
-  const uniqueIds = Array.from(new Set(fuzzyMatches.map((candidate) => candidate.id)));
-  if (uniqueIds.length === 1) {
-    return { teacherId: uniqueIds[0], confidence: 'fuzzy' };
+  const fuzzyScores = Array.from(fuzzyScoreByTeacher.entries()).sort((a, b) => a[1] - b[1]);
+  if (fuzzyScores[0] && fuzzyScores[1]?.[1] !== fuzzyScores[0][1]) {
+    return { teacherId: fuzzyScores[0][0], confidence: 'fuzzy' };
   }
 
   if (firstName.length >= 5) {
@@ -1722,115 +1734,97 @@ export function resolveAssignmentRows(
     return teacher ? [teacher.title, teacher.full_name].filter(Boolean).join(' ') : '';
   };
 
-  const expandedRows = rows.flatMap((row, index): AssignmentReviewRow[] => {
-    const directMatch = resolveTeacherMatch(row.teacherName, teacherLookup);
-    const containedIds = containedTeacherIds(
-      row.teacherName,
-      teacherLookup,
-      !directMatch.teacherId || normalizeTimetableText(row.teacherName).includes('คร'),
-    );
-    if (!directMatch.teacherId && containedIds.length === 0 && compactName(row.teacherName).length < 6) {
-      return [];
-    }
-    const teacherMatches: TeacherMatchResult[] = containedIds.length > 0
-      ? containedIds.map((teacherId) => ({
-          teacherId,
-          confidence: directMatch.teacherId === teacherId ? directMatch.confidence : 'fuzzy',
-        }))
-      : [directMatch];
-    const coTeacherIds = new Set([
-      ...containedIds,
-      ...containedTeacherIds(row.coTeacherName ?? '', teacherLookup),
-    ]);
+  return rows.map((row, index): AssignmentReviewRow => {
+    const teacherSourceNames = Array.from(new Set(
+      [row.teacherName, ...(row.coTeacherName ?? '').split(/[,，;|\n]+/u)]
+        .map((name) => normalizeTimetableText(name))
+        .filter(Boolean),
+    )).slice(0, 3);
 
-    return teacherMatches.map((teacherMatch, teacherIndex) => {
-      const issues: string[] = [];
-      const warnings: string[] = [];
-      const teacherId = teacherMatch.teacherId;
-      if (!teacherId) {
-        issues.push(allowedRoles ? 'ไม่พบครูผู้สอน' : 'ไม่พบครู');
-      } else if (teacherMatch.confidence === 'compact' || teacherMatch.confidence === 'fuzzy') {
-        warnings.push('กรุณาตรวจสอบ');
-      }
-      if (containedIds.length > 1) {
-        warnings.push('ระบบแยกรายชื่อครูหลายคนจากข้อความ OCR กรุณาตรวจสอบ');
-      }
+    const matchedTeachers = teacherSourceNames.map((sourceName): TeacherMatchResult => {
+      const directMatch = resolveTeacherMatch(sourceName, teacherLookup);
+      if (directMatch.teacherId) return directMatch;
 
-      const subjectMatch = resolveSubjectMatch(row, subjectLookup);
-      const matchedSubject = subjectMatch.subject;
-      const subjectId = matchedSubject?.id ?? null;
-      if (!subjectId) issues.push('ไม่พบวิชา');
-      if (
-        matchedSubject &&
-        row.subjectCode &&
-        normalizeSubjectCode(row.subjectCode).toLowerCase() !== matchedSubject.subject_code.toLowerCase()
-      ) {
-        warnings.push('ระบบแก้รหัสวิชาที่ OCR อ่านคลาดเคลื่อน กรุณาตรวจสอบ');
-      } else if (subjectMatch.method === 'code-fuzzy' || subjectMatch.method === 'name-fuzzy') {
-        warnings.push('ระบบจับคู่วิชาจากข้อความ OCR กรุณาตรวจสอบ');
-      }
-
-      const classroomId = classroomMap.get(normalizeName(row.classroomName)) ?? null;
-      if (!classroomId) issues.push('ไม่พบห้อง');
-      const canonicalCoTeachers = Array.from(coTeacherIds)
-        .filter((id) => id !== teacherId)
-        .map(displayTeacher)
-        .filter(Boolean);
-
-      return {
-        key: `row-${index}-${teacherIndex}`,
-        line: index + 2,
-        teacherName: teacherId ? displayTeacher(teacherId) : row.teacherName,
-        teacherId,
-        teacherMatchConfidence: teacherMatch.confidence,
-        coTeacherName: canonicalCoTeachers.length > 0
-          ? canonicalCoTeachers.join(', ')
-          : (row.coTeacherName ?? ''),
-        subjectCode: matchedSubject?.subject_code ?? row.subjectCode,
-        subjectName: matchedSubject?.subject_name ?? row.subjectName,
-        subjectId,
-        classroomName: row.classroomName,
-        classroomId,
-        hoursPerWeek: row.hoursPerWeek,
-        hoursPerSemester: row.hoursPerSemester,
-        issues,
-        warnings,
-      };
+      const approximateIds = containedTeacherIds(sourceName, teacherLookup, true);
+      return approximateIds.length === 1
+        ? { teacherId: approximateIds[0], confidence: 'fuzzy' }
+        : directMatch;
     });
+
+    const uniqueTeacherIds = new Set<string>();
+    matchedTeachers.forEach((match) => {
+      if (match.teacherId && uniqueTeacherIds.has(match.teacherId)) {
+        match.teacherId = null;
+        match.confidence = null;
+      } else if (match.teacherId) {
+        uniqueTeacherIds.add(match.teacherId);
+      }
+    });
+
+    const issues: string[] = [];
+    const warnings: string[] = [];
+    const teacherId = matchedTeachers[0]?.teacherId ?? null;
+    if (!teacherId) issues.push(allowedRoles ? 'ไม่พบครูผู้สอน 1' : 'ไม่พบครู');
+
+    matchedTeachers.forEach((match, teacherIndex) => {
+      if (match.confidence === 'compact' || match.confidence === 'fuzzy') {
+        warnings.push(`ระบบจับคู่ชื่อครูผู้สอน ${teacherIndex + 1} แบบใกล้เคียง กรุณาตรวจสอบ`);
+      } else if (teacherIndex > 0 && !match.teacherId) {
+        warnings.push(`ไม่พบครูผู้สอน ${teacherIndex + 1} กรุณาตรวจสอบ`);
+      }
+    });
+
+    const subjectMatch = resolveSubjectMatch(row, subjectLookup);
+    const matchedSubject = subjectMatch.subject;
+    const subjectId = matchedSubject?.id ?? null;
+    if (!subjectId) issues.push('ไม่พบวิชา');
+    if (
+      matchedSubject &&
+      row.subjectCode &&
+      normalizeSubjectCode(row.subjectCode).toLowerCase() !== matchedSubject.subject_code.toLowerCase()
+    ) {
+      warnings.push('ระบบแก้รหัสวิชาที่อ่านคลาดเคลื่อน กรุณาตรวจสอบ');
+    } else if (subjectMatch.method === 'code-fuzzy' || subjectMatch.method === 'name-fuzzy') {
+      warnings.push('ระบบจับคู่วิชาแบบใกล้เคียง กรุณาตรวจสอบ');
+    }
+
+    const classroomId = classroomMap.get(normalizeName(row.classroomName)) ?? null;
+    if (!classroomId) issues.push('ไม่พบห้อง');
+
+    const coTeacherIds = matchedTeachers
+      .slice(1)
+      .map((match) => match.teacherId ?? '');
+    const coTeacherName = matchedTeachers
+      .slice(1)
+      .map((match, coTeacherIndex) => (
+        match.teacherId
+          ? displayTeacher(match.teacherId)
+          : teacherSourceNames[coTeacherIndex + 1] ?? ''
+      ))
+      .filter(Boolean)
+      .join(', ');
+
+    return {
+      key: `row-${index}`,
+      line: index + 2,
+      teacherName: teacherId ? displayTeacher(teacherId) : (teacherSourceNames[0] ?? row.teacherName),
+      teacherId,
+      teacherMatchConfidence: matchedTeachers[0]?.confidence ?? null,
+      coTeacherName,
+      coTeacherIds,
+      coTeacherMatchConfidences: matchedTeachers.slice(1).map((match) => match.confidence),
+      teacherSourceNames,
+      subjectCode: matchedSubject?.subject_code ?? row.subjectCode,
+      subjectName: matchedSubject?.subject_name ?? row.subjectName,
+      subjectId,
+      classroomName: row.classroomName,
+      classroomId,
+      hoursPerWeek: row.hoursPerWeek,
+      hoursPerSemester: row.hoursPerSemester,
+      issues,
+      warnings: Array.from(new Set(warnings)),
+    };
   });
-
-  const mergedRows = new Map<string, AssignmentReviewRow>();
-  for (const row of expandedRows) {
-    const mergeKey = row.teacherId && row.subjectId && row.classroomId
-      ? `${row.teacherId}|${row.subjectId}|${row.classroomId}`
-      : row.key;
-    const existing = mergedRows.get(mergeKey);
-    if (!existing) {
-      mergedRows.set(mergeKey, row);
-      continue;
-    }
-
-    const hoursPerWeek = Math.max(existing.hoursPerWeek ?? 0, row.hoursPerWeek ?? 0) || null;
-    const hoursPerSemester = Math.max(existing.hoursPerSemester ?? 0, row.hoursPerSemester ?? 0) || null;
-    mergedRows.set(mergeKey, {
-      ...existing,
-      hoursPerWeek,
-      hoursPerSemester,
-      issues: Array.from(new Set([...existing.issues, ...row.issues])),
-      warnings: Array.from(new Set([...existing.warnings, ...row.warnings])),
-      coTeacherName: Array.from(new Set(
-        [existing.coTeacherName, row.coTeacherName]
-          .flatMap((value) => value.split(',').map((item) => item.trim()))
-          .filter(Boolean),
-      )).join(', '),
-    });
-  }
-
-  return Array.from(mergedRows.values()).map((row, index) => ({
-    ...row,
-    key: `row-${index}`,
-    line: index + 2,
-  }));
 }
 
 export function validateReviewRow(row: AssignmentReviewRow): AssignmentReviewRow {
