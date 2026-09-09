@@ -10,6 +10,7 @@ import {
   isAdmin,
 } from './lib/auth';
 import { logActivity } from './lib/activityLog';
+import { createAuthObserver } from './lib/authObserver';
 import type { GradebookSession, TeacherAssignmentView } from './lib/teacherGradebooks';
 import {
   CheckCircle2, AlertCircle, Loader2, LogOut,
@@ -119,6 +120,7 @@ export default function App() {
 
 function ConfiguredApp() {
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [activeView, setActiveView] = useState<AppView>(readInitialAppView);
   const [gradebookSession, setGradebookSession] = useState<GradebookSession | null>(null);
@@ -150,46 +152,25 @@ function ConfiguredApp() {
   }, []);
 
   useEffect(() => {
-    let mounted = true;
-
-    const applySession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!mounted) return;
-      if (session) {
-        const user = await resolveAppUser(session);
-        if (!mounted) return;
-        applyResolvedUser(user, true);
-      } else {
-        applyResolvedUser(null, false);
-      }
-      setAuthLoading(false);
-    };
-
-    void applySession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return;
-      if (session) {
-        const user = await resolveAppUser(session);
-        if (!mounted) return;
-        applyResolvedUser(user, event === 'SIGNED_IN');
+    const observer = createAuthObserver({
+      resolve: resolveAppUser,
+      apply: (user, event) => {
+        setAuthError(null);
+        applyResolvedUser(user, event === 'SIGNED_IN' || event === 'INITIAL_SESSION');
+        setAuthLoading(false);
         if (event === 'SIGNED_IN' && user?.isActive && canAccessAdminDashboard(user)) {
-          const loginAction =
-            user.role === 'executive'
-              ? 'เข้าสู่ระบบ (ผู้บริหาร)'
-              : 'เข้าสู่ระบบ (ผู้ดูแลระบบ)';
-          void logActivity(user.schoolId, user.id, user.name, loginAction, user.role);
+          const action = user.role === 'executive' ? 'เข้าสู่ระบบ (ผู้บริหาร)' : 'เข้าสู่ระบบ (ผู้ดูแลระบบ)';
+          void logActivity(user.schoolId, user.id, user.name, action, user.role).catch(() => undefined);
         }
-      } else {
-        applyResolvedUser(null, false);
-      }
-      setAuthLoading(false);
+      },
+      fail: () => {
+        setAuthError('ตรวจสอบสิทธิ์ไม่สำเร็จ กรุณาตรวจสอบการเชื่อมต่อแล้วลองใหม่');
+        setAuthLoading(false);
+      },
     });
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    // INITIAL_SESSION replaces a competing getSession request at startup.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(observer.onChange);
+    return () => { observer.dispose(); subscription.unsubscribe(); };
   }, [applyResolvedUser]);
 
   useEffect(() => {
@@ -200,6 +181,7 @@ function ConfiguredApp() {
   }, [syncStatus]);
 
   const renderSyncStatus = () => {
+    if (authError) return <div role="alert" className="fixed bottom-4 left-4 z-[120] rounded bg-amber-50 border border-amber-300 p-4 text-amber-900">ตรวจสอบสิทธิ์ไม่สำเร็จ ข้อมูลที่กำลังกรอกยังอยู่ กรุณาตรวจสอบการเชื่อมต่อ</div>;
     if (syncStatus === 'idle' || syncStatus === 'saving') return null;
 
     let content: React.ReactNode = null;
@@ -326,6 +308,13 @@ function ConfiguredApp() {
     </div>
   );
 
+  if (authError && !currentUser) {
+    return <main className="min-h-screen flex flex-col items-center justify-center gap-4 bg-slate-50 p-6">
+      <p role="alert">{authError}</p>
+      <button type="button" className="rounded bg-blue-600 px-4 py-2 text-white" onClick={() => window.location.reload()}>ลองใหม่</button>
+    </main>;
+  }
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-500">
@@ -391,6 +380,7 @@ function ConfiguredApp() {
         {renderSyncStatus()}
         <Suspense fallback={<RouteFallback />}>
           <GradebookEditor
+            key={gradebookSession.id}
             session={gradebookSession}
             currentUser={currentUser}
             onBack={() => {

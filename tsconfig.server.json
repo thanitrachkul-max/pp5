@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["api", "vite.config.ts"],
+  "exclude": ["supabase/functions"]
+}

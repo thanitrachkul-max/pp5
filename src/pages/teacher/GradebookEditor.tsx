@@ -30,6 +30,7 @@ import { applyPap5OfficialDisplayDefaults } from "../../lib/pap5Officials";
 import {
   computeGradebookStats,
 } from "../../lib/gradebookStats";
+import { createSaveQueue } from "../../lib/saveQueue";
 import { supabase } from "../../lib/supabase";
 import { downloadPap5Pdf } from "../../utils/pap5PdfPreview";
 import { openPap5PrintDialog } from "../../utils/pap5PrintDialog";
@@ -129,6 +130,8 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
   const [printingPap5, setPrintingPap5] = useState(false);
   const [pdfPreviewError, setPdfPreviewError] = useState<string | null>(null);
   const [pdfDownloadStatus, setPdfDownloadStatus] = useState<PdfDownloadStatus | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const leaving = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestData = useRef(data);
   latestData.current = data;
@@ -164,10 +167,9 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
     return null;
   }, [approvalStatus]);
 
-  const persist = useCallback(
+  const writeSnapshot = useCallback(
     async (appData: AppData) => {
       if (session.readOnly) return;
-      onSyncStatusChange?.("saving");
       try {
         const stats = computeGradebookStats(appData);
         const status =
@@ -176,7 +178,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
             : stats.completionPercent > 0 || stats.hasTeacherInput
               ? "in_progress"
               : "not_started";
-        const { error } = await supabase
+        const { data: saved, error } = await supabase
           .from("gradebooks")
           .update({
             ...appDataToRow(appData),
@@ -184,32 +186,47 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
             status,
             updated_at: new Date().toISOString(),
           })
-          .eq("id", session.id);
+          .eq("id", session.id)
+          .select("id")
+          .single();
 
         if (error) throw error;
-        onSyncStatusChange?.("saved");
-      } catch {
-        onSyncStatusChange?.("error");
+        if (!saved) throw new Error("ไม่สามารถบันทึกข้อมูลได้ กรุณาตรวจสอบสิทธิ์");
+      } catch (error) {
+        throw new Error(`บันทึกไม่สำเร็จ: ${getSupabaseErrorMessage(error)}`);
       }
     },
-    [session.id, session.readOnly, onSyncStatusChange],
+    [session.id, session.readOnly, session.gradebook_status],
   );
 
-  const scheduleSave = useCallback(
-    (appData: AppData) => {
-      if (session.readOnly) return;
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-      saveTimer.current = setTimeout(() => {
-        saveTimer.current = null;
-        void persist(appData);
-      }, 1500);
-    },
-    [persist, session.readOnly],
-  );
+  const writeRef = useRef(writeSnapshot);
+  writeRef.current = writeSnapshot;
+  const saveQueue = useMemo(() => createSaveQueue(session.data, value => writeRef.current(value)), [session.id]);
+  const persist = useCallback(async () => {
+    if (session.readOnly || !saveQueue.isDirty()) return;
+    onSyncStatusChange?.("saving");
+    setSaveError(null);
+    try {
+      await saveQueue.flush();
+      onSyncStatusChange?.("saved");
+    } catch (error) {
+      setSaveError(getSupabaseErrorMessage(error));
+      onSyncStatusChange?.("error");
+      throw error;
+    }
+  }, [saveQueue, session.readOnly, onSyncStatusChange]);
 
   const handleUpdate = (newData: AppData) => {
+    if (session.readOnly) return;
+    latestData.current = newData;
     setData(newData);
-    scheduleSave(newData);
+    saveQueue.update(newData);
+    onSyncStatusChange?.("saving");
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      saveTimer.current = null;
+      void persist().catch(() => undefined);
+    }, 1500);
   };
 
   const handlePersistStudentEdit = useCallback(
@@ -303,23 +320,24 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
       clearTimeout(saveTimer.current);
       saveTimer.current = null;
     }
-    await persist(latestData.current);
+    await persist();
   }, [persist, session.readOnly]);
 
-  const handleBack = async () => {
-    await flushPendingSave();
-    onBack();
+  const leaveAfterSave = async (navigate: () => void) => {
+    if (leaving.current) return;
+    leaving.current = true;
+    try {
+      await flushPendingSave();
+      navigate();
+    } catch {
+      // Keep the editor and its unsaved values available for retry.
+    } finally {
+      leaving.current = false;
+    }
   };
-
-  const handleLogout = async () => {
-    await flushPendingSave();
-    onLogout();
-  };
-
-  const handleSettings = async () => {
-    await flushPendingSave();
-    onSettings();
-  };
+  const handleBack = () => leaveAfterSave(onBack);
+  const handleLogout = () => leaveAfterSave(onLogout);
+  const handleSettings = () => leaveAfterSave(onSettings);
 
   const handleTabChange = useCallback(
     (nextTab: string) => {
@@ -452,13 +470,29 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
       if (saveTimer.current) {
         clearTimeout(saveTimer.current);
         saveTimer.current = null;
-        void persist(latestData.current);
+        void persist().catch(() => undefined);
       }
     };
   }, [persist]);
 
+  useEffect(() => {
+    const warnBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!saveQueue.isDirty()) return;
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warnBeforeUnload);
+    return () => window.removeEventListener("beforeunload", warnBeforeUnload);
+  }, [saveQueue]);
+
   return (
     <div className="h-screen overflow-y-auto bg-[#f5f5f7] font-sans">
+      {saveError && (
+        <div role="alert" className="sticky top-0 z-[110] bg-red-50 border-b border-red-200 p-4 text-red-800">
+          <p>{saveError} ข้อมูลยังอยู่ในหน้านี้ กรุณาลองบันทึกอีกครั้งก่อนออก</p>
+          <button type="button" className="mt-2 rounded border border-red-300 px-3 py-1" onClick={() => { void flushPendingSave().catch(() => undefined); }}>ลองบันทึกอีกครั้ง</button>
+        </div>
+      )}
       {pdfDownloadStatus && (
         <ModalPortal>
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/35 px-4 backdrop-blur-sm">

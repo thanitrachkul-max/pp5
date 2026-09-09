@@ -76,10 +76,10 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
 
     const { data: adminProfile, error: profileError } = await supabaseUser
       .from('profiles')
-      .select('role, school_id')
+      .select('role, school_id, is_active')
       .eq('id', authData.user.id)
       .single();
-    if (profileError || !adminProfile || !['super_admin', 'admin'].includes(adminProfile.role)) {
+    if (profileError || adminProfile?.is_active !== true || !adminProfile || !['super_admin', 'admin'].includes(adminProfile.role)) {
       json(res, 403, { error: 'Forbidden' });
       return;
     }

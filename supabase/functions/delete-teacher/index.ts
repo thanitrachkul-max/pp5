@@ -41,11 +41,11 @@ Deno.serve(async (req) => {
 
     const { data: adminProfile, error: adminError } = await supabaseUser
       .from('profiles')
-      .select('role, school_id')
+      .select('role, school_id, is_active')
       .eq('id', authData.user.id)
       .single();
 
-    if (adminError || !['super_admin', 'admin'].includes(adminProfile?.role ?? '')) {
+    if (adminError || adminProfile?.is_active !== true || !['super_admin', 'admin'].includes(adminProfile?.role ?? '')) {
       return response(403, { error: 'Forbidden' });
     }
 
