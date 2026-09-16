@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { LEARNING_AREAS } from '../../lib/learningAreas';
 import { SUBJECTS_CATALOG, type SubjectCatalogItem } from '../../data/subjectsCatalog';
 import { FilterBar, FilterClearButton, FilterSearch, FilterSelect } from '../../components/FilterBar';
+import { ModalPortal } from '../../components/ModalPortal';
 import type { AppUser, Subject } from '../../types';
 
 interface SubjectsPageProps {
@@ -649,10 +650,11 @@ export const SubjectsPage: React.FC<SubjectsPageProps> = ({ currentUser }) => {
       </div>
 
       {showModal && (
+        <ModalPortal>
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+          <div role="dialog" aria-modal="true" aria-labelledby="subject-modal-title" className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto p-6">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-slate-900">
+              <h3 id="subject-modal-title" className="text-lg font-bold text-slate-900">
                 {editing ? 'แก้ไขวิชา' : 'เพิ่มวิชาใหม่'}
               </h3>
               <button type="button" onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600">
@@ -735,6 +737,7 @@ export const SubjectsPage: React.FC<SubjectsPageProps> = ({ currentUser }) => {
             </form>
           </div>
         </div>
+        </ModalPortal>
       )}
 
       {deleteTarget && (
