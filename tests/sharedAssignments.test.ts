@@ -2,9 +2,19 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   assignmentGroupKey,
+  assignmentTeacherCounts,
   expandSharedAssignmentRows,
   sharedRecordForAssignment,
 } from '../src/lib/sharedAssignments.ts';
+
+test('teacher counts use distinct members of the same course group', () => {
+  const base = { id: 'a', semester_id: 's', subject_id: 'subject', classroom_id: 'room', teacher_id: 't1' };
+  const rows = [base, { ...base, id: 'b', teacher_id: 't2' }, { ...base, id: 'duplicate' }, { ...base, id: 'other-room', classroom_id: 'room2' }];
+  assert.equal(assignmentTeacherCounts(rows).get(assignmentGroupKey(base)), 2);
+  assert.equal(assignmentTeacherCounts(rows.slice(1)).get(assignmentGroupKey(base)), 2);
+  assert.equal(assignmentTeacherCounts([base]).get(assignmentGroupKey(base)), 1);
+  assert.equal(assignmentTeacherCounts(rows).get(assignmentGroupKey(rows[3])), 1);
+});
 
 test('one timetable row expands to one assignment per unique teacher', () => {
   const labels: Record<string, string> = {

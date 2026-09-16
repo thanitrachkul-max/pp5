@@ -16,6 +16,17 @@ export function uniqueTeacherIds(primaryTeacherId: string | null | undefined, co
   return Array.from(new Set([primaryTeacherId ?? '', ...coTeacherIds].filter(Boolean)));
 }
 
+export function assignmentTeacherCounts(assignments: Array<AssignmentIdentity & { teacher_id: string }>): Map<string, number> {
+  const groups = new Map<string, Set<string>>();
+  for (const assignment of assignments) {
+    const key = assignmentGroupKey(assignment);
+    const teachers = groups.get(key) ?? new Set<string>();
+    teachers.add(assignment.teacher_id);
+    groups.set(key, teachers);
+  }
+  return new Map(Array.from(groups, ([key, teachers]) => [key, teachers.size]));
+}
+
 export function expandSharedAssignmentRows<T extends Record<string, unknown>>(
   base: T,
   primaryTeacherId: string,

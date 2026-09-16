@@ -20,6 +20,7 @@ import { FilterBar, FilterClearButton, FilterSearch, FilterSelect } from '../../
 import { isSchemaCacheErrorFor } from '../../lib/dbErrors';
 import {
   assignmentGroupKey,
+  assignmentTeacherCounts,
   expandSharedAssignmentRows,
   sharedRecordForAssignment,
   uniqueTeacherIds,
@@ -653,6 +654,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     : null;
   const selectedTeacher = selectedSummary?.teacher ?? teachers.find((teacher) => teacher.id === selectedTeacherId);
   const selectedAssignments = selectedSummary?.assignments ?? [];
+  const teacherCounts = assignmentTeacherCounts(assignments);
   const allPendingApprovalGradebookIds = pendingApprovalGradebookIds(assignments);
   const selectedTeacherPendingApprovalGradebookIds = selectedTeacherId
     ? pendingApprovalGradebookIds(assignments.filter((assignment) => assignment.teacher_id === selectedTeacherId))
@@ -993,7 +995,11 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('ลบรายการมอบหมายครูกรอก ปพ.5 นี้?')) return;
+    const assignment = assignments.find((item) => item.id === id);
+    const shared = assignment && (teacherCounts.get(assignmentGroupKey(assignment)) ?? 1) > 1;
+    if (!window.confirm(shared
+      ? 'ลบรายการมอบหมายของครูคนนี้? ครูที่สอนร่วมและข้อมูล ปพ.5 จะยังคงอยู่ และหน้าปกจะแสดงเฉพาะครูที่เหลือ'
+      : 'ลบรายการมอบหมายครูกรอก ปพ.5 นี้?')) return;
     const { error: delError } = await supabase.from('teaching_assignments').delete().eq('id', id);
     if (delError) setError(delError.message);
     else {
@@ -2000,18 +2006,19 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
             </div>
             ) : null}
             <div className="overflow-x-auto">
-            <table className="w-full min-w-[1120px] table-fixed text-sm">
+            <table className="w-full min-w-[1280px] table-fixed text-sm">
               <colgroup>
                 <col style={{ width: '4%' }} />
                 <col style={{ width: '4.5%' }} />
                 <col style={{ width: '6.3%' }} />
                 <col style={{ width: '6.3%' }} />
-                <col style={{ width: '18.9%' }} />
-                <col style={{ width: '13.5%' }} />
+                <col style={{ width: '16.9%' }} />
+                <col style={{ width: '11.5%' }} />
                 <col style={{ width: '8.1%' }} />
                 <col style={{ width: '7.2%' }} />
+                <col style={{ width: '7%' }} />
                 <col style={{ width: '10%' }} />
-                <col style={{ width: '12.2%' }} />
+                <col style={{ width: '9.2%' }} />
                 <col style={{ width: '9%' }} />
               </colgroup>
               <thead className="border-b border-slate-200 bg-slate-50 text-slate-500">
@@ -2032,6 +2039,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                   <th className="px-4 py-3 text-center font-semibold">กลุ่มสาระ</th>
                   <th className="px-4 py-3 text-center font-semibold">ระดับชั้น/ห้อง</th>
                   <th className="px-4 py-3 text-center font-semibold">ชม.เรียน/สัปดาห์/ภาค</th>
+                  <th className="px-4 py-3 text-center font-semibold">ครูผู้สอน</th>
                   <th className="px-4 py-3 text-center font-semibold">สถานะ</th>
                   <th className="px-4 py-3 text-center font-semibold">การดำเนินการ</th>
                   <th className="px-4 py-3 text-center font-semibold">จัดการ</th>
@@ -2061,6 +2069,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                     <td className="px-4 py-4 text-center text-slate-600">{assignment.subject?.learning_area ?? '—'}</td>
                     <td className="px-4 py-4 text-center font-semibold text-slate-700">{subjectLevelLabel(assignment)}</td>
                     <td className="px-4 py-4 text-center font-mono font-semibold text-slate-700">{hoursLabel(assignment)}</td>
+                    <td className="px-4 py-4 text-center font-semibold text-slate-700">{teacherCounts.get(assignmentGroupKey(assignment)) ?? 1}</td>
                     <td className="px-4 py-4 text-center">
                       {renderAssignmentApprovalStatus(assignment)}
                     </td>

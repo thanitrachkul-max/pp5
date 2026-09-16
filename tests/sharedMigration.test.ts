@@ -75,6 +75,35 @@ if((await db.query('select id from gradebooks where deleted_at is null')).rows.l
 if((await db.query(`update gradebooks set scores='{}' returning id`)).rows.length) throw Error('Outsider can write');
 await db.exec('reset role');
 if((await db.query<{scores:{student:number}}>('select scores from gradebooks where deleted_at is null')).rows[0].scores.student!==90) throw Error('Shared score missing');
+await db.exec(readFileSync('supabase/migrations/0041_sync_teachers_after_assignment_delete.sql', 'utf8'));
+await db.exec(readFileSync('supabase/migrations/0041_sync_teachers_after_assignment_delete.sql', 'utf8'));
+await db.exec(`
+create or replace function current_role_is_admin() returns boolean language sql as $$ select true $$;
+insert into profiles values ('00000000-0000-0000-0000-000000000003',current_school_id(),'นาย','ครูสาม',true,'teacher');
+insert into teaching_assignments(school_id,semester_id,teacher_id,subject_id,classroom_id,status)
+select school_id,semester_id,'00000000-0000-0000-0000-000000000003',subject_id,classroom_id,status from teaching_assignments limit 1;
+update gradebooks set general_info='{"teacherName":"stale","teacherName2":"stale","teacherName3":"stale","schoolName":"School"}' where deleted_at is null;
+`);
+const removedTeacher = emptyDuplicate ? '00000000-0000-0000-0000-000000000002' : '00000000-0000-0000-0000-000000000001';
+await db.query('delete from teaching_assignments where teacher_id=$1', [removedTeacher]);
+const remaining = await db.query<{teacher_id:string;co_teacher_name:string}>(`select teacher_id,co_teacher_name from teaching_assignments order by teacher_id`);
+assert.equal(remaining.rows.length, 2);
+assert.ok(remaining.rows.every(row => row.co_teacher_name && !row.co_teacher_name.includes(emptyDuplicate ? 'ครูสอง' : 'ครูหนึ่ง')));
+const cover = await db.query<{general_info:Record<string,string>;scores:{student:number}}>('select general_info,scores from gradebooks where deleted_at is null');
+assert.equal(cover.rows.length, 1);
+assert.equal(cover.rows[0].scores.student, 90);
+assert.equal(cover.rows[0].general_info.schoolName, 'School');
+assert.equal(cover.rows[0].general_info.teacherName3, '');
+assert.deepEqual(new Set([cover.rows[0].general_info.teacherName, cover.rows[0].general_info.teacherName2]), new Set([emptyDuplicate ? 'นาย ครูหนึ่ง' : 'นาง ครูสอง', 'นาย ครูสาม']));
+await db.query('delete from teaching_assignments where teacher_id=$1', [remaining.rows[0].teacher_id]);
+assert.equal((await db.query('select co_teacher_name from teaching_assignments')).rows[0].co_teacher_name, null);
+const lastCover = (await db.query<{general_info:Record<string,string>;scores:{student:number}}>('select general_info,scores from gradebooks where deleted_at is null')).rows[0];
+assert.equal(lastCover.general_info.teacherName, 'นาย ครูสาม');
+assert.equal(lastCover.general_info.teacherName2, '');
+assert.equal(lastCover.general_info.teacherName3, '');
+assert.equal(lastCover.scores.student, 90);
+await db.exec('delete from teaching_assignments');
+assert.equal((await db.query('select id from gradebooks where deleted_at is null')).rows.length, 0);
  } finally { await db.close(); }
 });
 
