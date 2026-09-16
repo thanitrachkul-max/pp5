@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useLayoutEffect, useRef } from "react";
 import { Check } from "lucide-react";
 import { applyPap5OfficialDisplayDefaults } from "../lib/pap5Officials";
 import type { AppData, GradebookApprovalStatus } from "../types";
@@ -176,6 +176,7 @@ function TextField({
   editable,
   highlighted = false,
   muted = false,
+  fit = false,
   type = "text",
   onChange,
 }: {
@@ -185,9 +186,38 @@ function TextField({
   editable: boolean;
   highlighted?: boolean;
   muted?: boolean;
+  fit?: boolean;
   type?: "text" | "number";
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
+  const fieldRef = useRef<HTMLInputElement & HTMLSpanElement>(null);
+  useLayoutEffect(() => {
+    if (!fit) return;
+    const field = fieldRef.current;
+    if (!field) return;
+    let disposed = false;
+    const resize = () => {
+      if (disposed) return;
+      field.style.removeProperty('font-size');
+      const style = getComputedStyle(field);
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      if (!context) return;
+      context.font = style.font;
+      const textWidth = context.measureText(String(value ?? '')).width;
+      const available = field.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight) - 2;
+      if (textWidth > available && available > 0) {
+        field.style.setProperty('font-size', `${parseFloat(style.fontSize) * available / textWidth}px`, 'important');
+      }
+    };
+    resize();
+    void document.fonts.ready.then(resize);
+    const observer = new ResizeObserver(resize);
+    observer.observe(field);
+    window.addEventListener('beforeprint', resize);
+    window.addEventListener('afterprint', resize);
+    return () => { disposed = true; observer.disconnect(); window.removeEventListener('beforeprint', resize); window.removeEventListener('afterprint', resize); };
+  }, [fit, value, editable]);
   const backgroundClass = highlighted ? "bg-yellow-excel" : muted ? "bg-slate-50" : "bg-white";
   const className = fieldBaseClass(`${backgroundClass} ${widthClass}`);
   const displayValue = value === undefined || value === null ? "" : String(value);
@@ -196,6 +226,8 @@ function TextField({
     const shouldBoldValue = highlighted || muted || name === "academicYear";
     return (
       <span
+        ref={fieldRef}
+        data-cover-field={name}
         className={`pap5-cover-value pap5-cover-fill-line inline-flex min-h-[20px] items-center justify-center px-1 text-center ${widthClass} ${
           shouldBoldValue ? "font-bold" : ""
         }`}
@@ -207,6 +239,8 @@ function TextField({
 
   return (
     <input
+      ref={fieldRef}
+      data-cover-field={name}
       type={type}
       name={name}
       value={displayValue}
@@ -424,6 +458,7 @@ export function Pap5CoverPreview({
           <div className="flex items-center gap-1">
             <span>รายวิชา</span>
             <TextField
+              fit
               name="subjectName"
               value={displayGeneralInfo.subjectName}
               widthClass="w-40"
@@ -435,6 +470,7 @@ export function Pap5CoverPreview({
           <div className="flex items-center gap-1">
             <span>กลุ่มสาระการเรียนรู้</span>
             <TextField
+              fit
               name="learningArea"
               value={displayGeneralInfo.learningArea}
               widthClass="w-56"
@@ -475,6 +511,7 @@ export function Pap5CoverPreview({
               <span key={teacher.name} className="inline-flex items-center justify-center gap-1">
                 {teacherFields.length > 1 ? <span>{index + 1}.</span> : null}
                 <TextField
+                  fit
                   name={teacher.name}
                   value={teacher.value}
                   widthClass={teacherFields.length === 1 ? "w-72" : teacherFields.length === 2 ? "w-48" : "w-36"}
@@ -490,6 +527,7 @@ export function Pap5CoverPreview({
         <div className="flex justify-center items-center gap-1 mb-4">
           <span>ครูประจำชั้น 1.</span>
           <TextField
+            fit
             name="homeroomTeacher1"
             value={displayGeneralInfo.homeroomTeacher1}
             widthClass="w-44"
@@ -498,6 +536,7 @@ export function Pap5CoverPreview({
           />
           <span>2.</span>
           <TextField
+            fit
             name="homeroomTeacher2"
             value={displayGeneralInfo.homeroomTeacher2}
             widthClass="w-44"
@@ -506,6 +545,7 @@ export function Pap5CoverPreview({
           />
           <span>3.</span>
           <TextField
+            fit
             name="homeroomTeacher3"
             value={displayGeneralInfo.homeroomTeacher3 || ""}
             widthClass="w-44"
@@ -593,8 +633,8 @@ export function Pap5CoverPreview({
         <div className="pap5-signatures px-8 space-y-5">
           <div className="font-bold">การอนุมัติผลการเรียน</div>
 
-          {teacherNames.length === 2 ? (
-            <TeacherSignaturePair names={teacherNames} />
+          {teacherNames.length >= 2 ? (
+            <TeacherSignatures names={teacherNames} />
           ) : (
             <SignatureLine
               label="ครูผู้สอน"
@@ -651,18 +691,18 @@ export function Pap5CoverPreview({
   );
 }
 
-function TeacherSignaturePair({ names }: { names: [string, string] | string[] }) {
+function TeacherSignatures({ names }: { names: [string, string] | string[] }) {
   return (
-    <div className="pap5-teacher-signatures grid grid-cols-2 gap-x-8">
-      {names.slice(0, 2).map((name, index) => (
+    <div className={`pap5-teacher-signatures grid ${names.length >= 3 ? "grid-cols-3 gap-x-4" : "grid-cols-2 gap-x-8"}`}>
+      {names.slice(0, 3).map((name, index) => (
         <div key={`${name}-${index}`} className="min-w-0">
           <div className="flex items-end">
-            <div className="w-12 shrink-0 pr-1 text-right">ลงชื่อ</div>
+            <div className="shrink-0 pr-1 text-right">ลงชื่อ</div>
             <div className="min-w-0 flex-1 border-b border-dotted border-slate-500" />
           </div>
-          <div className="pl-12 text-center text-[13px] leading-tight">( {name} )</div>
+          <div className="text-center text-[13px] leading-tight">( {name} )</div>
           <div className="pl-12 text-center text-[13px] leading-tight">
-            ครูผู้สอน คนที่ {index + 1}
+            ครูผู้สอน
           </div>
         </div>
       ))}
