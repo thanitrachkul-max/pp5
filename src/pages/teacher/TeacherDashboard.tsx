@@ -1,3 +1,4 @@
+import { WorkspaceTabs } from '../../components/WorkspaceTabs';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
@@ -595,26 +596,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             </div>
           </div>
           {isAdmin(currentUser) ? (
-            <nav
-              aria-label="สลับพื้นที่ทำงาน"
-              className="inline-flex items-center justify-self-start rounded-full border border-slate-200 bg-slate-100/80 p-1 lg:justify-self-center"
-            >
-              <button
-                type="button"
-                className="inline-flex items-center rounded-full bg-white px-3 py-1.5 text-sm font-bold text-slate-900 shadow-sm ring-1 ring-slate-200/60 sm:px-4"
-              >
-                <BookOpen className="mr-2 h-4 w-4 text-blue-600" />
-                หน้าครู
-              </button>
-              <button
-                type="button"
-                onClick={onSettings}
-                className="inline-flex items-center rounded-full px-3 py-1.5 text-sm font-semibold text-slate-500 transition hover:text-slate-900 sm:px-4"
-              >
-                <LayoutDashboard className="mr-2 h-4 w-4" />
-                Admin
-              </button>
-            </nav>
+            <div className="justify-self-start lg:justify-self-center"><WorkspaceTabs active="teacher" onAdmin={onSettings} onTeacher={() => {}} /></div>
           ) : (
             <div className="hidden lg:block" />
           )}
@@ -714,18 +696,8 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         ) : selectedPeriod ? (
           <div className="ui-card overflow-hidden animate-fade-up">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1060px] table-fixed text-sm">
-                <colgroup>
-                  <col style={{ width: '5%' }} />
-                  <col style={{ width: '8%' }} />
-                  <col style={{ width: '7%' }} />
-                  <col style={{ width: '19%' }} />
-                  <col style={{ width: '14%' }} />
-                  <col style={{ width: '7%' }} />
-                  <col style={{ width: '7%' }} />
-                  <col style={{ width: '7%' }} />
-                  <col style={{ width: '26%' }} />
-                </colgroup>
+              <table className="w-full min-w-[1060px]  text-sm">
+
                 <thead className="bg-slate-900 text-white">
                   <tr>
                     <th className="px-4 py-3 text-center font-semibold">ลำดับ</th>
@@ -736,6 +708,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     <th className="px-4 py-3 text-center font-semibold">ระดับชั้น</th>
                     <th className="px-4 py-3 text-center font-semibold">ห้องเรียน</th>
                     <th className="px-4 py-3 text-center font-semibold">ชม.เรียน/สัปดาห์/ภาค</th>
+                    <th className="px-4 py-3 text-center font-semibold">การบันทึกผล</th>
                     <th className="px-4 py-3 text-center font-semibold">สถานะ</th>
                   </tr>
                 </thead>
@@ -755,6 +728,9 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         <td className="px-4 py-3 text-center text-slate-600">{assignment.class_level_code}</td>
                         <td className="px-4 py-3 text-center font-semibold text-slate-700">{assignment.classroom_name}</td>
                         <td className="px-4 py-3 text-center font-mono font-semibold text-slate-700">{hoursLabel(assignment)}</td>
+                        <td className="px-3 py-3 text-center"><span className={`inline-flex whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-bold ${assignment.recording_mode === 'received' ? 'bg-violet-100 text-violet-700' : assignment.recording_mode === 'delegated' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-50 text-emerald-700'}`}>
+                          {assignment.recording_mode === 'received' ? 'ได้รับมอบหมาย' : assignment.recording_mode === 'delegated' ? 'มอบหมาย' : 'บันทึกเอง'}
+                        </span></td>
                         <td className="px-2 py-3 text-center">
                           <div className="flex justify-center">
                             {renderAssignmentStatusControl(assignment)}
@@ -770,7 +746,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         ) : (
           <div className="ui-card overflow-hidden animate-fade-up">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[940px] text-sm">
+              <table className="w-full min-w-[1080px] text-sm">
                 <thead className="bg-slate-900 text-white">
                   <tr>
                     <th className="w-14 px-4 py-3 text-center font-semibold">

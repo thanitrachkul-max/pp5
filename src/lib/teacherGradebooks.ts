@@ -1,3 +1,4 @@
+import { listOptionalGradebookDelegations, recordingMode, type RecordingMode } from "./gradebookDelegations";
 import { supabase } from "./supabase";
 import { rowToAppData } from "./gradebookAdapter";
 import {
@@ -162,6 +163,7 @@ function isMissingAssignmentGroupColumn(error: unknown): boolean {
 }
 
 export interface TeacherAssignmentView {
+  recording_mode?: RecordingMode;
   id: string;
   assignment_group_id: string;
   school_id: string;
@@ -439,18 +441,21 @@ async function fetchGradebooksByAssignmentIds(
 export async function fetchTeacherAssignments(
   teacherId: string,
 ): Promise<TeacherAssignmentView[]> {
+  const delegations = await listOptionalGradebookDelegations();
+  const receivedIds = Array.from(new Set(delegations.filter(d => d.teacher_id === teacherId).map(d => d.assignment_id)));
+  const assignmentFilter = receivedIds.length ? `teacher_id.eq.${teacherId},id.in.(${receivedIds.join(',')})` : `teacher_id.eq.${teacherId}`;
   const runQuery = async (select: string) => {
     let result = await supabase
       .from("teaching_assignments")
       .select(select)
-      .eq("teacher_id", teacherId)
+      .or(assignmentFilter)
       .order("created_at", { ascending: false });
 
     if (result.error && isMissingAssignmentGroupColumn(result.error)) {
       result = await supabase
         .from("teaching_assignments")
         .select(withoutAssignmentGroupColumn(select))
-        .eq("teacher_id", teacherId)
+        .or(assignmentFilter)
         .order("created_at", { ascending: false });
     }
     return result;
@@ -541,6 +546,7 @@ export async function fetchTeacherAssignments(
 
     views.push({
       id: row.id,
+      recording_mode: recordingMode(assignmentGroupId, teacherId, delegations),
       assignment_group_id: assignmentGroupId,
       school_id: row.school_id,
       school_name: school?.name ?? DEFAULT_SCHOOL_NAME,
@@ -579,7 +585,8 @@ export async function fetchTeacherAssignments(
     });
   }
 
-  return views;
+  const uniqueViews = Array.from(new Map(views.map(view => [view.assignment_group_id, view])).values());
+  return uniqueViews.sort((a, b) => Number(b.recording_mode === 'received') - Number(a.recording_mode === 'received'));
 }
 
 export function groupAssignmentsByYear(

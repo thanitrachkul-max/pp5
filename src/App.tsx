@@ -15,7 +15,7 @@ import type { GradebookSession, TeacherAssignmentView } from './lib/teacherGrade
 import {
   CheckCircle2, AlertCircle, Loader2, LogOut,
 } from 'lucide-react';
-import { isAdminTabUrl } from './lib/adminNavigation';
+import { clearAdminTabFromUrl, isAdminTabUrl } from './lib/adminNavigation';
 
 type AppView = 'teacher' | 'admin';
 
@@ -248,6 +248,7 @@ function ConfiguredApp() {
   };
 
   const openTeacherView = () => {
+    clearAdminTabFromUrl();
     setGradebookSession(null);
     setActiveView('teacher');
   };

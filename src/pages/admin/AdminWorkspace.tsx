@@ -1,3 +1,4 @@
+import { WorkspaceTabs } from '../../components/WorkspaceTabs';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Activity,
@@ -209,7 +210,7 @@ export const AdminWorkspace: React.FC<AdminWorkspaceProps> = ({
   const isDeveloperAccount = currentUser.role === 'super_admin';
   const currentUserDisplayName = isDeveloperAccount ? 'ผู้พัฒนาระบบ' : currentUser.name;
   const currentUserRoleLabel = isDeveloperAccount ? 'ผู้พัฒนาระบบ' : ROLE_LABELS[currentUser.role];
-  void onOpenTeacherView;
+
 
   const contentMaxWidth =
     activeTab === 'students' ||
@@ -380,6 +381,7 @@ export const AdminWorkspace: React.FC<AdminWorkspaceProps> = ({
     return (
       <div className="min-h-screen bg-[#f5f5f7] font-sans text-slate-950">
         <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl">
+          {!isAdminReadOnly(currentUser) && <div className="flex justify-center px-4 pt-3"><WorkspaceTabs active="admin" onAdmin={() => {}} onTeacher={onOpenTeacherView} /></div>}
           <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-3.5 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
             <div className="flex items-center min-w-0">
               <img src="/logo3.png" alt="KSP GradeBook" className="mr-3 h-11 w-11 shrink-0 object-contain" />
@@ -522,6 +524,7 @@ export const AdminWorkspace: React.FC<AdminWorkspaceProps> = ({
       <div className="flex min-h-screen flex-col lg:pl-[272px]">
         {/* Top bar */}
         <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl">
+          {!isAdminReadOnly(currentUser) && <div className="flex justify-center px-4 pt-3"><WorkspaceTabs active="admin" onAdmin={() => {}} onTeacher={onOpenTeacherView} /></div>}
           <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
             <div className="flex min-w-0 items-center gap-3">
               <img src="/logo3.png" alt="KSP GradeBook" className="h-9 w-9 shrink-0 object-contain lg:hidden" />

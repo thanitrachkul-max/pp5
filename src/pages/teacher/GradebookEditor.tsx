@@ -1,3 +1,4 @@
+import { GradebookDelegationControl } from '../../components/GradebookDelegationControl';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
@@ -595,6 +596,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
             </div>
 
             <div className="flex flex-wrap items-center justify-start gap-2 xl:justify-end">
+              <GradebookDelegationControl session={session} beforeChange={flushPendingSave} />
               <button
                 type="button"
                 onClick={() => void handleBack()}

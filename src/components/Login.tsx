@@ -21,7 +21,7 @@ const LoginShell = ({ children }: { children: React.ReactNode }) => (
   <div className="min-h-screen font-sans relative overflow-hidden network-bg">
     <div className="relative z-10 min-h-screen w-full grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(27.66rem,36%)] items-center">
       <div className="hidden xl:block" aria-hidden="true" />
-      <div className="flex items-center justify-center p-4 sm:p-6 xl:px-4 2xl:px-8">
+      <div className="flex items-center justify-center p-4 sm:p-6 xl:px-8 2xl:px-16">
         <div className="w-full max-w-[27.66rem] shrink-0">
           {children}
         </div>
