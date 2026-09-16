@@ -2,7 +2,8 @@ import { PGlite } from '@electric-sql/pglite';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-test('shared migration preserves scores, supports co-teachers and denies outsiders', async () => {
+for (const emptyDuplicate of [false, true]) {
+test(`shared migration preserves data and permissions (empty duplicate: ${emptyDuplicate})`, async () => {
 const db = new PGlite();
 try {
 await db.exec(`
@@ -33,6 +34,13 @@ alter table academic_years add year_be integer default 2569;
 alter table classrooms add name text default '1/1';
 alter table subjects add subject_code text default 'TEST', add subject_name text default 'Test', add learning_area text default 'Test';
 `);
+if (emptyDuplicate) await db.exec(`
+update gradebooks set status='not_started', scores='{}';
+insert into teaching_assignments(school_id,semester_id,teacher_id,subject_id,classroom_id,status)
+select school_id,semester_id,'00000000-0000-0000-0000-000000000002',subject_id,classroom_id,status from teaching_assignments limit 1;
+insert into gradebooks(teaching_assignment_id,teacher_id,semester_id,status,scores)
+select id,teacher_id,semester_id,'not_started','{}' from teaching_assignments where teacher_id='00000000-0000-0000-0000-000000000002';
+`);
 const sql=readFileSync('supabase/migrations/0039_shared_co_teacher_gradebooks.sql','utf8');
 await db.exec(sql);
 await db.exec(sql);
@@ -40,7 +48,12 @@ const invoke = `select id from admin_sync_teaching_assignment_group('00000000-00
 await db.query(invoke);
 const invariants = await db.query<{teachers:number;groups:number;books:number}>(`select (select count(*)::int from teaching_assignments) as teachers, (select count(distinct assignment_group_id)::int from teaching_assignments) as groups, (select count(*)::int from gradebooks where deleted_at is null) as books`);
 assert.deepEqual(invariants.rows[0], {teachers:2, groups:1, books:1});
-assert.equal((await db.query<{scores:{student:number}}>('select scores from gradebooks')).rows[0].scores.student,85);
+if (emptyDuplicate) {
+  const archived = await db.query<{n:number}>(`select count(*)::int as n from gradebooks where deleted_at is not null and scores='{}'`);
+  assert.equal(archived.rows[0].n, 1);
+} else {
+  assert.equal((await db.query<{scores:{student:number}}>('select scores from gradebooks where deleted_at is null')).rows[0].scores.student,85);
+}
 await db.exec(`
 create or replace function auth.uid() returns uuid language sql as $$ select current_setting('test.uid',true)::uuid $$;
 create or replace function current_role_is_admin() returns boolean language sql as $$ select false $$;
@@ -51,16 +64,18 @@ alter table gradebooks enable row level security;
 set role authenticated;
 set test.uid='00000000-0000-0000-0000-000000000002';
 `);
-const coRead = await db.query('select id from gradebooks');
+const coRead = await db.query('select id from gradebooks where deleted_at is null');
 if(coRead.rows.length!==1) throw Error('Co-teacher cannot read shared book');
-const clonedExisting = await db.query(`select clone_gradebook_structure((select id from gradebooks limit 1),(select id from teaching_assignments where teacher_id=auth.uid())) as id`);
+const clonedExisting = await db.query(`select clone_gradebook_structure((select id from gradebooks where deleted_at is null limit 1),(select id from teaching_assignments where teacher_id=auth.uid())) as id`);
 if(clonedExisting.rows[0].id!==coRead.rows[0].id) throw Error('Clone did not resolve existing shared book');
-const coWrite = await db.query(`update gradebooks set scores='{"student":90}' returning id`);
+const coWrite = await db.query(`update gradebooks set scores='{"student":90}' where deleted_at is null returning id`);
 if(coWrite.rows.length!==1) throw Error('Co-teacher cannot write shared book');
 await db.exec(`set test.uid='00000000-0000-0000-0000-000000000099'`);
-if((await db.query('select id from gradebooks')).rows.length) throw Error('Outsider can read');
+if((await db.query('select id from gradebooks where deleted_at is null')).rows.length) throw Error('Outsider can read');
 if((await db.query(`update gradebooks set scores='{}' returning id`)).rows.length) throw Error('Outsider can write');
 await db.exec('reset role');
-if((await db.query<{scores:{student:number}}>('select scores from gradebooks')).rows[0].scores.student!==90) throw Error('Shared score missing');
+if((await db.query<{scores:{student:number}}>('select scores from gradebooks where deleted_at is null')).rows[0].scores.student!==90) throw Error('Shared score missing');
  } finally { await db.close(); }
 });
+
+}

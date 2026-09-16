@@ -170,6 +170,28 @@ from public.teaching_assignments ta
 where ta.id = g.teaching_assignment_id
   and g.assignment_group_id is distinct from ta.assignment_group_id;
 
+-- Archive redundant, untouched books only when every stored payload agrees.
+-- Keep the full row for recovery. Teacher/homeroom labels are rebuilt from the
+-- shared assignment and classroom relations by the application.
+update public.gradebooks redundant
+set deleted_at = now()
+where redundant.deleted_at is null
+  and redundant.status = 'not_started'
+  and redundant.scores = '{}'::jsonb
+  and coalesce((redundant.stats->>'hasTeacherInput')::boolean, false) = false
+  and exists (
+    select 1 from public.gradebooks canonical
+    where canonical.assignment_group_id = redundant.assignment_group_id
+      and canonical.id < redundant.id
+      and canonical.deleted_at is null
+      and canonical.status = 'not_started'
+      and canonical.scores = '{}'::jsonb
+      and (to_jsonb(canonical) - array['id','teaching_assignment_id','teacher_id','created_at','updated_at','general_info'])
+        = (to_jsonb(redundant) - array['id','teaching_assignment_id','teacher_id','created_at','updated_at','general_info'])
+      and (coalesce(canonical.general_info, '{}'::jsonb) - array['teacherName','teacherName2','teacherName3','homeroomTeacher1','homeroomTeacher2','homeroomTeacher3','homeroomTeachers'])
+        = (coalesce(redundant.general_info, '{}'::jsonb) - array['teacherName','teacherName2','teacherName3','homeroomTeacher1','homeroomTeacher2','homeroomTeacher3','homeroomTeachers'])
+  );
+
 -- Refuse to silently discard either teacher's work if separate books exist.
 do $$
 begin
@@ -188,6 +210,11 @@ alter table public.gradebooks
 create unique index if not exists gradebooks_one_active_per_assignment_group
   on public.gradebooks (assignment_group_id)
   where deleted_at is null;
+
+-- Archived copies must not block moving the shared book to another teacher.
+-- The active group index above is stricter than the former per-assignment key.
+alter table public.gradebooks
+  drop constraint if exists gradebooks_teaching_assignment_id_key;
 
 create index if not exists gradebooks_assignment_group_idx
   on public.gradebooks (assignment_group_id);
