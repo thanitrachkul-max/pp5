@@ -21,7 +21,6 @@ import {
   parseStudentExcel,
 } from '../../lib/studentImport';
 import { getErrorMessage, isSchemaCacheErrorFor } from '../../lib/dbErrors';
-import { STUDENT_HOMEROOMS } from '../../data/studentHomerooms';
 import { FilterBar, FilterBarActions, FilterClearButton, FilterSearch, FilterSelect } from '../../components/FilterBar';
 import type { AcademicYear, AppUser, Classroom, DbStudent } from '../../types';
 
@@ -218,16 +217,14 @@ function homeroomText(classroom: ClassroomWithHomeroom | null): string {
 
 function homeroomNames(classroom: ClassroomWithHomeroom | null): string[] {
   if (!classroom) return [];
-  const excelNames =
-    STUDENT_HOMEROOMS[classroom.name] ??
-    STUDENT_HOMEROOMS[classroomLabel(classroom)];
-  if (excelNames?.length) return excelNames.slice(0, 3);
 
+  // Use the classroom relations as the source of truth so this page always
+  // reflects changes made on the Classrooms page (including teacher no. 3).
   return [
     profileName(classroom.homeroom_teacher_1),
     profileName(classroom.homeroom_teacher_2),
     profileName(classroom.homeroom_teacher_3),
-  ].filter(Boolean);
+  ];
 }
 
 function classroomLabel(classroom: Classroom): string {
@@ -378,12 +375,36 @@ export const StudentsPage: React.FC<StudentsPageProps> = ({ currentUser, initial
           void loadEnrollments();
         },
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'classrooms',
+          filter: `academic_year_id=eq.${selectedYearId}`,
+        },
+        () => {
+          void Promise.all([loadClassrooms(), loadEnrollments()]);
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles',
+          filter: `school_id=eq.${currentUser.schoolId}`,
+        },
+        () => {
+          void Promise.all([loadClassrooms(), loadEnrollments()]);
+        },
+      )
       .subscribe();
 
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [currentUser.schoolId, loadEnrollments, selectedYearId]);
+  }, [currentUser.schoolId, loadClassrooms, loadEnrollments, selectedYearId]);
 
   const classroomMap = useMemo(() => {
     const map = new Map<string, string>();

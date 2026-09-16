@@ -812,7 +812,7 @@ main table:not(.excel-table) tbody td {
   background-attachment: fixed;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1280px) {
   .network-bg {
     background-image: url('/cover.jpg');
     background-position: left center;
@@ -2260,7 +2260,7 @@ main table:not(.excel-table) tbody td {
 
   .pap5-pdf-route-root .cover-print-page .pap5-signatures,
   .pap5-preview-route-root .pap5-signatures {
-    transform: translateX(8mm) !important;
+    transform: none !important;
   }
 
   .pap5-pdf-route-root .explanation-print-page > div {

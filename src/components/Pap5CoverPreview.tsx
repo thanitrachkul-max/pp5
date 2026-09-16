@@ -593,10 +593,14 @@ export function Pap5CoverPreview({
         <div className="pap5-signatures px-8 space-y-5">
           <div className="font-bold">การอนุมัติผลการเรียน</div>
 
-          <SignatureLine
-            label="ครูผู้สอน"
-            name={teacherNamesText(displayGeneralInfo)}
-          />
+          {teacherNames.length === 2 ? (
+            <TeacherSignaturePair names={teacherNames} />
+          ) : (
+            <SignatureLine
+              label="ครูผู้สอน"
+              name={teacherNamesText(displayGeneralInfo)}
+            />
+          )}
           <SignatureLine label="หัวหน้ากลุ่มสาระการเรียนรู้" name={displayGeneralInfo.headOfLearningArea} />
           <SignatureLine label="หัวหน้างานวัดและประเมินผล" name={displayGeneralInfo.headOfEvaluation} />
 
@@ -643,6 +647,25 @@ export function Pap5CoverPreview({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function TeacherSignaturePair({ names }: { names: [string, string] | string[] }) {
+  return (
+    <div className="pap5-teacher-signatures grid grid-cols-2 gap-x-8">
+      {names.slice(0, 2).map((name, index) => (
+        <div key={`${name}-${index}`} className="min-w-0">
+          <div className="flex items-end">
+            <div className="w-12 shrink-0 pr-1 text-right">ลงชื่อ</div>
+            <div className="min-w-0 flex-1 border-b border-dotted border-slate-500" />
+          </div>
+          <div className="pl-12 text-center text-[13px] leading-tight">( {name} )</div>
+          <div className="pl-12 text-center text-[13px] leading-tight">
+            ครูผู้สอน คนที่ {index + 1}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

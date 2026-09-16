@@ -25,6 +25,7 @@ function isPrimaryClassLevel(classLevelCode: string): boolean {
 
 const TEACHER_ASSIGNMENT_SELECT_BASE = `
   id,
+  assignment_group_id,
   school_id,
   subject_id,
   semester_id,
@@ -68,6 +69,7 @@ const TEACHER_ASSIGNMENT_SELECT_BASE = `
 
 const TEACHER_ASSIGNMENT_SELECT_WITH_THIRD = `
   id,
+  assignment_group_id,
   school_id,
   subject_id,
   semester_id,
@@ -123,6 +125,10 @@ function withoutSemesterSettingsColumns(select: string): string {
     .replace(/\s+entry_end_date,\n/g, "\n");
 }
 
+function withoutAssignmentGroupColumn(select: string): string {
+  return select.replace(/\s+assignment_group_id,\n/g, "\n");
+}
+
 function withoutStudyPeriodColumns(select: string): string {
   return select
     .replace(
@@ -151,8 +157,13 @@ function isMissingStudyPeriodColumn(error: unknown): boolean {
   );
 }
 
+function isMissingAssignmentGroupColumn(error: unknown): boolean {
+  return isSchemaCacheErrorFor(error, "assignment_group_id");
+}
+
 export interface TeacherAssignmentView {
   id: string;
+  assignment_group_id: string;
   school_id: string;
   school_name: string;
   subject_id: string;
@@ -205,6 +216,7 @@ export interface GradebookSession {
 type RawGradebook = {
   id: string;
   teaching_assignment_id: string;
+  assignment_group_id?: string | null;
   status: string;
   stats: { completionPercent?: number; hasTeacherInput?: boolean } | null;
   students: AppData["students"] | null;
@@ -221,6 +233,7 @@ type RawGradebook = {
 
 type RawAssignment = {
   id: string;
+  assignment_group_id?: string | null;
   school_id: string;
   subject_id: string;
   semester_id: string;
@@ -267,7 +280,7 @@ type RawAssignment = {
   } | null;
 };
 
-const GRADEBOOK_STATUS_SELECT_BASE = `
+const GRADEBOOK_STATUS_SELECT_LEGACY_BASE = `
   id,
   teaching_assignment_id,
   status,
@@ -281,8 +294,20 @@ const GRADEBOOK_STATUS_SELECT_BASE = `
   indicators
 `;
 
+const GRADEBOOK_STATUS_SELECT_BASE = `
+  ${GRADEBOOK_STATUS_SELECT_LEGACY_BASE},
+  assignment_group_id
+`;
+
 const GRADEBOOK_STATUS_SELECT_WITH_APPROVAL = `
   ${GRADEBOOK_STATUS_SELECT_BASE},
+  approval_status,
+  approval_reason,
+  approval_reason_seen_at
+`;
+
+const GRADEBOOK_STATUS_SELECT_LEGACY_WITH_APPROVAL = `
+  ${GRADEBOOK_STATUS_SELECT_LEGACY_BASE},
   approval_status,
   approval_reason,
   approval_reason_seen_at
@@ -338,17 +363,56 @@ function resolveGradebookStatus(gb: RawGradebook) {
 
 async function fetchGradebooksByAssignmentIds(
   teacherId: string,
-  assignmentIds: string[],
+  assignments: Array<{ id: string; assignment_group_id?: string | null }>,
 ): Promise<Map<string, RawGradebook>> {
   const map = new Map<string, RawGradebook>();
-  if (assignmentIds.length === 0) return map;
+  if (assignments.length === 0) return map;
 
+  const groupIds = Array.from(
+    new Set(assignments.map((assignment) => assignment.assignment_group_id).filter((id): id is string => Boolean(id))),
+  );
+
+  if (groupIds.length > 0) {
+    const chunkSize = 40;
+    let sharedSchemaAvailable = true;
+    for (let index = 0; index < groupIds.length; index += chunkSize) {
+      const chunk = groupIds.slice(index, index + chunkSize);
+      let result: any = await supabase
+        .from("gradebooks")
+        .select(GRADEBOOK_STATUS_SELECT_WITH_APPROVAL)
+        .in("assignment_group_id", chunk)
+        .is("deleted_at", null);
+
+      if (result.error && isSchemaCacheErrorFor(result.error, "approval_status")) {
+        result = await supabase
+          .from("gradebooks")
+          .select(GRADEBOOK_STATUS_SELECT_BASE)
+          .in("assignment_group_id", chunk)
+          .is("deleted_at", null);
+      }
+
+      if (result.error && isMissingAssignmentGroupColumn(result.error)) {
+        sharedSchemaAvailable = false;
+        break;
+      }
+      if (result.error) throw result.error;
+
+      for (const row of (result.data ?? []) as unknown as RawGradebook[]) {
+        if (row.assignment_group_id) map.set(row.assignment_group_id, row);
+      }
+    }
+
+    if (sharedSchemaAvailable) return map;
+    map.clear();
+  }
+
+  const assignmentIds = assignments.map((assignment) => assignment.id);
   const chunkSize = 40;
   for (let index = 0; index < assignmentIds.length; index += chunkSize) {
     const chunk = assignmentIds.slice(index, index + chunkSize);
     let result: any = await supabase
       .from("gradebooks")
-      .select(GRADEBOOK_STATUS_SELECT_WITH_APPROVAL)
+      .select(GRADEBOOK_STATUS_SELECT_LEGACY_WITH_APPROVAL)
       .eq("teacher_id", teacherId)
       .in("teaching_assignment_id", chunk)
       .is("deleted_at", null);
@@ -356,7 +420,7 @@ async function fetchGradebooksByAssignmentIds(
     if (result.error && isSchemaCacheErrorFor(result.error, "approval_status")) {
       result = await supabase
         .from("gradebooks")
-        .select(GRADEBOOK_STATUS_SELECT_BASE)
+        .select(GRADEBOOK_STATUS_SELECT_LEGACY_BASE)
         .eq("teacher_id", teacherId)
         .in("teaching_assignment_id", chunk)
         .is("deleted_at", null);
@@ -375,12 +439,22 @@ async function fetchGradebooksByAssignmentIds(
 export async function fetchTeacherAssignments(
   teacherId: string,
 ): Promise<TeacherAssignmentView[]> {
-  const runQuery = (select: string) =>
-    supabase
+  const runQuery = async (select: string) => {
+    let result = await supabase
       .from("teaching_assignments")
       .select(select)
       .eq("teacher_id", teacherId)
       .order("created_at", { ascending: false });
+
+    if (result.error && isMissingAssignmentGroupColumn(result.error)) {
+      result = await supabase
+        .from("teaching_assignments")
+        .select(withoutAssignmentGroupColumn(select))
+        .eq("teacher_id", teacherId)
+        .order("created_at", { ascending: false });
+    }
+    return result;
+  };
 
   let result = await runQuery(TEACHER_ASSIGNMENT_SELECT_WITH_THIRD);
   if (result.error && isSchemaCacheErrorFor(result.error, "homeroom_teacher_3_id")) {
@@ -423,7 +497,7 @@ export async function fetchTeacherAssignments(
   });
   const gradebookByAssignmentId = await fetchGradebooksByAssignmentIds(
     teacherId,
-    validRows.map((row) => row.id),
+    validRows,
   );
   const views: TeacherAssignmentView[] = [];
 
@@ -442,7 +516,8 @@ export async function fetchTeacherAssignments(
       .eq("academic_year_id", year.id)
       .eq("status", "active");
 
-    const gb = gradebookByAssignmentId.get(row.id) ?? null;
+    const assignmentGroupId = row.assignment_group_id ?? row.id;
+    const gb = gradebookByAssignmentId.get(assignmentGroupId) ?? null;
     const { completionPercent, gradebookStatus } = gb
       ? resolveGradebookStatus(gb)
       : { completionPercent: 0, gradebookStatus: null as TeacherAssignmentView["gradebook_status"] | null };
@@ -466,6 +541,7 @@ export async function fetchTeacherAssignments(
 
     views.push({
       id: row.id,
+      assignment_group_id: assignmentGroupId,
       school_id: row.school_id,
       school_name: school?.name ?? DEFAULT_SCHOOL_NAME,
       subject_id: row.subject_id,
@@ -756,14 +832,30 @@ export async function ensureGradebook(
     .single();
 
   if (error) {
-    const { data: existing } = await supabase
-      .from("gradebooks")
-      .select("id")
-      .eq("teaching_assignment_id", assignment.id)
-      .eq("teacher_id", teacher.id)
-      .maybeSingle();
+    let existingResult = assignment.assignment_group_id
+      ? await supabase
+          .from("gradebooks")
+          .select("id")
+          .eq("assignment_group_id", assignment.assignment_group_id)
+          .is("deleted_at", null)
+          .maybeSingle()
+      : await supabase
+          .from("gradebooks")
+          .select("id")
+          .eq("teaching_assignment_id", assignment.id)
+          .eq("teacher_id", teacher.id)
+          .maybeSingle();
 
-    if (existing?.id) return existing.id;
+    if (existingResult.error && isMissingAssignmentGroupColumn(existingResult.error)) {
+      existingResult = await supabase
+        .from("gradebooks")
+        .select("id")
+        .eq("teaching_assignment_id", assignment.id)
+        .eq("teacher_id", teacher.id)
+        .maybeSingle();
+    }
+
+    if (existingResult.data?.id) return existingResult.data.id;
     throw error;
   }
   return data.id;
@@ -872,6 +964,7 @@ export async function loadGradebookSession(
 }
 
 export async function submitGradebookPeriod(gradebookIds: string[], teacherId: string): Promise<void> {
+  void teacherId;
   const uniqueIds = Array.from(new Set(gradebookIds.filter(Boolean)));
   if (uniqueIds.length === 0) {
     throw new Error("ยังไม่มีสมุด ปพ.5 ที่พร้อมส่ง");
@@ -891,7 +984,6 @@ export async function submitGradebookPeriod(gradebookIds: string[], teacherId: s
   let result = await supabase
     .from("gradebooks")
     .update(payload)
-    .eq("teacher_id", teacherId)
     .in("id", uniqueIds);
 
   if (result.error && isSchemaCacheErrorFor(result.error, "approval_status")) {
@@ -901,7 +993,6 @@ export async function submitGradebookPeriod(gradebookIds: string[], teacherId: s
         status: "completed",
         updated_at: payload.updated_at,
       })
-      .eq("teacher_id", teacherId)
       .in("id", uniqueIds);
   }
 
@@ -912,11 +1003,11 @@ export async function acknowledgeGradebookRevision(
   gradebookId: string,
   teacherId: string,
 ): Promise<void> {
+  void teacherId;
   const { error } = await supabase
     .from("gradebooks")
     .update({ approval_reason_seen_at: new Date().toISOString() })
     .eq("id", gradebookId)
-    .eq("teacher_id", teacherId)
     .eq("approval_status", "revision_requested");
 
   if (error) throw error;
@@ -926,6 +1017,7 @@ export async function resubmitGradebookRevision(
   gradebookId: string,
   teacherId: string,
 ): Promise<void> {
+  void teacherId;
   const { error } = await supabase
     .from("gradebooks")
     .update({
@@ -938,8 +1030,7 @@ export async function resubmitGradebookRevision(
       approval_resubmitted_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
-    .eq("id", gradebookId)
-    .eq("teacher_id", teacherId);
+    .eq("id", gradebookId);
 
   if (error) throw error;
 }
@@ -974,18 +1065,24 @@ export async function findPreviousYearGradebook(
 
   if (!prevSemester) return null;
 
-  const { data: prevAssignments } = await supabase
+  let previousResult: any = await supabase
     .from("teaching_assignments")
-    .select(
-      `
-      id,
-      gradebooks(id),
-      classrooms:classroom_id(room_number)
-    `,
-    )
+    .select("id, assignment_group_id, gradebooks(id), classrooms:classroom_id(room_number)")
     .eq("teacher_id", teacherId)
     .eq("semester_id", prevSemester.id)
     .eq("subject_id", assignment.subject_id);
+
+  if (previousResult.error && isMissingAssignmentGroupColumn(previousResult.error)) {
+    previousResult = await supabase
+      .from("teaching_assignments")
+      .select("id, gradebooks(id), classrooms:classroom_id(room_number)")
+      .eq("teacher_id", teacherId)
+      .eq("semester_id", prevSemester.id)
+      .eq("subject_id", assignment.subject_id);
+  }
+  if (previousResult.error) throw previousResult.error;
+
+  const prevAssignments = previousResult.data ?? [];
 
   const prevAssignment = (prevAssignments ?? []).find((row) => {
     const raw = row.classrooms;
@@ -996,6 +1093,18 @@ export async function findPreviousYearGradebook(
   });
 
   if (!prevAssignment) return null;
+
+  const previousGroupId = (prevAssignment as { assignment_group_id?: string | null }).assignment_group_id;
+  if (previousGroupId) {
+    const { data: sharedGradebook, error } = await supabase
+      .from("gradebooks")
+      .select("id")
+      .eq("assignment_group_id", previousGroupId)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (error) throw error;
+    return sharedGradebook?.id ?? null;
+  }
 
   const gbs = prevAssignment.gradebooks as { id: string }[] | null;
   return gbs?.[0]?.id ?? null;

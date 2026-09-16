@@ -308,6 +308,37 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingHorizontal: 20,
   },
+  teacherSignaturePair: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 2,
+  },
+  teacherSignatureItem: {
+    width: 238,
+    minHeight: 48,
+  },
+  teacherSignatureLineRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+  },
+  teacherSignaturePrefix: {
+    width: 40,
+    paddingRight: 4,
+    textAlign: "right",
+  },
+  teacherSignatureLine: {
+    flexGrow: 1,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    borderStyle: "dotted",
+    height: 8,
+  },
+  teacherSignatureCaption: {
+    marginLeft: 40,
+    textAlign: "center",
+    fontSize: 9.5,
+    lineHeight: 1.04,
+  },
   signatureRow: {
     flexDirection: "row",
     justifyContent: "center",
@@ -730,7 +761,11 @@ function CoverPage({
 
       <View style={styles.signatureBlock}>
         <Text style={[styles.signatureText, styles.bold]}>การอนุมัติผลการเรียน</Text>
-        <SignatureLine label="ครูผู้สอน" name={teacherText} />
+        {teacherNames.length === 2 ? (
+          <TeacherSignaturePair names={teacherNames} />
+        ) : (
+          <SignatureLine label="ครูผู้สอน" name={teacherText} />
+        )}
         <SignatureLine label="หัวหน้ากลุ่มสาระการเรียนรู้" name={generalInfo.headOfLearningArea} />
         <SignatureLine label="หัวหน้างานวัดและประเมินผล" name={generalInfo.headOfEvaluation} />
         <Text style={[styles.signatureText, styles.bold, { marginTop: 5 }]}>เรียนเสนอเพื่อพิจารณา</Text>
@@ -747,6 +782,25 @@ function CoverPage({
         />
       </View>
     </Page>
+  );
+}
+
+function TeacherSignaturePair({ names }: { names: string[] }) {
+  return (
+    <View style={styles.teacherSignaturePair}>
+      {names.slice(0, 2).map((name, index) => (
+        <View key={`${name}-${index}`} style={styles.teacherSignatureItem}>
+          <View style={styles.teacherSignatureLineRow}>
+            <Text style={[styles.signatureText, styles.teacherSignaturePrefix]}>ลงชื่อ</Text>
+            <View style={styles.teacherSignatureLine} />
+          </View>
+          <Text wrap={false} style={styles.teacherSignatureCaption}>
+            ( {name} )
+          </Text>
+          <Text style={styles.teacherSignatureCaption}>ครูผู้สอน คนที่ {index + 1}</Text>
+        </View>
+      ))}
+    </View>
   );
 }
 

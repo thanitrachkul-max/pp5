@@ -38,6 +38,15 @@ function errorMessage(error: unknown) {
     : 'สร้างสมุด ปพ.5 ไม่สำเร็จ';
 }
 
+function isMissingAssignmentGroupColumn(error: unknown) {
+  const message = String((error as { message?: unknown } | null)?.message ?? error ?? '');
+  return message.includes('assignment_group_id') && (
+    message.includes('schema cache') ||
+    message.includes('Could not find') ||
+    message.includes('column')
+  );
+}
+
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   if (req.method === 'OPTIONS') {
     res.statusCode = 204;
@@ -91,11 +100,19 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       return;
     }
 
-    const { data: assignment, error: assignmentError } = await supabaseAdmin
+    let assignmentResult: any = await supabaseAdmin
       .from('teaching_assignments')
-      .select('id, school_id, teacher_id, semester_id')
+      .select('id, assignment_group_id, school_id, teacher_id, semester_id')
       .eq('id', assignmentId)
       .single();
+    if (assignmentResult.error && isMissingAssignmentGroupColumn(assignmentResult.error)) {
+      assignmentResult = await supabaseAdmin
+        .from('teaching_assignments')
+        .select('id, school_id, teacher_id, semester_id')
+        .eq('id', assignmentId)
+        .single();
+    }
+    const { data: assignment, error: assignmentError } = assignmentResult;
     if (assignmentError || !assignment) {
       json(res, 404, { error: 'ไม่พบรายการมอบหมายที่ต้องการเปิด' });
       return;
@@ -105,13 +122,26 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       return;
     }
 
-    const findExisting = () => supabaseAdmin
+    const findLegacyExisting = () => supabaseAdmin
       .from('gradebooks')
       .select('id')
       .eq('teaching_assignment_id', assignment.id)
       .eq('teacher_id', assignment.teacher_id)
+      .is('deleted_at', null)
       .maybeSingle();
-    const { data: existing, error: existingError } = await findExisting();
+    const findExisting = () => assignment.assignment_group_id
+      ? supabaseAdmin
+          .from('gradebooks')
+          .select('id')
+          .eq('assignment_group_id', assignment.assignment_group_id)
+          .is('deleted_at', null)
+          .maybeSingle()
+      : findLegacyExisting();
+    let existingResult: any = await findExisting();
+    if (existingResult.error && isMissingAssignmentGroupColumn(existingResult.error)) {
+      existingResult = await findLegacyExisting();
+    }
+    const { data: existing, error: existingError } = existingResult;
     if (existingError) throw existingError;
     if (existing?.id) {
       json(res, 200, { id: existing.id, created: false });
@@ -132,7 +162,11 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       .single();
 
     if (createError) {
-      const { data: racedExisting } = await findExisting();
+      let racedResult: any = await findExisting();
+      if (racedResult.error && isMissingAssignmentGroupColumn(racedResult.error)) {
+        racedResult = await findLegacyExisting();
+      }
+      const racedExisting = racedResult.data;
       if (racedExisting?.id) {
         json(res, 200, { id: racedExisting.id, created: false });
         return;

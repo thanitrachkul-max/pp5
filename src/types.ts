@@ -191,6 +191,7 @@ export type AssignmentStatus = "pending" | "active";
 
 export interface TeachingAssignment {
   id: string;
+  assignment_group_id?: string;
   school_id: string;
   semester_id: string;
   teacher_id: string;

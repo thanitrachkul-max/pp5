@@ -19,6 +19,12 @@ import { SearchableTeacherSelect } from '../../components/SearchableTeacherSelec
 import { FilterBar, FilterClearButton, FilterSearch, FilterSelect } from '../../components/FilterBar';
 import { isSchemaCacheErrorFor } from '../../lib/dbErrors';
 import {
+  assignmentGroupKey,
+  expandSharedAssignmentRows,
+  sharedRecordForAssignment,
+  uniqueTeacherIds,
+} from '../../lib/sharedAssignments';
+import {
   gradebookStatusLabel,
   resolveGradebookStatus,
 } from '../../lib/gradebookStatusDisplay';
@@ -65,6 +71,7 @@ interface AssignmentsPageProps {
 
 interface AddForm {
   teacher_id: string;
+  co_teacher_ids: string[];
   subject_id: string;
   classroom_id: string;
   hours_per_week: string;
@@ -86,6 +93,7 @@ const GRADEBOOK_RELATION_WITH_APPROVAL = 'gradebooks(id, status, stats, approval
 
 interface AssignmentGradebook {
   id: string;
+  assignment_group_id?: string | null;
   status: GradebookStatus;
   stats: Record<string, unknown> | null;
   approval_status?: GradebookApprovalStatus | null;
@@ -131,6 +139,7 @@ interface BulkApprovalEditState {
 
 const emptyAddForm = (): AddForm => ({
   teacher_id: '',
+  co_teacher_ids: [],
   subject_id: '',
   classroom_id: '',
   hours_per_week: '',
@@ -479,14 +488,41 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
         gradebooks?: AssignmentGradebook[] | AssignmentGradebook | null;
       }>;
 
+      const assignmentGroupIds = unique(rows.map((row) => row.assignment_group_id));
+      const sharedGradebookByGroup = new Map<string, AssignmentGradebook>();
+      if (assignmentGroupIds.length > 0) {
+        let sharedResult: any = await supabase
+          .from('gradebooks')
+          .select('id, assignment_group_id, status, stats, approval_status, approval_reason, approval_reason_seen_at')
+          .in('assignment_group_id', assignmentGroupIds)
+          .is('deleted_at', null);
+        if (sharedResult.error && isSchemaCacheErrorFor(sharedResult.error, 'approval_status')) {
+          sharedResult = await supabase
+            .from('gradebooks')
+            .select('id, assignment_group_id, status, stats')
+            .in('assignment_group_id', assignmentGroupIds)
+            .is('deleted_at', null);
+        }
+        if (sharedResult.error && !isSchemaCacheErrorFor(sharedResult.error, 'assignment_group_id')) {
+          throw sharedResult.error;
+        }
+        for (const gradebook of (sharedResult.data ?? []) as AssignmentGradebook[]) {
+          if (gradebook.assignment_group_id) sharedGradebookByGroup.set(gradebook.assignment_group_id, gradebook);
+        }
+      }
+
       const mapped: AssignmentWithProgress[] = rows.map((r) => {
-        const gradebook = normalizeGradebook(r.gradebooks);
+        const gradebook = sharedRecordForAssignment(
+          r,
+          sharedGradebookByGroup,
+          normalizeGradebook(r.gradebooks),
+        );
         return {
           ...r,
           teacher: r.profiles,
           subject: r.subjects,
           classroom: r.classrooms,
-          gradebooks: r.gradebooks,
+          gradebooks: gradebook,
           gradebook_status: gradebook?.status ?? null,
           completion_percent: completionFromStats(gradebook?.stats),
           approval_status: gradebook?.approval_status ?? null,
@@ -697,7 +733,11 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     ? teacherIdsForClassLevel(effectiveModalLevelFilter)
     : null;
   const modalTeachers = modalTeacherIdsForLevel && modalTeacherIdsForLevel.size > 0
-    ? teachers.filter((teacher) => modalTeacherIdsForLevel.has(teacher.id) || teacher.id === addForm.teacher_id)
+    ? teachers.filter((teacher) =>
+        modalTeacherIdsForLevel.has(teacher.id) ||
+        teacher.id === addForm.teacher_id ||
+        addForm.co_teacher_ids.includes(teacher.id),
+      )
     : teachers;
 
   const subjectHours = (subject: Subject | undefined) => {
@@ -739,8 +779,13 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     const gradebook = normalizeGradebook(assignment.gradebooks);
     const classroomLevel = assignment.classroom?.class_level_code ?? classrooms.find((item) => item.id === assignment.classroom_id)?.class_level_code ?? '';
     setModalLevelFilter(classroomLevel);
+    const groupKey = assignmentGroupKey(assignment);
+    const collaboratorIds = assignments
+      .filter((candidate) => assignmentGroupKey(candidate) === groupKey && candidate.teacher_id !== assignment.teacher_id)
+      .map((candidate) => candidate.teacher_id);
     setAddForm({
       teacher_id: assignment.teacher_id,
+      co_teacher_ids: collaboratorIds.slice(0, 2),
       subject_id: assignment.subject_id,
       classroom_id: assignment.classroom_id,
       hours_per_week: assignment.hours_per_week == null ? '' : String(assignment.hours_per_week),
@@ -813,6 +858,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     setAddForm((current) => ({
       ...current,
       teacher_id: current.teacher_id && (!teacherIds || teacherIds.size === 0 || teacherIds.has(current.teacher_id)) ? current.teacher_id : '',
+      co_teacher_ids: current.co_teacher_ids.filter((teacherId) => !teacherIds || teacherIds.size === 0 || teacherIds.has(teacherId)),
       subject_id: '',
       classroom_id: '',
       hours_per_week: '',
@@ -833,11 +879,26 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     setAddForm((current) => ({
       ...current,
       teacher_id: teacherId,
+      co_teacher_ids: current.co_teacher_ids.filter((id) => id !== teacherId),
       subject_id: '',
       classroom_id: '',
       hours_per_week: '',
       hours_per_semester: '',
     }));
+  };
+
+  const handleModalCoTeacherChange = (index: number, teacherId: string) => {
+    setAddForm((current) => {
+      const next = [...current.co_teacher_ids];
+      if (teacherId) next[index] = teacherId;
+      else next.splice(index, 1);
+      return {
+        ...current,
+        co_teacher_ids: Array.from(
+          new Set(next.filter((id) => id && id !== current.teacher_id)),
+        ).slice(0, 2),
+      };
+    });
   };
 
   const handleSaveAssignment = async (e: React.FormEvent) => {
@@ -855,48 +916,31 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     setSaving(true);
     setError('');
     try {
-      const payload: Record<string, unknown> = {
-        school_id: currentUser.schoolId,
-        semester_id: selectedSemesterId,
-        teacher_id: addForm.teacher_id,
-        subject_id: addForm.subject_id,
-        classroom_id: addForm.classroom_id,
-        hours_per_week: addForm.hours_per_week ? parseInt(addForm.hours_per_week, 10) : null,
-        hours_per_semester: addForm.hours_per_semester ? parseInt(addForm.hours_per_semester, 10) : null,
-        status: addForm.status,
-        created_by: currentUser.id,
-      };
-      if (entryWindowSupported) {
-        const semesterEntryStart = selectedSemester?.entry_start_date ?? null;
-        const semesterEntryEnd = selectedSemester?.entry_end_date ?? null;
-        payload.entry_start_date = semesterEntryStart;
-        payload.entry_end_date = semesterEntryEnd;
-      }
-
-      const { error: saveError } = editingAssignment
-        ? await supabase
-            .from('teaching_assignments')
-            .update({
-              teacher_id: payload.teacher_id,
-              subject_id: payload.subject_id,
-              classroom_id: payload.classroom_id,
-              hours_per_week: payload.hours_per_week,
-              hours_per_semester: payload.hours_per_semester,
-              ...(entryWindowSupported
-                ? {
-                    entry_start_date: payload.entry_start_date,
-                    entry_end_date: payload.entry_end_date,
-                  }
-                : {}),
-              status: payload.status,
-            })
-            .eq('id', editingAssignment.id)
-        : await supabase.from('teaching_assignments').insert(payload);
+      const teacherIds = uniqueTeacherIds(addForm.teacher_id, addForm.co_teacher_ids);
+      const { error: saveError } = await supabase.rpc('admin_sync_teaching_assignment_group', {
+        p_assignment_id: editingAssignment?.id ?? null,
+        p_school_id: currentUser.schoolId,
+        p_semester_id: selectedSemesterId,
+        p_teacher_ids: teacherIds,
+        p_subject_id: addForm.subject_id,
+        p_classroom_id: addForm.classroom_id,
+        p_hours_per_week: addForm.hours_per_week ? parseInt(addForm.hours_per_week, 10) : null,
+        p_hours_per_semester: addForm.hours_per_semester ? parseInt(addForm.hours_per_semester, 10) : null,
+        p_entry_start_date: entryWindowSupported ? selectedSemester?.entry_start_date ?? null : null,
+        p_entry_end_date: entryWindowSupported ? selectedSemester?.entry_end_date ?? null : null,
+        p_status: addForm.status,
+      });
 
       if (saveError) {
         if (isMissingEntryWindowColumn(saveError)) {
           setEntryWindowSupported(false);
           throw new Error(ENTRY_WINDOW_MIGRATION_HINT);
+        }
+        if (
+          saveError.code === 'PGRST202' ||
+          saveError.message?.includes('admin_sync_teaching_assignment_group')
+        ) {
+          throw new Error('ฐานข้อมูลยังไม่รองรับครูผู้สอนร่วม กรุณารัน migration `0039_shared_co_teacher_gradebooks.sql`');
         }
         throw saveError;
       }
@@ -1374,7 +1418,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
 
   const applyReviewValidation = (rows: AssignmentReviewRow[]): AssignmentReviewRow[] => {
     const existingAssignmentKeys = new Set(
-      assignments.map((assignment) => `${assignment.subject_id}|${assignment.classroom_id}`),
+      assignments.map((assignment) => `${assignment.teacher_id}|${assignment.subject_id}|${assignment.classroom_id}`),
     );
     const seenAssignmentKeys = new Set<string>();
 
@@ -1384,8 +1428,12 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
 
       if (base.teacherId && base.subjectId && base.classroomId) {
         const key = `${base.subjectId}|${base.classroomId}`;
-        if (existingAssignmentKeys.has(key)) {
-          issues.add('มีรายวิชานี้ในห้องแล้ว');
+        const teacherIds = uniqueTeacherIds(base.teacherId, base.coTeacherIds);
+        if (
+          teacherIds.length > 0 &&
+          teacherIds.every((teacherId) => existingAssignmentKeys.has(`${teacherId}|${key}`))
+        ) {
+          issues.add('มีรายการมอบหมายให้ครูทุกคนแล้ว');
         }
         if (seenAssignmentKeys.has(key)) {
           issues.add('ซ้ำในไฟล์');
@@ -1434,7 +1482,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     try {
       const rows = await parseAssignmentWord(file);
       const resolved = applyReviewValidation(
-        resolveAssignmentRows(rows, teachers, subjects, classrooms, { teacherRoles: ['teacher'] }),
+        resolveAssignmentRows(rows, teachers, subjects, classrooms, { teacherRoles: ['teacher', 'admin', 'super_admin', 'executive'] }),
       );
       setReviewImportMeta({
         fileName: file.name,
@@ -1487,30 +1535,44 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     setSaving(true);
     setError('');
     try {
-      const payload = validRows.map((row) => ({
-        school_id: currentUser.schoolId!,
-        semester_id: selectedSemesterId,
-        teacher_id: row.teacherId!,
-        subject_id: row.subjectId!,
-        classroom_id: row.classroomId!,
-        hours_per_week: row.hoursPerWeek,
-        hours_per_semester: row.hoursPerSemester,
-        co_teacher_name: row.coTeacherIds
-          .map((teacherId, index) => {
-            const teacher = teachers.find((item) => item.id === teacherId);
-            return teacher ? teacherLabel(teacher) : row.teacherSourceNames[index + 1] ?? '';
-          })
-          .filter(Boolean)
-          .join(', ') || null,
-        status: 'pending' as const,
-        created_by: currentUser.id,
-      }));
+      const payload = validRows.flatMap((row) => {
+        const teacherLabelById = (teacherId: string) => {
+          const teacher = teachers.find((item) => item.id === teacherId);
+          if (teacher) return teacherLabel(teacher);
+          const allTeacherIds = uniqueTeacherIds(row.teacherId, row.coTeacherIds);
+          return row.teacherSourceNames[allTeacherIds.indexOf(teacherId)] ?? '';
+        };
+        return expandSharedAssignmentRows(
+          {
+            school_id: currentUser.schoolId!,
+            semester_id: selectedSemesterId,
+            subject_id: row.subjectId!,
+            classroom_id: row.classroomId!,
+            hours_per_week: row.hoursPerWeek,
+            hours_per_semester: row.hoursPerSemester,
+            status: 'pending' as const,
+            created_by: currentUser.id,
+          },
+          row.teacherId!,
+          row.coTeacherIds,
+          teacherLabelById,
+        ).map((assignmentPayload) => {
+          const existing = assignments.find((assignment) =>
+            assignment.teacher_id === assignmentPayload.teacher_id &&
+            assignment.subject_id === assignmentPayload.subject_id &&
+            assignment.classroom_id === assignmentPayload.classroom_id,
+          );
+          return existing
+            ? { ...assignmentPayload, status: existing.status }
+            : assignmentPayload;
+        });
+      });
 
       const { error: insertError } = await supabase
         .from('teaching_assignments')
         .upsert(payload, {
           onConflict: 'semester_id,teacher_id,subject_id,classroom_id',
-          ignoreDuplicates: true,
+          ignoreDuplicates: false,
         });
 
       let importedWithoutCoTeacherName = false;
@@ -1520,7 +1582,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
           .from('teaching_assignments')
           .upsert(payloadWithoutCoTeacherName, {
             onConflict: 'semester_id,teacher_id,subject_id,classroom_id',
-            ignoreDuplicates: true,
+            ignoreDuplicates: false,
           });
         if (retryError) throw retryError;
         importedWithoutCoTeacherName = true;
@@ -1530,9 +1592,9 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
 
       const skipped = reviewRows.length - validRows.length;
       setMessage(
-        `นำเข้า ${validRows.length} รายการ (สถานะ: ปิดไว้ก่อน)` +
+        `นำเข้า ${validRows.length} รายวิชา · มอบหมายให้ครู ${payload.length} รายการ (สถานะ: ปิดไว้ก่อน)` +
           (skipped > 0 ? ` · ข้าม ${skipped} แถวที่มีปัญหา` : '') +
-          (importedWithoutCoTeacherName ? ' · ฐานยังไม่มีคอลัมน์ครูผู้สอนเพิ่มเติม จึงบันทึกเฉพาะครูผู้สอน 1' : '')
+          (importedWithoutCoTeacherName ? ' · ฐานยังไม่มีคอลัมน์ชื่อครูร่วม แต่ยังสร้างรายการให้ครูทุกคนแล้ว' : '')
       );
       setReviewRows(null);
       setReviewImportMeta(null);
@@ -1545,7 +1607,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
   };
 
   const teacherLabel = (t: Profile) => `${t.title ? t.title + ' ' : ''}${t.full_name}`;
-  const teachingStaff = teachers.filter((teacher) => teacher.role === 'teacher');
+  const teachingStaff = teachers;
 
   const subjectSemesterLabel = (assignment: AssignmentWithProgress) => {
     const semester = assignment.subject?.semester_number ?? semesters.find((item) => item.id === assignment.semester_id)?.semester_number;
@@ -2395,6 +2457,32 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                     <option key={t.id} value={t.id}>{teacherLabel(t)}</option>
                   ))}
                 </select>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {[0, 1].map((index) => (
+                  <div key={index}>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      ครูผู้สอนร่วม {index + 2} <span className="font-normal text-slate-400">(ถ้ามี)</span>
+                    </label>
+                    <select
+                      value={addForm.co_teacher_ids[index] ?? ''}
+                      onChange={(e) => handleModalCoTeacherChange(index, e.target.value)}
+                      className="w-full px-3 py-2.5 border border-slate-300 rounded-xl"
+                    >
+                      <option value="">— ไม่มี —</option>
+                      {modalTeachers
+                        .filter((teacher) =>
+                          teacher.id !== addForm.teacher_id &&
+                          !addForm.co_teacher_ids.some((selectedId, selectedIndex) =>
+                            selectedIndex !== index && selectedId === teacher.id,
+                          ),
+                        )
+                        .map((teacher) => (
+                          <option key={teacher.id} value={teacher.id}>{teacherLabel(teacher)}</option>
+                        ))}
+                    </select>
+                  </div>
+                ))}
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">วิชา</label>

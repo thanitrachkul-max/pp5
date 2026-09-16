@@ -307,7 +307,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       .channel(`teacher-gradebooks-${currentUser.id}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'gradebooks', filter: `teacher_id=eq.${currentUser.id}` },
+        { event: '*', schema: 'public', table: 'gradebooks' },
         syncAssignments,
       )
       .subscribe();

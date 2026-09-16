@@ -280,8 +280,17 @@ export const ClassroomsPage: React.FC<ClassroomsPageProps> = ({ currentUser, ini
   }, [classLevels, classrooms]);
 
   const homeroomTeachers = useMemo(
-    () => filterHomeroomEligibleTeachers(teachers),
-    [teachers],
+    () => {
+      const assignedIds = new Set(classrooms.flatMap((classroom) => [
+        classroom.homeroom_teacher_id,
+        classroom.homeroom_teacher_2_id,
+        classroom.homeroom_teacher_3_id,
+      ]).filter(Boolean));
+      const eligibleIds = new Set(filterHomeroomEligibleTeachers<Profile>(teachers).map((teacher) => teacher.id));
+      // Granting an administrative role must not hide an existing homeroom duty.
+      return teachers.filter((teacher) => teacher.is_active && (eligibleIds.has(teacher.id) || assignedIds.has(teacher.id)));
+    },
+    [teachers, classrooms],
   );
 
   const teacherIdByExcelName = useMemo(() => {

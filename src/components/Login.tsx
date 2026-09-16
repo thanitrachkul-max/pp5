@@ -19,10 +19,10 @@ const DeveloperCredit = () => (
 
 const LoginShell = ({ children }: { children: React.ReactNode }) => (
   <div className="min-h-screen font-sans relative overflow-hidden network-bg">
-    <div className="relative z-10 min-h-screen w-full grid grid-cols-1 lg:grid-cols-2 items-center">
-      <div className="hidden lg:block" aria-hidden="true" />
-      <div className="flex justify-center lg:justify-start items-center p-4 sm:p-6 lg:pl-14 xl:pl-20 lg:pr-10 xl:pr-14">
-        <div className="w-full max-w-[27.66rem] shrink-0 lg:translate-x-[240px]">
+    <div className="relative z-10 min-h-screen w-full grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(27.66rem,36%)] items-center">
+      <div className="hidden xl:block" aria-hidden="true" />
+      <div className="flex items-center justify-center p-4 sm:p-6 xl:px-4 2xl:px-8">
+        <div className="w-full max-w-[27.66rem] shrink-0">
           {children}
         </div>
       </div>
