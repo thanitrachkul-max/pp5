@@ -1,3 +1,4 @@
+import { normalizeThaiOrIsoDate } from '../lib/thaiDate';
 import React, { useMemo, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { AppData, Student } from "../types";
@@ -164,14 +165,15 @@ export const StudentsForm: React.FC<Props> = ({
     () => defaultStudyPeriod(generalInfo),
     [generalInfo.academicYear, generalInfo.semester],
   );
-  const effectiveStudyStartDate =
+  const effectiveStudyStartDate = normalizeThaiOrIsoDate(
     generalInfo.studyStartDate ||
     attendance?.settings?.startDate ||
-    fallbackStudyPeriod.startDate;
-  const effectiveStudyEndDate =
+    fallbackStudyPeriod.startDate)!;
+  const requestedStudyEndDate = normalizeThaiOrIsoDate(
     generalInfo.studyEndDate ||
     attendance?.settings?.endDate ||
-    fallbackStudyPeriod.endDate;
+    fallbackStudyPeriod.endDate)!;
+  const effectiveStudyEndDate = generalInfo.semester !== "2" && requestedStudyEndDate > fallbackStudyPeriod.endDate ? fallbackStudyPeriod.endDate : requestedStudyEndDate;
   const studyPeriodText = formatThaiStudyPeriod(
     effectiveStudyStartDate,
     effectiveStudyEndDate,
@@ -559,8 +561,11 @@ export const StudentsForm: React.FC<Props> = ({
       return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
     };
 
-    const start = parseDate(startDate);
-    const end = parseDate(endDate);
+    const normalizedStart = normalizeThaiOrIsoDate(startDate)!;
+    const requestedEnd = normalizeThaiOrIsoDate(endDate)!;
+    const normalizedEnd = generalInfo.semester !== "2" && requestedEnd > fallbackStudyPeriod.endDate ? fallbackStudyPeriod.endDate : requestedEnd;
+    const start = parseDate(normalizedStart);
+    const end = parseDate(normalizedEnd);
     const totalHoursNeeded = currentHoursPerWeek * 20;
 
     const newHoursMap: Record<string, string> = {};
@@ -571,12 +576,17 @@ export const StudentsForm: React.FC<Props> = ({
     });
 
     if (startDate && endDate && start.getTime() <= end.getTime()) {
-      const plan = buildShiftedAttendanceSchedule({
+      let plan: ReturnType<typeof buildShiftedAttendanceSchedule>;
+      try { plan = buildShiftedAttendanceSchedule({
         startDate: start,
+        endDate: end,
         schedule,
         holidays,
         totalHours: totalHoursNeeded,
-      });
+      }); } catch (error) {
+        window.alert(error instanceof Error ? error.message : "ไม่สามารถจัดตารางเวลาเรียนได้");
+        return;
+      }
       const scheduleDays = plan.scheduleDays;
       Object.assign(newHoursMap, plan.hoursMap);
 
@@ -604,8 +614,8 @@ export const StudentsForm: React.FC<Props> = ({
           daysPerWeek,
           schedule,
           hoursPerWeek: currentHoursPerWeek,
-          startDate,
-          endDate,
+          startDate: normalizedStart,
+          endDate: normalizedEnd,
         },
       });
     }
@@ -622,8 +632,8 @@ export const StudentsForm: React.FC<Props> = ({
     currentDate.setDate(currentDate.getDate() - daysSinceMonday);
 
     const calculatedDates: Date[] = [];
-    // 20 teaching weeks plus one buffer week for sessions shifted by holidays.
-    for (let i = 0; i < 105; i++) {
+    const periodEnd = new Date(`${effectiveStudyEndDate}T00:00:00`);
+    for (let i = 0; i < 200 && currentDate <= periodEnd; i++) {
       calculatedDates.push(new Date(currentDate));
       currentDate.setDate(currentDate.getDate() + 1);
       while (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
@@ -631,6 +641,18 @@ export const StudentsForm: React.FC<Props> = ({
       }
     }
 
+    if (!printMode && generalInfo.semester !== '2') {
+      const legacyDays = Object.keys(attendance?.hoursMap ?? {}).filter(key => key > '09-30' && attendance?.hoursMap[key]);
+      if (legacyDays.length) {
+        const last = legacyDays.sort().at(-1)!;
+        const [month,day] = last.split('-').map(Number);
+        const legacyEnd = new Date(periodEnd.getFullYear(),month-1,day);
+        while (currentDate <= legacyEnd) {
+          if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) calculatedDates.push(new Date(currentDate));
+          currentDate.setDate(currentDate.getDate()+1);
+        }
+      }
+    }
     const calculatedHolidays: Record<string, string> = {
       "01-01": "วันขึ้นปีใหม่",
       "04-06": "วันจักรี",
@@ -686,7 +708,7 @@ export const StudentsForm: React.FC<Props> = ({
         "ธ.ค.",
       ],
     };
-  }, [effectiveStudyStartDate]);
+  }, [effectiveStudyStartDate, effectiveStudyEndDate, generalInfo.academicYear, generalInfo.semester, attendance?.hoursMap, printMode]);
 
   const selectedPrintDates = useMemo(() => {
     if (!printDateMonths?.length) return dates;
@@ -813,7 +835,7 @@ export const StudentsForm: React.FC<Props> = ({
       >
         <div className="mb-4 text-center">
           <h2 className="text-xl font-bold">
-            บันทึกเวลาเรียน ชั้นมัธยมศึกษาปีที่ {generalInfo.gradeLevel}{" "}
+            บันทึกเวลาเรียน ชั้น {generalInfo.gradeLevel}{" "}
             ภาคเรียนที่ {generalInfo.semester} ปีการศึกษา{" "}
             {generalInfo.academicYear}
           </h2>
@@ -828,6 +850,7 @@ export const StudentsForm: React.FC<Props> = ({
           )}
         </div>
 
+        {!printMode && generalInfo.semester !== '2' && Object.keys(attendance?.hoursMap ?? {}).some(key => key > '09-30' && attendance?.hoursMap[key]) && <p className="mb-3 rounded bg-amber-50 p-3 text-amber-800">ตารางเดิมมีชั่วโมงเรียนหลัง 30 กันยายน กรุณาใช้ระบบช่วยลงเวลาเรียนเพื่อจัดตารางใหม่ ระบบจะกระจายชั่วโมงให้ครบภายในภาคเรียน</p>}
         <div className="excel-scroll-area overflow-x-auto">
           <div className="excel-scroll-content">
           <table className="excel-table whitespace-nowrap relative" style={{ width: "max-content", minWidth: "max-content" }}>

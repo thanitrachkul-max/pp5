@@ -11,6 +11,7 @@ export interface AttendanceScheduleDay {
 
 interface BuildAttendanceScheduleOptions {
   startDate: Date;
+  endDate?: Date;
   schedule: AttendanceScheduleItem[];
   holidays: Record<string, string>;
   totalHours: number;
@@ -57,6 +58,7 @@ function nextAvailableTeachingDate(
 
 export function buildShiftedAttendanceSchedule({
   startDate,
+  endDate,
   schedule,
   holidays,
   totalHours,
@@ -91,6 +93,7 @@ export function buildShiftedAttendanceSchedule({
     if (currentHour > totalHours) break;
 
     const teachingDate = nextAvailableTeachingDate(session.date, holidays, usedDateKeys);
+    if (endDate && teachingDate > endDate) continue;
     const dateKey = attendanceDateKey(teachingDate);
     const assignedHours = Math.min(session.hours, totalHours - currentHour + 1);
     const endHour = currentHour + assignedHours - 1;
@@ -99,6 +102,40 @@ export function buildShiftedAttendanceSchedule({
     scheduleDays.push({ dateKey, hours: assignedHours, date: teachingDate });
     usedDateKeys.add(dateKey);
     currentHour = endHour + 1;
+  }
+
+  // Fill deficits by weekly load, with ties resolved from the last week backwards.
+  // This avoids concentrating replacement lessons in the final week/month.
+  if (endDate && currentHour <= totalHours && normalizedSchedule.length) {
+    const weeks = new Map<string, Date[]>();
+    for (let day = new Date(startDate); day <= endDate; day = addDays(day, 1)) {
+      if (isWeekend(day) || holidays[attendanceDateKey(day)]) continue;
+      const monday = addDays(day, -((day.getDay() + 6) % 7));
+      const key = monday.toISOString();
+      weeks.set(key, [...(weeks.get(key) ?? []), new Date(day)]);
+    }
+    const groups = [...weeks.values()].reverse();
+    const load = (days: Date[]) => scheduleDays.filter(s => days.some(d => attendanceDateKey(d) === s.dateKey)).reduce((n,s) => n+s.hours,0);
+    while (currentHour <= totalHours && groups.length) {
+      const days = [...groups].sort((a,b) => load(a)-load(b))[0];
+      const unused = [...days].reverse().find(d => !usedDateKeys.has(attendanceDateKey(d)));
+      const day = unused ?? [...days].reverse().sort((a,b) =>
+        (scheduleDays.find(s=>s.dateKey===attendanceDateKey(a))?.hours ?? 0) -
+        (scheduleDays.find(s=>s.dateKey===attendanceDateKey(b))?.hours ?? 0))[0];
+      const dateKey = attendanceDateKey(day);
+      const existing = scheduleDays.find(s => s.dateKey === dateKey);
+      if (existing) existing.hours++;
+      else { scheduleDays.push({dateKey, date:day, hours:1}); usedDateKeys.add(dateKey); }
+      currentHour++;
+    }
+    if (currentHour <= totalHours) throw new Error('ไม่มีวันเรียนที่ใช้จัดชั่วโมงได้ในช่วงวันที่กำหนด');
+  }
+  scheduleDays.sort((a,b) => a.date.getTime()-b.date.getTime());
+  let hour = 1;
+  for (const day of scheduleDays) {
+    const last = hour + day.hours - 1;
+    hoursMap[day.dateKey] = hour === last ? `${hour}` : `${hour}-${last}`;
+    hour = last+1;
   }
 
   return {

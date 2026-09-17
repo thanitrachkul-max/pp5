@@ -2385,3 +2385,20 @@ main table:not(.excel-table) tbody td {
   .pap5-original-print-document .primary-year-print .writing-vertical { max-height: 150px; font-size: 8px; }
   .pap5-original-print-document .primary-year-print h2 { font-size: 12px; margin-bottom: 8px; }
 }
+
+/* Primary scores use separate term pages and an annual summary, shared by PDF and print. */
+.primary-score-print-page { display: flex; justify-content: center; align-items: center; padding: 16mm; }
+.primary-score-print-content { width: 100%; max-width: 265mm; margin: auto; color: #111827; }
+.primary-score-print-content h2 { text-align: center; font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.primary-score-print-content p { text-align: center; font-size: 12px; margin-bottom: 14px; }
+.primary-print-score-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 10px; }
+.primary-print-score-table th, .primary-print-score-table td { border: 1px solid #94a3b8; text-align: center; padding: 3px 2px; overflow-wrap: anywhere; }
+.primary-print-score-table th { background: #f1f5f9; font-weight: 600; }
+.primary-print-score-table tbody td { height: 8mm; }
+.primary-print-score-table .primary-print-name { text-align: left; padding-left: 5px; }
+.primary-print-score-table .primary-print-vertical { height: 36mm; }
+.primary-print-vertical span { writing-mode: vertical-rl; transform: rotate(180deg); display: inline-block; max-height: 35mm; }
+@media print {
+  .pap5-original-print-document .primary-score-print-page { display: flex !important; align-items: center !important; justify-content: center !important; padding: 16mm !important; }
+  .primary-score-print-content { flex: 0 1 265mm; }
+}

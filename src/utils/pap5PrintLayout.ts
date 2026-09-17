@@ -322,8 +322,13 @@ export function getAnalyticalPrintRanges(data: AppData): StudentEvaluationPrintR
   return getStudentEvaluationPrintRanges(data, "analytical", "คิดวิเคราะห์");
 }
 
-export function getPrimaryScorePrintRanges(data: AppData): StudentEvaluationPrintRange[] {
-  return isPrimaryGrade(data.generalInfo.gradeLevel) ? getStudentEvaluationPrintRanges(data, 'scores', 'คะแนนรายปี') : [];
+export interface PrimaryScorePrintRange extends StudentEvaluationPrintRange { term?: 1 | 2 }
+export function getPrimaryScorePrintRanges(data: AppData): PrimaryScorePrintRange[] {
+  if (!isPrimaryGrade(data.generalInfo.gradeLevel)) return [];
+  return [1, 2, 0].flatMap(number => getStudentEvaluationPrintRanges(data,
+    number ? `scores-term-${number}` : 'scores-summary',
+    number ? `คะแนนตามตัวชี้วัด ภาคเรียนที่ ${number}` : 'สรุปคะแนนและระดับผลการเรียนรายปี',
+  ).map(range => ({ ...range, term: number ? number as 1 | 2 : undefined })));
 }
 
 export function getPap5PrintPageSpecs(data: AppData): Pap5PrintPageSpec[] {

@@ -1,4 +1,4 @@
-import { PrimaryScoresForm } from "./PrimaryScoresForm";
+import { PrimaryScorePrintPage } from "./PrimaryScorePrintPage";
 import { PrimaryAssessmentForm } from "./PrimaryAssessmentForm";
 import { isPrimaryGrade, primaryCombinedConfig } from "../lib/primaryYear";
 import React from "react";
@@ -95,11 +95,11 @@ function AttendanceSummaryOriginalPrintPage({ data, pageNumber }: { data: AppDat
   );
 }
 
-function ScoreOriginalPrintPage({ data, pageNumber, offset = 0 }: { data: AppData; pageNumber?: number; offset?: number }) {
+function ScoreOriginalPrintPage({ data, pageNumber, offset = 0, term }: { data: AppData; pageNumber?: number; offset?: number; term?: 1 | 2 }) {
   return (
-    <section className="print-page landscape score-print-page original-tab-print-page">
+    <section className={isPrimaryGrade(data.generalInfo.gradeLevel) ? "print-page landscape primary-score-print-page" : "print-page landscape score-print-page original-tab-print-page"}>
       <PrintPageNumber pageNumber={pageNumber} />
-      {isPrimaryGrade(data.generalInfo.gradeLevel) ? <PrimaryScoresForm data={data} printMode offset={offset} onChange={noop} /> : <ScoresForm
+      {isPrimaryGrade(data.generalInfo.gradeLevel) ? <PrimaryScorePrintPage data={data} term={term} offset={offset} /> : <ScoresForm
         students={data.students}
         data={data.scores}
         generalInfo={data.generalInfo}
@@ -251,7 +251,7 @@ export function PrintAllPap5Document({
 
       <AttendanceSummaryOriginalPrintPage data={data} pageNumber={nextPageNumber++} />
       {isPrimaryGrade(data.generalInfo.gradeLevel) ? getPrimaryScorePrintRanges(data).map(range => (
-        <React.Fragment key={range.id}><ScoreOriginalPrintPage data={{ ...data, students: data.students.slice(range.studentStartIndex, range.studentEndIndex) }} offset={range.studentStartIndex} pageNumber={nextPageNumber++} /></React.Fragment>
+        <React.Fragment key={range.id}><ScoreOriginalPrintPage data={{ ...data, students: data.students.slice(range.studentStartIndex, range.studentEndIndex) }} offset={range.studentStartIndex} term={range.term} pageNumber={nextPageNumber++} /></React.Fragment>
       )) : <ScoreOriginalPrintPage data={data} pageNumber={nextPageNumber++} />}
       {scoreSummaryRanges.map((range) => (
         <React.Fragment key={range.id}>
@@ -325,7 +325,7 @@ export function Pap5SingleOriginalPrintPage({
     ) : pageId === "attendance-summary" ? (
       <AttendanceSummaryOriginalPrintPage data={data} pageNumber={pageNumber} />
     ) : primaryScoreRange ? (
-      <ScoreOriginalPrintPage data={{ ...data, students: data.students.slice(primaryScoreRange.studentStartIndex, primaryScoreRange.studentEndIndex) }} offset={primaryScoreRange.studentStartIndex} pageNumber={pageNumber} />
+      <ScoreOriginalPrintPage data={{ ...data, students: data.students.slice(primaryScoreRange.studentStartIndex, primaryScoreRange.studentEndIndex) }} offset={primaryScoreRange.studentStartIndex} term={primaryScoreRange.term} pageNumber={pageNumber} />
     ) : pageId === "scores" ? (
       <ScoreOriginalPrintPage data={data} pageNumber={pageNumber} />
     ) : scoreSummaryRange ? (

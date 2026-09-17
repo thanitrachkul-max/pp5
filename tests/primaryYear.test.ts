@@ -77,8 +77,8 @@ test('annual database enforces term locks, keeps legacy scores, rejects stale wr
 test('primary print pagination includes every student exactly once and omits semester-only score summaries', () => {
  const d={generalInfo:{gradeLevel:'ป.6/1',semester:'1'},students:Array.from({length:25},(_,i)=>({id:String(i)}))} as AppData;
  const ranges=getPrimaryScorePrintRanges(d);
- assert.deepEqual(ranges.map(r=>[r.studentStartIndex,r.studentEndIndex]),[[0,12],[12,24],[24,25]]);
+ assert.deepEqual(ranges.filter(r=>r.term===1).map(r=>[r.studentStartIndex,r.studentEndIndex]),[[0,12],[12,24],[24,25]]);
  const specs=getPap5PrintPageSpecs(d);
- assert.deepEqual(specs.filter(s=>s.id.startsWith('scores')).map(s=>s.id),['scores','scores-students-2','scores-students-3']);
+ assert.deepEqual(specs.filter(s=>s.id.startsWith('scores')).map(s=>s.id),['scores-term-1','scores-term-1-students-2','scores-term-1-students-3','scores-term-2','scores-term-2-students-2','scores-term-2-students-3','scores-summary','scores-summary-students-2','scores-summary-students-3']);
  assert.ok(!specs.some(s=>s.id.startsWith('score-summary')));
 });
