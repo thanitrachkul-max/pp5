@@ -24,7 +24,7 @@ import {
   resolveGradebookStatus,
 } from '../../lib/gradebookStatusDisplay';
 import { supabase } from '../../lib/supabase';
-import { isWithinEntryWindow } from '../../lib/thaiDate';
+import { isWithinEntryWindow, normalizeThaiOrIsoDate } from '../../lib/thaiDate';
 import {
   acknowledgeGradebookRevision,
   ensureGradebook,
@@ -42,7 +42,7 @@ interface TeacherDashboardProps {
   onOpenGradebook: (
     assignment: TeacherAssignmentView,
     gradebookId: string,
-    options?: { returnPeriodKey?: string | null },
+    options?: { readOnly?: boolean; returnPeriodKey?: string | null },
   ) => void;
   onLogout: () => void;
   onSettings: () => void;
@@ -65,7 +65,7 @@ function uniqueStrings(values: Array<string | null | undefined>): string[] {
 }
 
 function localDate(date: string, endOfDay = false): Date {
-  const [year, month, day] = date.split('-').map(Number);
+  const [year, month, day] = (normalizeThaiOrIsoDate(date) ?? date).split('-').map(Number);
   return new Date(year, month - 1, day, endOfDay ? 23 : 0, endOfDay ? 59 : 0, endOfDay ? 59 : 0);
 }
 
@@ -111,7 +111,7 @@ function teacherGreetingName(user: AppUser): string {
 
 function formatThaiDate(date: string | null | undefined): string {
   if (!date) return '';
-  const parsed = new Date(`${date}T00:00:00`);
+  const parsed = localDate(date);
   if (Number.isNaN(parsed.getTime())) return date;
   return parsed.toLocaleDateString('th-TH', {
     day: 'numeric',

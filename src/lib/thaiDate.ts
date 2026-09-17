@@ -29,7 +29,7 @@ export function isWithinEntryWindow(start: string | null | undefined, end: strin
   return true;
 }
 
-function normalizeThaiOrIsoDate(value: string | null | undefined): string | null {
+export function normalizeThaiOrIsoDate(value: string | null | undefined): string | null {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return value || null;
   const [rawYear, month, day] = value.split('-');
   const year = Number(rawYear);
