@@ -48,9 +48,17 @@ test('annual database enforces term locks, keeps legacy scores, rejects stale wr
  `);
  await db.exec(readFileSync('supabase/migrations/0043_primary_annual_gradebooks.sql','utf8'));
  await db.exec(readFileSync('supabase/migrations/0043_primary_annual_gradebooks.sql','utf8'));
+ await db.exec(readFileSync('supabase/migrations/0044_primary_entry_buddhist_dates.sql','utf8'));
  const id='00000000-0000-0000-0000-000000000070';
  const load=async()=> (await db.query<{value:NonNullable<AppData['primaryYear']>}>('select get_primary_gradebook_year($1) as value',[id])).rows[0].value;
  let context=await load();assert.deepEqual(context.editableTerms,[1]);assert.equal(context.terms['1']!.scores.s.u0_i0,70);
+ await db.exec(`update academic_years set primary_entry_start_date=((now() at time zone 'Asia/Bangkok')::date + interval '543 years' - interval '1 day')::date,primary_entry_end_date=((now() at time zone 'Asia/Bangkok')::date + interval '543 years' + interval '1 day')::date`);
+ assert.deepEqual((await load()).editableTerms,[1]);
+ await db.exec(`update academic_years set primary_entry_start_date=current_date-1,primary_entry_end_date=current_date+1; update semesters set entry_start_date=(current_date+interval '543 years'-interval '1 day')::date,entry_end_date=(current_date+interval '543 years'+interval '1 day')::date`);
+ assert.deepEqual((await load()).editableTerms,[1]);
+ await db.exec(`update academic_years set primary_entry_start_date=current_date+1`);
+ assert.deepEqual((await load()).editableTerms,[]);
+ await db.exec(`update academic_years set primary_entry_start_date=null,primary_entry_end_date=null; update semesters set entry_start_date=null,entry_end_date=null`);
  const save=async(terms:unknown,original:unknown)=>db.query('select save_primary_gradebook_year($1,$2,$3)',[id,{primaryYear:{terms}},original]);
  await assert.rejects(save({...context.terms,'2':term()},context.terms),/ปิดการแก้ไข/);
  await save({...context.terms,'1':term()},context.terms);

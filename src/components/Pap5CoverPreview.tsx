@@ -430,7 +430,7 @@ export function Pap5CoverPreview({
         </div>
 
         <div className="flex justify-center items-center gap-2 mb-2">
-          <span>ชั้นมัธยมศึกษาปีที่</span>
+          <span>ชั้น</span>
           <TextField
             name="gradeLevel"
             value={displayGeneralInfo.gradeLevel}
