@@ -944,6 +944,11 @@ export async function loadGradebookSession(
     },
   );
 
+  if (isPrimaryClassLevel(assignment.class_level_code)) {
+    const { data: annual, error: annualError } = await supabase.rpc('get_primary_gradebook_year', { p_gradebook_id: gradebookId });
+    if (annualError) throw annualError;
+    appData.primaryYear = annual;
+  }
   return {
     id: data.id,
     teaching_assignment_id: data.teaching_assignment_id,
@@ -956,9 +961,10 @@ export async function loadGradebookSession(
     approval_status: (data.approval_status as GradebookApprovalStatus | null | undefined) ?? null,
     approval_reason: (data.approval_reason as string | null | undefined) ?? null,
     readOnly:
+      (appData.primaryYear ? appData.primaryYear.editableTerms.length === 0 :
       !assignment.year_is_active ||
       !assignment.semester_grade_entry_enabled ||
-      !isWithinEntryWindow(assignment.entry_start_date, assignment.entry_end_date),
+      !isWithinEntryWindow(assignment.entry_start_date, assignment.entry_end_date)),
     label: `${assignment.subject_name} ${assignment.classroom_name}`,
     year_be: assignment.year_be,
     semester_number: assignment.semester_number,

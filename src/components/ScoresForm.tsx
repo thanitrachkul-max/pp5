@@ -272,11 +272,11 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
               <>
                 <span className="score-print-heading-line">บันทึกคะแนนวัดผลและประเมินผลการเรียนรู้</span>
                 <span className="score-print-heading-line">
-                  ชั้นมัธยมศึกษาปีที่ {generalInfo.gradeLevel} ภาคเรียนที่ {generalInfo.semester} ปีการศึกษา {generalInfo.academicYear}
+                  ชั้น {generalInfo.gradeLevel} ภาคเรียนที่ {generalInfo.semester} ปีการศึกษา {generalInfo.academicYear}
                 </span>
               </>
             ) : (
-              <>บันทึกคะแนนวัดผลและประเมินผลการเรียนรู้ ชั้นมัธยมศึกษาปีที่ {generalInfo.gradeLevel} ภาคเรียนที่ {generalInfo.semester} ปีการศึกษา {generalInfo.academicYear}</>
+              <>บันทึกคะแนนวัดผลและประเมินผลการเรียนรู้ ชั้น {generalInfo.gradeLevel} ภาคเรียนที่ {generalInfo.semester} ปีการศึกษา {generalInfo.academicYear}</>
             )}
           </h2>
         </div>

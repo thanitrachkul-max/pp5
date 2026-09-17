@@ -3394,5 +3394,31 @@ export const SUBJECTS_CATALOG = [
     "hours_per_week": 1,
     "is_active": true,
     "flag": ""
+  },
+  {
+    "subject_code": "ง33101",
+    "subject_name": "การงานอาชีพ",
+    "learning_area": "การงานอาชีพ",
+    "subject_type": "พื้นฐาน",
+    "default_class_level": "ม.6",
+    "semester_number": 1,
+    "credits": 0.5,
+    "hours_total": 20,
+    "hours_per_week": 1,
+    "is_active": true,
+    "flag": ""
+  },
+  {
+    "subject_code": "ง33102",
+    "subject_name": "การงานอาชีพ",
+    "learning_area": "การงานอาชีพ",
+    "subject_type": "พื้นฐาน",
+    "default_class_level": "ม.6",
+    "semester_number": 2,
+    "credits": 0.5,
+    "hours_total": 20,
+    "hours_per_week": 1,
+    "is_active": true,
+    "flag": ""
   }
 ] as const satisfies readonly SubjectCatalogItem[];

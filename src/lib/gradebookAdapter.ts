@@ -1,6 +1,7 @@
 import type { AppData } from "../types";
 
 export interface GradebookRow {
+  primary_year?: AppData["primaryYear"];
   general_info?: AppData["generalInfo"];
   students?: AppData["students"];
   attendance?: AppData["attendance"];
@@ -50,6 +51,7 @@ export function normalizeGeneralInfo(
 export function rowToAppData(row: GradebookRow): AppData {
   return {
     generalInfo: normalizeGeneralInfo(row.general_info),
+    ...(row.primary_year ? { primaryYear: row.primary_year } : {}),
     students: row.students ?? [],
     attendance: row.attendance ?? {},
     scores: row.scores ?? {},

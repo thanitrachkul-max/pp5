@@ -2367,3 +2367,21 @@ main table:not(.excel-table) tbody td {
     box-shadow: none !important;
   }
 }
+
+/* Annual primary grids share the same student row across both semesters. */
+.primary-year-form { padding: 16px; font-family: Sarabun, sans-serif; }
+.primary-year-form table { width: 100%; }
+.primary-year-form td { min-width: 44px; text-align: center; }
+.primary-year-form td:nth-child(4) { min-width: 190px; }
+.primary-year-form .writing-vertical { max-height: 230px; white-space: normal; }
+.primary-year-form input:disabled { background: #e2e8f0; color: #64748b; cursor: not-allowed; }
+@media print {
+  .pap5-original-print-document .primary-year-print { width: 100% !important; padding: 0 !important; }
+  .pap5-original-print-document .primary-year-print > div { overflow: visible !important; }
+  .pap5-original-print-document .primary-year-print table { width: 100% !important; min-width: 0 !important; table-layout: auto !important; }
+  .pap5-original-print-document .primary-year-print th,
+  .pap5-original-print-document .primary-year-print td { min-width: 0 !important; max-width: none !important; width: auto !important; padding: 1px 2px !important; font-size: 8px !important; line-height: 1.3 !important; }
+  .pap5-original-print-document .primary-year-print td:nth-child(4) { white-space: nowrap; }
+  .pap5-original-print-document .primary-year-print .writing-vertical { max-height: 150px; font-size: 8px; }
+  .pap5-original-print-document .primary-year-print h2 { font-size: 12px; margin-bottom: 8px; }
+}

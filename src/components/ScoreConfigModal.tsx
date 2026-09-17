@@ -9,6 +9,7 @@ interface Props {
   onClose: () => void;
   generalInfo: AppData['generalInfo'];
   initialConfig?: ScoreConfig;
+  semesterFullScore?: 50 | 100;
   onSave: (config: ScoreConfig) => void;
 }
 
@@ -59,8 +60,11 @@ const distributeScoresAcrossUnits = (currentUnits: ScoreUnit[], targetStoredScor
   });
 };
 
-export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo, initialConfig, onSave }) => {
-  const initialStoredScore = getStoredScore(initialConfig);
+export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo, initialConfig, onSave, semesterFullScore = 100 }) => {
+  const options = semesterFullScore === 50 ? [35] : [...STORED_SCORE_OPTIONS];
+  const defaultStoredScore = semesterFullScore === 50 ? 35 : DEFAULT_STORED_SCORE;
+  const initialStoredScore = semesterFullScore === 50 ? 35 : getStoredScore(initialConfig);
+  const [expectedLearningOutcomes, setExpectedLearningOutcomes] = useState(initialConfig?.expectedLearningOutcomes || '');
   const [selectedIndicators, setSelectedIndicators] = useState<string[]>(initialConfig?.selectedIndicators || []);
   const [numUnits, setNumUnits] = useState<number>(initialConfig?.units.length || DEFAULT_UNIT_COUNT);
   const [storedScore, setStoredScore] = useState<number>(initialStoredScore);
@@ -86,19 +90,20 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
       initialConfig?.subjectName === subjectName &&
       (!initialConfig.subjectCode || initialConfig.subjectCode === subjectCode);
 
-    const nextStoredScore = getStoredScore(initialConfig);
+    const nextStoredScore = semesterFullScore === 50 ? 35 : getStoredScore(initialConfig);
+    setExpectedLearningOutcomes(initialConfig?.expectedLearningOutcomes || "");
 
     if (initialConfig && configMatchesCurrentSubject) {
       setSelectedIndicators(initialConfig.selectedIndicators || []);
       setNumUnits(initialConfig.units.length || DEFAULT_UNIT_COUNT);
       setStoredScore(nextStoredScore);
-      setUnits(initialConfig.units.length > 0 ? initialConfig.units : createDefaultUnits(nextStoredScore));
+      setUnits(initialConfig.units.length > 0 ? (semesterFullScore === 50 && initialConfig.semesterFullScore !== 50 ? distributeScoresAcrossUnits(initialConfig.units, 35) : initialConfig.units) : createDefaultUnits(nextStoredScore));
       setMainStandard(initialConfig.standard || '');
     } else {
       setSelectedIndicators([]);
       setNumUnits(DEFAULT_UNIT_COUNT);
-      setStoredScore(DEFAULT_STORED_SCORE);
-      setUnits(createDefaultUnits());
+      setStoredScore(defaultStoredScore);
+      setUnits(createDefaultUnits(defaultStoredScore));
       setMainStandard('');
     }
 
@@ -252,6 +257,8 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
       subjectName,
       subjectCode,
       standard: mainStandard,
+      expectedLearningOutcomes,
+      semesterFullScore,
       selectedIndicators,
       storedScore,
       units
@@ -314,10 +321,11 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
                   onClick={() => {
                     setSelectedIndicators([]);
                     setNumUnits(DEFAULT_UNIT_COUNT);
-                    setStoredScore(DEFAULT_STORED_SCORE);
-                    setUnits(createDefaultUnits());
+                    setStoredScore(defaultStoredScore);
+                    setUnits(createDefaultUnits(defaultStoredScore));
                     setError(null);
                     setMainStandard('');
+                    setExpectedLearningOutcomes('');
                     setResetKey(prev => prev + 1);
                     setShowClearConfirm(false);
                   }}
@@ -364,6 +372,8 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
             gradeLevel={gradeLevel} 
             initialStandard={mainStandard}
             initialIndicators={selectedIndicators}
+            expectedLearningOutcomes={expectedLearningOutcomes}
+            onExpectedLearningOutcomesChange={setExpectedLearningOutcomes}
             onSelectIndicators={handleSelectIndicators} 
           />
 
@@ -392,7 +402,7 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
                     onChange={(e) => handleStoredScoreChange(parseInt(e.target.value))}
                     className="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm bg-white"
                   >
-                    {STORED_SCORE_OPTIONS.map(score => (
+                    {options.map(score => (
                       <option key={score} value={score}>{score} คะแนน</option>
                     ))}
                   </select>

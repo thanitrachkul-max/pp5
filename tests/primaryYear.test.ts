@@ -1,0 +1,76 @@
+import { getPrimaryScorePrintRanges, getPap5PrintPageSpecs } from '../src/utils/pap5PrintLayout';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { PGlite } from '@electric-sql/pglite';
+import { primaryAnnualTotal, primaryAnnualComplete, updatePrimaryTerm, qualityAverage, primaryTermTotal } from '../src/lib/primaryYear';
+import type { AppData, PrimaryTermData } from '../src/types';
+const term = (score = 35): PrimaryTermData => ({ scoreConfig: { learningArea:'',subjectName:'',standard:'',selectedIndicators:[],semesterFullScore:50,storedScore:35,units:[{name:'หน่วย 1',indicators:[{code:'1',fullScore:35,passingScore:17.5}]}] },scores:{s:{u0_i0:score,midterm:5,final:10}}, attributes:{},analytical:{} });
+test('annual scores distinguish blanks from zero, preserve legacy data, and lock inactive terms', () => {
+ const d = {generalInfo:{gradeLevel:'ป.6/1',semester:'1'},scores:{},primaryYear:{terms:{'1':term()},editableTerms:[1]}} as AppData;
+ assert.equal(primaryAnnualTotal(d,'s'),50);
+ assert.equal(primaryAnnualComplete(d,'s'),false);
+ assert.equal(updatePrimaryTerm(d,2,{scores:{s:{final:10}}}),d);
+ d.primaryYear!.terms['2']=term(25);
+ assert.equal(primaryAnnualTotal(d,'s'),90);
+ assert.equal(primaryAnnualComplete(d,'s'),true);
+ const legacy=term(70); delete legacy.scoreConfig!.semesterFullScore; legacy.scoreConfig!.units[0].indicators[0].fullScore=70; legacy.scores.s.midterm=10;legacy.scores.s.final=20;
+ assert.equal(primaryTermTotal(legacy,'s'),50);assert.equal(legacy.scores.s.u0_i0,70);
+ assert.equal(qualityAverage({a:0,b:0},['a','b']),0);
+ assert.equal(qualityAverage({a:0,b:''},['a','b']),null);
+});
+test('annual database enforces term locks, keeps legacy scores, rejects stale writes and unauthorized users', async () => {
+ const db=new PGlite();
+ try {
+ await db.exec(`
+ create role authenticated; create role anon; create schema auth;
+ create function auth.uid() returns uuid language sql as $$ select current_setting('test.uid')::uuid $$;
+ create function current_school_id() returns uuid language sql as $$ select '00000000-0000-0000-0000-000000000010'::uuid $$;
+ create function current_role_is_admin() returns boolean language sql as $$ select false $$;
+ create function teacher_can_read_assignment_group(uuid,uuid,uuid) returns boolean language sql as $$ select $3='00000000-0000-0000-0000-000000000001'::uuid $$;
+ create table schools(id uuid primary key);
+ create table profiles(id uuid primary key,is_active boolean,role text default 'teacher');
+ create table academic_years(id uuid primary key,is_active boolean,primary_grade_entry_enabled boolean,primary_entry_start_date date,primary_entry_end_date date);
+ create table semesters(id uuid primary key,academic_year_id uuid,semester_number integer,grade_entry_enabled boolean,entry_start_date date,entry_end_date date);
+ create table classrooms(id uuid primary key,class_level_code text);
+ create table subjects(id uuid primary key default gen_random_uuid(), school_id uuid,subject_code text,subject_name text,learning_area text,subject_type text,default_class_level text,semester_number integer,credits numeric,hours_total integer,hours_per_week integer,is_active boolean,unique(school_id,subject_code));
+ create table teaching_assignments(id uuid primary key,subject_id uuid,classroom_id uuid,school_id uuid);
+ create table gradebooks(id uuid primary key,teaching_assignment_id uuid,semester_id uuid,assignment_group_id uuid,deleted_at timestamptz,updated_at timestamptz,scores jsonb,score_config jsonb,attributes jsonb,analytical jsonb,general_info jsonb,students jsonb,attendance jsonb,indicators jsonb,stats jsonb,status text);
+ insert into schools values(current_school_id());
+ insert into profiles(id,is_active) values('00000000-0000-0000-0000-000000000001',true),('00000000-0000-0000-0000-000000000002',true);
+ set test.uid='00000000-0000-0000-0000-000000000001';
+ insert into academic_years values('00000000-0000-0000-0000-000000000020',true,true,null,null);
+ insert into semesters values('00000000-0000-0000-0000-000000000031','00000000-0000-0000-0000-000000000020',1,true,null,null),('00000000-0000-0000-0000-000000000032','00000000-0000-0000-0000-000000000020',2,false,null,null);
+ insert into classrooms values('00000000-0000-0000-0000-000000000040','ป.6');
+ insert into subjects(id,school_id,subject_code) values('00000000-0000-0000-0000-000000000050',current_school_id(),'ง16101');
+ insert into teaching_assignments values('00000000-0000-0000-0000-000000000060','00000000-0000-0000-0000-000000000050','00000000-0000-0000-0000-000000000040',current_school_id());
+ insert into gradebooks(id,teaching_assignment_id,semester_id,scores,attributes,analytical,status) values('00000000-0000-0000-0000-000000000070','00000000-0000-0000-0000-000000000060','00000000-0000-0000-0000-000000000031','{"s":{"u0_i0":70,"midterm":10,"final":20}}','{}','{}','in_progress');
+ `);
+ await db.exec(readFileSync('supabase/migrations/0043_primary_annual_gradebooks.sql','utf8'));
+ await db.exec(readFileSync('supabase/migrations/0043_primary_annual_gradebooks.sql','utf8'));
+ const id='00000000-0000-0000-0000-000000000070';
+ const load=async()=> (await db.query<{value:NonNullable<AppData['primaryYear']>}>('select get_primary_gradebook_year($1) as value',[id])).rows[0].value;
+ let context=await load();assert.deepEqual(context.editableTerms,[1]);assert.equal(context.terms['1']!.scores.s.u0_i0,70);
+ const save=async(terms:unknown,original:unknown)=>db.query('select save_primary_gradebook_year($1,$2,$3)',[id,{primaryYear:{terms}},original]);
+ await assert.rejects(save({...context.terms,'2':term()},context.terms),/ปิดการแก้ไข/);
+ await save({...context.terms,'1':term()},context.terms);
+ await assert.rejects(save({...context.terms,'1':term(30)},context.terms),/ก่อนหน้านี้/);
+ await db.exec('update semesters set grade_entry_enabled=semester_number=2');
+ context=await load();assert.deepEqual(context.editableTerms,[2]);
+ await assert.rejects(save({...context.terms,'1':term(20)},context.terms),/ปิดการแก้ไข/);
+ await save({...context.terms,'2':term(25)},context.terms);
+ await assert.rejects(db.query("update gradebooks set scores='{}' where id=$1",[id]),/โหลดหน้าใหม่/);
+ const final=await load();assert.equal(final.terms['1']!.scores.s.u0_i0,35);assert.equal(final.terms['2']!.scores.s.u0_i0,25);
+ await db.exec("set test.uid='00000000-0000-0000-0000-000000000002'");
+ await assert.rejects(load(),/ไม่มีสิทธิ์/);
+ } finally {await db.close();}
+});
+
+test('primary print pagination includes every student exactly once and omits semester-only score summaries', () => {
+ const d={generalInfo:{gradeLevel:'ป.6/1',semester:'1'},students:Array.from({length:25},(_,i)=>({id:String(i)}))} as AppData;
+ const ranges=getPrimaryScorePrintRanges(d);
+ assert.deepEqual(ranges.map(r=>[r.studentStartIndex,r.studentEndIndex]),[[0,12],[12,24],[24,25]]);
+ const specs=getPap5PrintPageSpecs(d);
+ assert.deepEqual(specs.filter(s=>s.id.startsWith('scores')).map(s=>s.id),['scores','scores-students-2','scores-students-3']);
+ assert.ok(!specs.some(s=>s.id.startsWith('score-summary')));
+});

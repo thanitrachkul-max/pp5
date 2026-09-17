@@ -1,3 +1,4 @@
+import { isPrimaryGrade, primaryAnnualTotal, primaryAnnualComplete, primaryTerm, primaryAnnualQuality, qualityLabel } from "./primaryYear";
 import type { AppData } from '../types';
 
 export interface GradebookStats {
@@ -227,6 +228,11 @@ function weightedCompletion(
 }
 
 function countGradebookCompletionFields(d: AppData): { filled: number; total: number } {
+  if (d.primaryYear) {
+    const terms = d.primaryYear.editableTerms.length ? d.primaryYear.editableTerms : [1, 2];
+    return terms.map(t => countGradebookCompletionFields({ ...d, ...primaryTerm(d, t), primaryYear: undefined }))
+      .reduce((sum, next) => ({ filled: sum.filled + next.filled, total: sum.total + next.total }), { filled: 0, total: 0 });
+  }
   if (d.students.length === 0) return { filled: 0, total: 100 };
 
   const sections = [
@@ -253,6 +259,7 @@ function countGradebookCompletionFields(d: AppData): { filled: number; total: nu
 }
 
 export function isGradebookFullyComplete(d: AppData): boolean {
+  if (d.primaryYear) return [1, 2].every(t => isGradebookFullyComplete({ ...d, ...primaryTerm(d, t), primaryYear: undefined }));
   if (d.students.length === 0 || !d.scoreConfig?.units?.length) return false;
 
   const sections = [
@@ -314,11 +321,12 @@ export function computeGradebookStats(d: AppData): GradebookStats {
 
   d.students.forEach((student) => {
     const score = (d.scores[student.id] || {}) as Record<string, unknown>;
-    const total = studentTotalScore(score, d);
+    const total = isPrimaryGrade(d.generalInfo.gradeLevel) ? primaryAnnualTotal(d, student.id) ?? 0 : studentTotalScore(score, d);
     totalScoreSum += total;
-    if (total >= 50) passCount++;
+    const canGrade = !isPrimaryGrade(d.generalInfo.gradeLevel) || primaryAnnualComplete(d, student.id);
+    if (canGrade && total >= 50) passCount++;
     const grade = scoreToGrade(total);
-    gradeDistribution[grade] = (gradeDistribution[grade] ?? 0) + 1;
+    if (canGrade) gradeDistribution[grade] = (gradeDistribution[grade] ?? 0) + 1;
 
     const attr = (d.attributes[student.id] || {}) as Record<string, unknown>;
     const avg1 = getAvg(['attr1_1', 'attr1_2', 'attr1_3', 'attr1_4'], attr);
@@ -329,17 +337,17 @@ export function computeGradebookStats(d: AppData): GradebookStats {
     const avg6 = getAvg(['attr6_1', 'attr6_2'], attr);
     const avg7 = getAvg(['attr7_1', 'attr7_2', 'attr7_3'], attr);
     const avg8 = getAvg(['attr8_1', 'attr8_2'], attr);
-    behaviorSum += (avg1 + avg2 + avg3 + avg4 + avg5 + avg6 + avg7 + avg8) / 8;
+    behaviorSum += d.primaryYear ? primaryAnnualQuality(d, student.id, "attributes") ?? 0 : (avg1 + avg2 + avg3 + avg4 + avg5 + avg6 + avg7 + avg8) / 8;
 
     const anal = (d.analytical[student.id] || {}) as Record<string, unknown>;
-    analyticalSum += getAvg(['attr1', 'attr2', 'attr3', 'attr4', 'attr5', 'attr6', 'attr7'], anal);
+    analyticalSum += d.primaryYear ? primaryAnnualQuality(d, student.id, 'analytical') ?? 0 : getAvg(['attr1', 'attr2', 'attr3', 'attr4', 'attr5', 'attr6', 'attr7'], anal);
 
     attendanceSum += studentAttendancePercent(student.id, d.attendance);
   });
 
   const { filled, total } = countGradebookCompletionFields(d);
   const completionPercent = total > 0 ? round2((filled / total) * 100) : 0;
-  const hasTeacherInput = hasTeacherEnteredData(d);
+  const hasTeacherInput = hasTeacherEnteredData(d) || !!d.primaryYear && Object.values(d.primaryYear.terms).some(t => hasTeacherEnteredData(t));
 
   return {
     completionPercent,
@@ -400,12 +408,13 @@ export interface StudentReportSummary {
 
 export function getStudentReportSummary(
   studentId: string,
-  d: Pick<AppData, 'scores' | 'scoreConfig' | 'attributes' | 'analytical' | 'attendance'>,
+  d: Pick<AppData, 'scores' | 'scoreConfig' | 'attributes' | 'analytical' | 'attendance'> & Partial<Pick<AppData, 'generalInfo' | 'primaryYear'>>,
 ): StudentReportSummary {
   const score = (d.scores[studentId] || {}) as Record<string, unknown>;
   const hasScore = Object.values(score).some(isCellFilled);
-  const totalScore = hasScore ? studentTotalScore(score, d as AppData) : null;
-  const gradeLevel = totalScore != null ? scoreToGrade(totalScore) : '—';
+  const primary = isPrimaryGrade(d.generalInfo?.gradeLevel);
+  const totalScore = primary ? primaryAnnualTotal(d as AppData, studentId) : hasScore ? studentTotalScore(score, d as AppData) : null;
+  const gradeLevel = totalScore != null && (!primary || primaryAnnualComplete(d as AppData, studentId)) ? scoreToGrade(totalScore) : '—';
 
   const attr = (d.attributes[studentId] || {}) as Record<string, unknown>;
   const hasAttributes = ATTRIBUTE_FIELDS.some((field) => isCellFilled(attr[field]));
@@ -431,6 +440,12 @@ export function getStudentReportSummary(
     analyticalRating = ratingTextFromScore(Math.round(avgAnal));
   }
 
+  if (primary) {
+    const a = primaryAnnualQuality(d as AppData, studentId, 'attributes');
+    const b = primaryAnnualQuality(d as AppData, studentId, 'analytical');
+    attributeRating = a === null ? '—' : qualityLabel(a);
+    analyticalRating = b === null ? '—' : qualityLabel(b);
+  }
   return {
     attendedHours: studentAttendedHours(studentId, d.attendance),
     totalScore,

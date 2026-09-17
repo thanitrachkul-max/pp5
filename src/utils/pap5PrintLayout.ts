@@ -1,3 +1,4 @@
+import { isPrimaryGrade } from "../lib/primaryYear.js";
 import type { AppData } from "../types";
 
 export type Pap5PrintOrientation = "portrait" | "landscape";
@@ -224,6 +225,7 @@ export function getAttendancePrintMonthRanges(
 }
 
 export function getScoreSummaryPrintRanges(data: AppData): ScoreSummaryPrintRange[] {
+  if (isPrimaryGrade(data.generalInfo.gradeLevel)) return [];
   const units = data.scoreConfig?.units ?? [];
   if (units.length === 0) return [];
 
@@ -320,6 +322,10 @@ export function getAnalyticalPrintRanges(data: AppData): StudentEvaluationPrintR
   return getStudentEvaluationPrintRanges(data, "analytical", "คิดวิเคราะห์");
 }
 
+export function getPrimaryScorePrintRanges(data: AppData): StudentEvaluationPrintRange[] {
+  return isPrimaryGrade(data.generalInfo.gradeLevel) ? getStudentEvaluationPrintRanges(data, 'scores', 'คะแนนรายปี') : [];
+}
+
 export function getPap5PrintPageSpecs(data: AppData): Pap5PrintPageSpec[] {
   const attendanceSpecs = getAttendancePrintMonthRanges(data.generalInfo).map((range) => ({
     id: range.id,
@@ -351,7 +357,9 @@ export function getPap5PrintPageSpecs(data: AppData): Pap5PrintPageSpec[] {
     { id: "cover", orientation: "portrait", label: "ปก" },
     ...attendanceSpecs,
     { id: "attendance-summary", orientation: "landscape", label: "สรุปเวลาเรียน" },
-    { id: "scores", orientation: "landscape", label: "คะแนนตามตัวชี้วัด" },
+    ...(isPrimaryGrade(data.generalInfo.gradeLevel)
+      ? getPrimaryScorePrintRanges(data).map(range => ({ id: range.id, orientation: 'landscape' as const, label: range.label }))
+      : [{ id: 'scores', orientation: 'landscape' as const, label: 'คะแนนตามตัวชี้วัด' }]),
     ...scoreSummarySpecs,
     ...attributeOneToFourSpecs,
     ...attributeFiveToEightSpecs,

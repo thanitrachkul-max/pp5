@@ -188,7 +188,7 @@ export const AnalyticalForm: React.FC<Props> = ({ students, data, generalInfo, p
                 <th rowSpan={11} className="bg-orange-excel sticky z-20" style={{ left: '48px', width: '112px', minWidth: '112px', maxWidth: '112px' }}>เลขประจำตัว</th>
                 <th rowSpan={11} className="bg-orange-excel sticky z-20" style={{ left: '160px', width: '150px', minWidth: '150px', maxWidth: '150px' }}>เลขประจำตัวประชาชน</th>
                 <th rowSpan={11} className="bg-orange-excel sticky z-20 border-r-2 border-r-slate-400" style={{ left: '310px', width: '292px', minWidth: '292px', maxWidth: '292px' }}>ชื่อ - สกุล</th>
-                <th colSpan={9} className="bg-orange-excel">ประเมินตัวชี้วัดชั้น ม.1-3</th>
+                <th colSpan={9} className="bg-orange-excel">ประเมินตัวชี้วัดชั้น ม.1-6</th>
               </tr>
               <tr>
                 <th colSpan={9} className="!text-left px-2 bg-orange-excel font-normal">1. อ่านออกเสียงให้ถูกต้องตามหลักการอ่าน</th>
@@ -200,7 +200,7 @@ export const AnalyticalForm: React.FC<Props> = ({ students, data, generalInfo, p
               <tr><th colSpan={9} className="!text-left px-2 bg-orange-excel font-normal">6. เขียนแสดงความคิดเห็นได้ถูกต้อง</th></tr>
               <tr><th colSpan={9} className="!text-left px-2 bg-orange-excel font-normal">7. เขียนสะกดคำได้ถูกต้องตามหลักภาษาไทย</th></tr>
               <tr>
-                <th colSpan={7} className="bg-orange-excel">ภาคเรียนที่ 2</th>
+                <th colSpan={7} className="bg-orange-excel">ภาคเรียนที่ {generalInfo.semester}</th>
                 <th rowSpan={2} className="bg-orange-excel w-24">สรุปผลการ<br/>ประเมิน</th>
                 <th rowSpan={2} className="bg-orange-excel w-32">สรุปผลการประเมิน<br/>ปลายปี</th>
               </tr>

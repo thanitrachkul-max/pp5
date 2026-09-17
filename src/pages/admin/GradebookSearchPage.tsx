@@ -33,6 +33,7 @@ interface CompletedGradebook {
   analytical?: unknown;
   indicators?: unknown;
   general_info?: unknown;
+  primary_year?: AppData["primaryYear"];
   approval_status?: GradebookApprovalStatus | null;
   updated_at: string | null;
   created_at: string | null;
@@ -285,15 +286,8 @@ function reportDetailMetaLine(report: CompletedReport): string {
   ].join(' · ');
 }
 
-function gradebookAppData(gradebook: CompletedGradebook): Pick<AppData, 'scores' | 'scoreConfig' | 'attributes' | 'analytical' | 'attendance'> {
-  const data = rowToAppData(gradebook as GradebookRow);
-  return {
-    scores: data.scores,
-    scoreConfig: data.scoreConfig,
-    attributes: data.attributes,
-    analytical: data.analytical,
-    attendance: data.attendance,
-  };
+function gradebookAppData(gradebook: CompletedGradebook): AppData {
+  return rowToAppData(gradebook as GradebookRow);
 }
 
 function reportMetaLine(report: CompletedReport): string {
@@ -1089,6 +1083,11 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({
     if (!data) return report;
 
     const gradebook = data as CompletedGradebook;
+    if (report.isPrimaryLevel) {
+      const { data: annual, error: annualError } = await supabase.rpc('get_primary_gradebook_year', { p_gradebook_id: gradebook.id });
+      if (annualError) throw annualError;
+      gradebook.primary_year = annual;
+    }
     return {
       ...report,
       gradebook,

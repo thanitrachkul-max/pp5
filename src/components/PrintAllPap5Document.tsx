@@ -1,3 +1,6 @@
+import { PrimaryScoresForm } from "./PrimaryScoresForm";
+import { PrimaryAssessmentForm } from "./PrimaryAssessmentForm";
+import { isPrimaryGrade, primaryCombinedConfig } from "../lib/primaryYear";
 import React from "react";
 import { AnalyticalForm } from "./AnalyticalForm";
 import { Attributes5_8Form } from "./Attributes5_8Form";
@@ -14,6 +17,7 @@ import { ScoresForm } from "./ScoresForm";
 import { StudentsForm } from "./StudentsForm";
 import type { AppData, GradebookApprovalStatus } from "../types";
 import {
+  getPrimaryScorePrintRanges,
   getAnalyticalPrintRanges,
   getAttendancePrintMonthRanges,
   getAttributePrintRanges,
@@ -91,11 +95,11 @@ function AttendanceSummaryOriginalPrintPage({ data, pageNumber }: { data: AppDat
   );
 }
 
-function ScoreOriginalPrintPage({ data, pageNumber }: { data: AppData; pageNumber?: number }) {
+function ScoreOriginalPrintPage({ data, pageNumber, offset = 0 }: { data: AppData; pageNumber?: number; offset?: number }) {
   return (
     <section className="print-page landscape score-print-page original-tab-print-page">
       <PrintPageNumber pageNumber={pageNumber} />
-      <ScoresForm
+      {isPrimaryGrade(data.generalInfo.gradeLevel) ? <PrimaryScoresForm data={data} printMode offset={offset} onChange={noop} /> : <ScoresForm
         students={data.students}
         data={data.scores}
         generalInfo={data.generalInfo}
@@ -104,7 +108,7 @@ function ScoreOriginalPrintPage({ data, pageNumber }: { data: AppData; pageNumbe
         onChange={noop}
         onConfigChange={noop}
         onClearScoresAndConfig={noop}
-      />
+      />}
     </section>
   );
 }
@@ -149,7 +153,7 @@ function AttributesOriginalPrintPage({
   return (
     <section className="print-page landscape attribute-print-page original-tab-print-page">
       <PrintPageNumber pageNumber={pageNumber} />
-      <Form
+      {isPrimaryGrade(data.generalInfo.gradeLevel) ? <PrimaryAssessmentForm data={{ ...data, students }} kind={range} printMode offset={studentRange.studentStartIndex} onChange={noop} /> : <Form
         students={students}
         data={data.attributes}
         generalInfo={data.generalInfo}
@@ -157,7 +161,7 @@ function AttributesOriginalPrintPage({
         printStudentNumberOffset={studentRange.studentStartIndex}
         printPageNote={printPageNote}
         onChange={noop}
-      />
+      />}
     </section>
   );
 }
@@ -182,7 +186,7 @@ function AnalyticalOriginalPrintPage({
   return (
     <section className="print-page landscape analytical-print-page original-tab-print-page">
       <PrintPageNumber pageNumber={pageNumber} />
-      <AnalyticalForm
+      {isPrimaryGrade(data.generalInfo.gradeLevel) ? <PrimaryAssessmentForm data={{ ...data, students }} kind="analytical" printMode offset={studentRange.studentStartIndex} onChange={noop} /> : <AnalyticalForm
         students={students}
         data={data.analytical}
         generalInfo={data.generalInfo}
@@ -190,7 +194,7 @@ function AnalyticalOriginalPrintPage({
         printStudentNumberOffset={studentRange.studentStartIndex}
         printPageNote={printPageNote}
         onChange={noop}
-      />
+      />}
     </section>
   );
 }
@@ -201,7 +205,7 @@ function IndicatorOriginalPrintPage({ data, pageNumber }: { data: AppData; pageN
       <PrintPageNumber pageNumber={pageNumber} />
       <IndicatorsForm
         data={data.indicators}
-        scoreConfig={data.scoreConfig}
+        scoreConfig={primaryCombinedConfig(data)}
         generalInfo={data.generalInfo}
         printMode
         onChange={noop}
@@ -224,7 +228,7 @@ export function PrintAllPap5Document({
   approvalStatus = null,
 }: PrintAllPap5DocumentProps) {
   const attendanceRanges = getAttendancePrintMonthRanges(data.generalInfo);
-  const scoreSummaryRanges = getScoreSummaryPrintRanges(data);
+  const scoreSummaryRanges = isPrimaryGrade(data.generalInfo.gradeLevel) ? [] : getScoreSummaryPrintRanges(data);
   const attributeOneToFourRanges = getAttributePrintRanges(data, "1-4");
   const attributeFiveToEightRanges = getAttributePrintRanges(data, "5-8");
   const analyticalRanges = getAnalyticalPrintRanges(data);
@@ -246,7 +250,9 @@ export function PrintAllPap5Document({
       ))}
 
       <AttendanceSummaryOriginalPrintPage data={data} pageNumber={nextPageNumber++} />
-      <ScoreOriginalPrintPage data={data} pageNumber={nextPageNumber++} />
+      {isPrimaryGrade(data.generalInfo.gradeLevel) ? getPrimaryScorePrintRanges(data).map(range => (
+        <React.Fragment key={range.id}><ScoreOriginalPrintPage data={{ ...data, students: data.students.slice(range.studentStartIndex, range.studentEndIndex) }} offset={range.studentStartIndex} pageNumber={nextPageNumber++} /></React.Fragment>
+      )) : <ScoreOriginalPrintPage data={data} pageNumber={nextPageNumber++} />}
       {scoreSummaryRanges.map((range) => (
         <React.Fragment key={range.id}>
           <ScoreSummaryOriginalPrintPage data={data} range={range} pageNumber={nextPageNumber++} />
@@ -298,6 +304,7 @@ export function Pap5SingleOriginalPrintPage({
   pageId: string;
 }) {
   const attendanceRanges = getAttendancePrintMonthRanges(data.generalInfo);
+  const primaryScoreRange = getPrimaryScorePrintRanges(data).find(range => range.id === pageId);
   const attendancePage = attendanceRanges.find((range) => range.id === pageId);
   const scoreSummaryRange = getScoreSummaryPrintRanges(data).find((range) => range.id === pageId);
   const attributeOneToFourRange = getAttributePrintRanges(data, "1-4").find((range) => range.id === pageId);
@@ -317,6 +324,8 @@ export function Pap5SingleOriginalPrintPage({
       />
     ) : pageId === "attendance-summary" ? (
       <AttendanceSummaryOriginalPrintPage data={data} pageNumber={pageNumber} />
+    ) : primaryScoreRange ? (
+      <ScoreOriginalPrintPage data={{ ...data, students: data.students.slice(primaryScoreRange.studentStartIndex, primaryScoreRange.studentEndIndex) }} offset={primaryScoreRange.studentStartIndex} pageNumber={pageNumber} />
     ) : pageId === "scores" ? (
       <ScoreOriginalPrintPage data={data} pageNumber={pageNumber} />
     ) : scoreSummaryRange ? (

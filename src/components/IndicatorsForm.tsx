@@ -154,6 +154,7 @@ export const IndicatorsForm: React.FC<Props> = ({ data, scoreConfig, generalInfo
           )}
         </div>
 
+        {scoreConfig?.expectedLearningOutcomes && <section className="mx-auto mb-4 w-3/4 whitespace-pre-wrap rounded border p-3"><h3 className="font-bold">ผลการเรียนรู้ที่คาดหวัง</h3>{scoreConfig.expectedLearningOutcomes}</section>}
         <div className="indicator-print-table-frame mx-auto w-[75%] min-w-[720px] overflow-x-auto border-4 border-slate-500 p-1">
           <table className="indicator-print-table excel-table w-full border-collapse text-sm">
             <thead>

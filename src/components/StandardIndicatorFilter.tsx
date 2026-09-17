@@ -9,6 +9,8 @@ interface Props {
   gradeLevel: string;
   initialStandard?: string;
   initialIndicators?: string[];
+  expectedLearningOutcomes?: string;
+  onExpectedLearningOutcomesChange?: (value: string) => void;
   onSelectIndicators: (standardCode: string, indicators: string[]) => void;
 }
 
@@ -20,6 +22,8 @@ export const StandardIndicatorFilter: React.FC<Props> = ({
   initialStandard = '',
   initialIndicators = [],
   onSelectIndicators,
+  expectedLearningOutcomes = "",
+  onExpectedLearningOutcomesChange,
 }) => {
   const [selectedSubject, setSelectedSubject] = useState<string>('');
   const [selectedIndicators, setSelectedIndicators] = useState<string[]>(initialIndicators);
@@ -230,6 +234,15 @@ export const StandardIndicatorFilter: React.FC<Props> = ({
             />
           </div>
 
+      {onExpectedLearningOutcomesChange && (
+        <label className="block text-sm font-medium text-slate-700">
+          ผลการเรียนรู้ที่คาดหวัง (รายวิชาเพิ่มเติม)
+          <textarea aria-label="ผลการเรียนรู้ที่คาดหวัง" value={expectedLearningOutcomes}
+            onChange={e => onExpectedLearningOutcomesChange(e.target.value)} rows={3}
+            placeholder="กรอกผลการเรียนรู้ที่คาดหวัง"
+            className="mt-2 w-full rounded-lg border border-slate-300 p-3 font-normal" />
+        </label>
+      )}
           <div>
             <div className="flex justify-between items-center mb-2">
               <label className="block text-sm font-medium text-slate-700">รหัสตัวชี้วัด</label>

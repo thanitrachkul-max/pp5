@@ -23,6 +23,8 @@ export interface ScoreUnit {
 }
 
 export interface ScoreConfig {
+  expectedLearningOutcomes?: string;
+  semesterFullScore?: 50 | 100;
   learningArea: string;
   subjectName: string;
   subjectCode?: string;
@@ -224,6 +226,10 @@ export interface AssignmentRow extends TeachingAssignment {
 }
 
 export interface AppData {
+  primaryYear?: {
+    terms: Partial<Record<'1' | '2', PrimaryTermData>>;
+    editableTerms: number[];
+  };
   generalInfo: {
     schoolName?: string;
     agencyName?: string;
@@ -259,4 +265,11 @@ export interface AppData {
   attributes: Record<string, any>;
   analytical: Record<string, Record<string, any>>;
   indicators: Indicator[];
+}
+
+export interface PrimaryTermData {
+  scores: AppData['scores'];
+  scoreConfig?: ScoreConfig;
+  attributes: AppData['attributes'];
+  analytical: AppData['analytical'];
 }

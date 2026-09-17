@@ -648,6 +648,11 @@ export const StudentsForm: React.FC<Props> = ({
       "12-31": "วันสิ้นปี",
     };
 
+    if (String(generalInfo.academicYear) === '2569') {
+      calculatedHolidays['06-01'] = 'วันหยุดชดเชยวันวิสาขบูชา';
+      calculatedHolidays['07-29'] = 'วันอาสาฬหบูชา';
+      calculatedHolidays['07-30'] = 'วันเข้าพรรษา';
+    }
     return {
       dates: calculatedDates,
       holidays: calculatedHolidays,

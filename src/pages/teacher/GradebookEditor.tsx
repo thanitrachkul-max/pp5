@@ -1,3 +1,6 @@
+import { primaryCombinedConfig } from "../../lib/primaryYear";
+import { PrimaryScoresForm } from "../../components/PrimaryScoresForm";
+import { PrimaryAssessmentForm } from "../../components/PrimaryAssessmentForm";
 import { GradebookDelegationControl } from '../../components/GradebookDelegationControl';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -168,6 +171,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
     return null;
   }, [approvalStatus]);
 
+  const savedPrimaryTerms = useRef(session.data.primaryYear?.terms ?? {});
   const writeSnapshot = useCallback(
     async (appData: AppData) => {
       if (session.readOnly) return;
@@ -179,6 +183,14 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
             : stats.completionPercent > 0 || stats.hasTeacherInput
               ? "in_progress"
               : "not_started";
+        if (appData.primaryYear) {
+          const { error } = await supabase.rpc('save_primary_gradebook_year', {
+            p_gradebook_id: session.id, p_data: { ...appData, stats }, p_original_terms: savedPrimaryTerms.current,
+          });
+          if (error) throw error;
+          savedPrimaryTerms.current = structuredClone(appData.primaryYear.terms);
+          return;
+        }
         const { data: saved, error } = await supabase
           .from("gradebooks")
           .update({
@@ -720,7 +732,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 onPersistStudentEdit={handlePersistStudentEdit}
               />
             )}
-            {activeTab === "scores" && (
+            {activeTab === "scores" && (data.primaryYear ? <PrimaryScoresForm data={data} readOnly={session.readOnly} onChange={handleUpdate} /> : (
               <ScoresForm
                 students={data.students}
                 data={data.scores}
@@ -737,8 +749,8 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                   !session.readOnly && handleUpdate({ ...data, scores: {}, scoreConfig: undefined })
                 }
               />
-            )}
-            {activeTab === "attributes1_4" && (
+            ))}
+            {activeTab === "attributes1_4" && (data.primaryYear ? <PrimaryAssessmentForm kind="1-4" data={data} readOnly={session.readOnly} onChange={handleUpdate} /> : (
               <AttributesForm
                 students={data.students}
                 data={data.attributes}
@@ -748,8 +760,8 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                   !session.readOnly && handleUpdate({ ...data, attributes })
                 }
               />
-            )}
-            {activeTab === "attributes5_8" && (
+            ))}
+            {activeTab === "attributes5_8" && (data.primaryYear ? <PrimaryAssessmentForm kind="5-8" data={data} readOnly={session.readOnly} onChange={handleUpdate} /> : (
               <Attributes5_8Form
                 students={data.students}
                 data={data.attributes}
@@ -759,8 +771,8 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                   !session.readOnly && handleUpdate({ ...data, attributes })
                 }
               />
-            )}
-            {activeTab === "analytical" && (
+            ))}
+            {activeTab === "analytical" && (data.primaryYear ? <PrimaryAssessmentForm kind="analytical" data={data} readOnly={session.readOnly} onChange={handleUpdate} /> : (
               <AnalyticalForm
                 students={data.students}
                 data={data.analytical}
@@ -770,11 +782,11 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                   !session.readOnly && handleUpdate({ ...data, analytical })
                 }
               />
-            )}
+            ))}
             {activeTab === "indicators" && (
               <IndicatorsForm
                 data={data.indicators}
-                scoreConfig={data.scoreConfig}
+                scoreConfig={primaryCombinedConfig(data)}
                 generalInfo={data.generalInfo}
                 readOnly={session.readOnly}
                 onChange={(indicators) =>

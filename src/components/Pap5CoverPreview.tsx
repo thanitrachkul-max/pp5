@@ -1,3 +1,4 @@
+import { isPrimaryGrade, primaryAnnualTotal, primaryAnnualComplete, primaryAnnualQuality } from "../lib/primaryYear";
 import React, { useLayoutEffect, useRef } from "react";
 import { Check } from "lucide-react";
 import { applyPap5OfficialDisplayDefaults } from "../lib/pap5Officials";
@@ -93,6 +94,18 @@ function buildCoverSummary(appData: AppData) {
   };
 
   appData.students.forEach((student) => {
+    if (isPrimaryGrade(appData.generalInfo.gradeLevel)) {
+      const total = primaryAnnualTotal(appData, student.id);
+      if (total !== null && primaryAnnualComplete(appData, student.id)) {
+        const grade = total >= 80 ? '4' : total >= 75 ? '3.5' : total >= 70 ? '3' : total >= 65 ? '2.5' : total >= 60 ? '2' : total >= 55 ? '1.5' : total >= 50 ? '1' : '0';
+        summary.grades[grade]++; summary.grades[total >= 50 ? 'ผ' : 'มผ']++;
+      }
+      for (const section of ['attributes', 'analytical'] as const) {
+        const value = primaryAnnualQuality(appData, student.id, section);
+        if (value !== null) summary[section][String(value) as QualityKey]++;
+      }
+      return;
+    }
     const score = appData.scores[student.id] || {};
     let totalBetweenTerm = 0;
 
@@ -112,8 +125,7 @@ function buildCoverSummary(appData: AppData) {
       });
     }
 
-    const totalScore =
-      totalBetweenTerm + (Number(score.midterm) || 0) + (Number(score.final) || 0);
+    const totalScore = totalBetweenTerm + (Number(score.midterm) || 0) + (Number(score.final) || 0);
 
     let grade: GradeKey = "0";
     if (totalScore >= 80) grade = "4";
