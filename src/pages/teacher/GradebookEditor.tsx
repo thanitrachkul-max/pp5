@@ -1,3 +1,5 @@
+import { configuredIndicatorCodes, missingIndicatorCodes, normalizeIndicatorCode, mergeIndicatorDetails } from '../../lib/indicatorDetails';
+import { fetchCurriculumStandards } from '../../lib/curriculum';
 import { primaryCombinedConfig } from "../../lib/primaryYear";
 import { PrimaryScoresForm } from "../../components/PrimaryScoresForm";
 import { PrimaryAssessmentForm } from "../../components/PrimaryAssessmentForm";
@@ -241,6 +243,24 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
       void persist().catch(() => undefined);
     }, 1500);
   };
+
+  const indicatorConfig = primaryCombinedConfig(data);
+  const indicatorCodeSignature = JSON.stringify(configuredIndicatorCodes(indicatorConfig));
+  const missingDetails = missingIndicatorCodes(indicatorConfig, data.indicators);
+  useEffect(() => {
+    if (session.readOnly || !missingIndicatorCodes(primaryCombinedConfig(latestData.current), latestData.current.indicators).length) return;
+    let cancelled = false;
+    const info = latestData.current.generalInfo;
+    void fetchCurriculumStandards(info.learningArea, info.gradeLevel, undefined, { subjectCode: info.subjectCode }).then(standards => {
+      if (cancelled || leaving.current) return;
+      const descriptions = new Map<string,string>();
+      standards.forEach(s => s.indicators.forEach(i => { if (i.description?.trim()) descriptions.set(normalizeIndicatorCode(i.code), i.description.trim()); }));
+      const current = latestData.current;
+      const indicators = mergeIndicatorDetails(current.indicators, configuredIndicatorCodes(primaryCombinedConfig(current)), descriptions);
+      if (JSON.stringify(indicators) !== JSON.stringify(current.indicators)) handleUpdate({ ...current, indicators });
+    }).catch(() => { /* Missing descriptions remain visible for manual entry or retry. */ });
+    return () => { cancelled = true; };
+  }, [indicatorCodeSignature, session.readOnly, data.generalInfo.learningArea, data.generalInfo.gradeLevel, data.generalInfo.subjectCode]);
 
   const handlePersistStudentEdit = useCallback(
     async (student: Student, previousStudent?: Student) => {
@@ -706,6 +726,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                   isDocumentPreviewTab ? "gradebook-folder-content-document" : ""
                 }`}
               >
+                {missingDetails.length > 0 && <button type="button" onClick={() => setActiveTab('indicators')} className="m-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900">รายละเอียดตัวชี้วัดยังไม่ครบ {missingDetails.length} ข้อ: {missingDetails.join(', ')} — กดเพื่อตรวจสอบ</button>}
                 <div key={activeTab} className="gradebook-paper-turn">
 
             {activeTab === "general" && (

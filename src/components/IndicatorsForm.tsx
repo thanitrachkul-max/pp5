@@ -1,3 +1,4 @@
+import { missingIndicatorCodes } from '../lib/indicatorDetails';
 import React, { useCallback, useEffect, useState } from 'react';
 import { AppData, Indicator } from '../types';
 import { Plus, Trash2, RefreshCw } from 'lucide-react';
@@ -90,9 +91,9 @@ export const IndicatorsForm: React.FC<Props> = ({ data, scoreConfig, generalInfo
         return {
           id: code,
           description:
+            existingDescriptions.get(normalizedCode) ||
             descriptions.get(normalizedCode) ||
             findLegacyDescription(code) ||
-            existingDescriptions.get(normalizedCode) ||
             ''
         };
       });
@@ -106,7 +107,7 @@ export const IndicatorsForm: React.FC<Props> = ({ data, scoreConfig, generalInfo
   // Auto-fill on mount if empty or if existing rows only have codes without details.
   useEffect(() => {
     if (printMode || readOnly) return;
-    if (scoreConfig && scoreConfig.units.length > 0 && (data.length === 0 || data.some(ind => ind.id && !ind.description.trim()))) {
+    if (scoreConfig && scoreConfig.units.length > 0 && missingIndicatorCodes(scoreConfig, data).length > 0) {
       void handleAutoFill();
     }
   }, []);

@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useCallback, useState, useEffect } from 'react';
+import React, { lazy, Suspense, useCallback, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AppUser } from './types';
 import { supabase, supabaseConfigError } from './lib/supabase';
@@ -130,9 +130,14 @@ function ConfiguredApp() {
   const [teacherReturnPeriodKey, setTeacherReturnPeriodKey] = useState<string | null>(null);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'loading' | 'saving' | 'saved' | 'error'>('idle');
 
+  const resolvedIdentity = useRef<string | null>(null);
   const applyResolvedUser = useCallback((user: AppUser | null, preferAdminView: boolean) => {
     const activeUser = user?.isActive ? user : null;
+    const identity = activeUser ? `${activeUser.id}:${activeUser.role}:${activeUser.schoolId}` : null;
+    const sameIdentity = identity !== null && identity === resolvedIdentity.current;
+    resolvedIdentity.current = identity;
     setCurrentUser(activeUser);
+    if (sameIdentity) return;
 
     if (!activeUser) {
       setActiveView('teacher');
@@ -224,6 +229,7 @@ function ConfiguredApp() {
   };
 
   const handleLogin = (user: AppUser) => {
+    resolvedIdentity.current = `${user.id}:${user.role}:${user.schoolId}`;
     setCurrentUser(user);
     setGradebookSession(null);
     setTeacherReturnPeriodKey(null);

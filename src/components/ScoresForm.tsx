@@ -52,7 +52,7 @@ const getUnitDisplayName = (unit: ScoreUnit, index: number) => {
 };
 
 export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, scoreConfig, printMode = false, readOnly = false, onChange, onConfigChange, onClearScoresAndConfig }) => {
-  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [showConfigModal, setShowConfigModal] = useState(!printMode && !readOnly && !scoreConfig?.units.length);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showAutoFillModal, setShowAutoFillModal] = useState(false);
 

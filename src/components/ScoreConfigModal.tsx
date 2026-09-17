@@ -272,11 +272,11 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
   return (
     <ModalPortal>
       <div className="fixed inset-0 z-[120] grid min-h-dvh place-items-center overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-sm transition-all duration-300">
-        <div className="relative flex max-h-[calc(100dvh-2rem)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl">
+        <div className={showConfirm || showClearConfirm ? "relative w-full max-w-md" : "relative flex max-h-[calc(100dvh-2rem)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl"}>
         
         {/* Confirmation Overlay */}
         {showConfirm && (
-          <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-10 flex items-center justify-center">
+          <div className="flex items-center justify-center">
             <div className="bg-white p-8 rounded-2xl shadow-xl border border-slate-200 max-w-md w-full text-center animate-in zoom-in-95 duration-200">
               <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle2 size={32} />
@@ -303,7 +303,7 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
 
         {/* Clear Confirmation Overlay */}
         {showClearConfirm && (
-          <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-10 flex items-center justify-center">
+          <div className="flex items-center justify-center">
             <div className="bg-white p-8 rounded-2xl shadow-xl border border-slate-200 max-w-md w-full text-center animate-in zoom-in-95 duration-200">
               <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertCircle size={32} />
@@ -338,6 +338,7 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
           </div>
         )}
 
+        <div className={showConfirm || showClearConfirm ? "hidden" : "contents"}>
         <div className="flex justify-between items-center p-5 border-b bg-slate-50/50">
           <h3 className="text-xl font-bold text-slate-800">ตั้งค่าตัวชี้วัด</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-full hover:bg-slate-100">
@@ -512,6 +513,7 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
           </button>
           <button onClick={onClose} className="px-5 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-100 transition-colors font-medium">ยกเลิก</button>
           <button onClick={handleSaveClick} className="btn btn-primary">บันทึกข้อมูล</button>
+        </div>
         </div>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import { configuredIndicatorCodes, missingIndicatorCodes } from './indicatorDetails';
 import { isPrimaryGrade, primaryAnnualTotal, primaryAnnualComplete, primaryTerm, primaryAnnualQuality, qualityLabel } from "./primaryYear";
 import type { AppData } from '../types';
 
@@ -182,30 +183,9 @@ function countAttendanceFields(d: AppData): { filled: number; total: number } {
   return { filled, total };
 }
 
-function expectedIndicatorCount(scoreConfig: AppData['scoreConfig']): number {
-  if (!scoreConfig?.units?.length) return 0;
-
-  const codes = new Set<string>();
-  scoreConfig.units.forEach((unit) => {
-    unit.indicators.forEach((indicator) => {
-      const code = indicator.code?.trim();
-      if (code) codes.add(code);
-    });
-  });
-
-  return codes.size;
-}
-
 function countIndicatorFields(d: AppData): { filled: number; total: number } {
-  const total = expectedIndicatorCount(d.scoreConfig);
-  if (total === 0) return { filled: 0, total: 0 };
-
-  let filled = 0;
-  d.indicators.forEach((indicator) => {
-    if (indicator.id?.trim() && indicator.description?.trim()) filled += 1;
-  });
-
-  return { filled: Math.min(filled, total), total };
+  const total = configuredIndicatorCodes(d.scoreConfig).length;
+  return { total, filled: total - missingIndicatorCodes(d.scoreConfig, d.indicators).length };
 }
 
 const COMPLETION_SECTION_WEIGHTS = {
