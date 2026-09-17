@@ -12,6 +12,7 @@ export function PrimaryAssessmentForm({ data, kind, readOnly = false, printMode 
     : ATTRIBUTE_GROUPS.map((name, i) => ({ name: `${i + 1}. ${name}`, fields: ATTRIBUTE_LABELS.filter(label => label.startsWith(`${i + 1}.`)).map(label => ({ key: `attr${label.split(' ')[0].replace('.', '_')}`, label })) })).slice(kind === '1-4' ? 0 : 4, kind === '1-4' ? 4 : 8);
   const fields = groups.flatMap(g => g.fields);
   const editable = (term: number) => !readOnly && !printMode && !!data.primaryYear?.editableTerms.includes(term);
+  const activeTerm = [1,2].find(t => editable(t) && t === Number(data.generalInfo.semester)) ?? [1,2].find(editable);
   const row = (id: string, term: number) => primaryTerm(data, term)[section][id] ?? {};
   const average = (id: string, term: number, keys: string[]) => qualityAverage(row(id, term), keys);
   const allKeys = analytical ? fields.map(f => f.key) : ATTRIBUTE_LABELS.map(label => `attr${label.split(' ')[0].replace('.', '_')}`);
@@ -43,22 +44,23 @@ export function PrimaryAssessmentForm({ data, kind, readOnly = false, printMode 
     <input aria-label={`ภาคเรียนที่ ${term} ${id} ${key}`} className="excel-input text-center disabled:bg-slate-200 disabled:text-slate-500" type="number" min={0} max={3} step={1} disabled={!editable(term)} value={row(id, term)[key] ?? ''} onChange={e => change(term, id, key, e.target.value)} />}</td>;
   return <div className={`primary-year-form ${printMode ? 'primary-year-print' : ''}`}>
     <h2 className="mb-4 text-center text-lg font-bold">{analytical ? 'ผลการประเมินการอ่าน คิดวิเคราะห์ และเขียน' : 'แบบบันทึกผลการประเมินคุณลักษณะอันพึงประสงค์'} ชั้น {data.generalInfo.gradeLevel} ปีการศึกษา {data.generalInfo.academicYear}</h2>
-    {analytical && <div className="mb-4 rounded border bg-slate-50 p-3"><strong>ประเมินตัวชี้วัดชั้น ป.1-6</strong>{PRIMARY_ANALYTICAL_LABELS.map((label, i) => <div key={label}>{i + 1}. {label}</div>)}</div>}
     <div className="overflow-x-auto"><table className="excel-table whitespace-nowrap"><thead>
-      <tr><th rowSpan={3}>เลขที่</th><th rowSpan={3}>เลขประจำตัว</th><th rowSpan={3}>เลขประจำตัวประชาชน</th><th rowSpan={3}>ชื่อ - สกุล</th>
-        {analytical ? [1, 2].map(term => <th key={term} colSpan={8}>ภาคเรียนที่ {term}</th>) : groups.map(g => <th key={g.name} colSpan={g.fields.length * 2 + 3}>{g.name}</th>)}
-        {!analytical && kind === '5-8' && <th colSpan={2}>สรุประดับคุณภาพ</th>}{(analytical || kind === '5-8') && <th rowSpan={3}>ผลการประเมินปลายปี<br/>ดีเยี่ยม ดี ผ่าน ไม่ผ่าน</th>}</tr>
-      <tr>{analytical ? [1, 2].map(term => <React.Fragment key={term}>{fields.map((f, i) => <th key={f.key}>{i + 1}</th>)}<th>สรุปผลการประเมิน</th></React.Fragment>) : groups.map(g => <React.Fragment key={g.name}>{g.fields.map(f => <th key={f.key} colSpan={2}><span className="writing-vertical inline-block">{f.label}</span></th>)}<th colSpan={2}><span className="writing-vertical inline-block">ผลการประเมิน</span></th><th rowSpan={2}><span className="writing-vertical inline-block">รายคุณลักษณะ (ส)</span></th></React.Fragment>)}
+      <tr>{["เลขที่","เลขประจำตัว","เลขประจำตัวประชาชน","ชื่อ - สกุล"].map(label => <th key={label} rowSpan={analytical ? 11 : 3}>{label}</th>)}
+        {analytical ? <th colSpan={17}>ประเมินตัวชี้วัดชั้น ป.1-6</th> : groups.map(g => <th key={g.name} colSpan={g.fields.length * 2 + 3}>{g.name}</th>)}
+        {!analytical && kind === '5-8' && <th colSpan={2}>สรุประดับคุณภาพ</th>}{(!analytical && kind === '5-8') && <th rowSpan={3}>ผลการประเมินปลายปี<br/>ดีเยี่ยม ดี ผ่าน ไม่ผ่าน</th>}</tr>
+      {analytical && PRIMARY_ANALYTICAL_LABELS.map((label,i) => <tr key={label}><th colSpan={17} className="!text-left font-normal">{i+1}. {label}</th></tr>)}
+      <tr>{analytical ? <>{fields.map((f,i) => <th key={f.key} colSpan={2}>{i+1}</th>)}<th colSpan={2}>สรุปผลการประเมิน</th><th rowSpan={3}>สรุปผลการประเมินปลายปี<br/>(ดีเยี่ยม ดี ผ่าน ไม่ผ่าน)</th></> : groups.map(g => <React.Fragment key={g.name}>{g.fields.map(f => <th key={f.key} colSpan={2}><span className="writing-vertical inline-block">{f.label}</span></th>)}<th colSpan={2}><span className="writing-vertical inline-block">ผลการประเมิน</span></th><th rowSpan={2}><span className="writing-vertical inline-block">รายคุณลักษณะ (ส)</span></th></React.Fragment>)}
         {!analytical && kind === '5-8' && [1, 2].map(t => <th key={t} rowSpan={2}><span className="writing-vertical inline-block">รวมทุกคุณลักษณะภาคเรียนที่ {t}</span></th>)}</tr>
-      <tr>{analytical ? Array.from({ length: 16 }, (_, i) => <th key={i}>3</th>) : groups.map(g => <React.Fragment key={g.name}>{[...g.fields, { key: 'summary' }].map(f => <React.Fragment key={f.key}><th>1</th><th>2</th></React.Fragment>)}</React.Fragment>)}</tr>
+      <tr>{analytical ? Array.from({ length: 8 }, (_, i) => <th key={i} colSpan={2}>3</th>) : groups.map(g => <React.Fragment key={g.name}>{[...g.fields, { key: 'summary' }].map(f => <React.Fragment key={f.key}><th>1</th><th>2</th></React.Fragment>)}</React.Fragment>)}</tr>
+      {analytical && <tr>{Array.from({length:8},(_,i) => <React.Fragment key={i}><th>1</th><th>2</th></React.Fragment>)}</tr>}
     </thead><tbody>{data.students.map((student, i) => <tr key={student.id}><td>{offset + i + 1}</td><td>{student.studentId}</td><td>{student.citizenId}</td><td className="!text-left">{student.name}</td>
-      {analytical ? [1, 2].map(term => <React.Fragment key={term}>{fields.map(f => cell(term, student.id, f.key))}<td className="!bg-orange-50">{overall(student.id, term) ?? ''}</td></React.Fragment>) : groups.map(g => {
+      {analytical ? <>{fields.flatMap(f => [1,2].map(term => cell(term,student.id,f.key)))}{[1,2].map(term => <td key={term} className="!bg-orange-50">{overall(student.id,term) ?? ''}</td>)}</> : groups.map(g => {
         const a = average(student.id, 1, g.fields.map(f => f.key)), b = average(student.id, 2, g.fields.map(f => f.key));
         return <React.Fragment key={g.name}>{g.fields.flatMap(f => [1, 2].map(t => cell(t, student.id, f.key)))}<td className="!bg-orange-50">{a ?? ''}</td><td className="!bg-orange-50">{b ?? ''}</td><td className="!bg-orange-50">{a === null || b === null ? '' : Math.round((a + b) / 2)}</td></React.Fragment>;
       })}{!analytical && kind === '5-8' && [1, 2].map(t => <td key={t}>{overall(student.id, t) ?? ''}</td>)}{(analytical || kind === '5-8') && <td className="font-bold">{annual(student.id)}</td>}</tr>)}</tbody></table></div>
-    {!printMode && <div className="mt-5 flex flex-wrap justify-center gap-4">{[1, 2].map(term => <div key={term} className="flex items-center gap-2 rounded-lg border p-3"><strong>ภาคเรียนที่ {term}</strong>
-      <button disabled={!editable(term)} className="rounded bg-emerald-600 px-3 py-2 text-white disabled:bg-slate-300" onClick={() => setFillTerm(term)}>ระบบช่วยลงคะแนนอัตโนมัติ</button>
-      <button disabled={!editable(term)} className="rounded bg-red-50 px-3 py-2 text-red-600 disabled:text-slate-400" onClick={() => { if (window.confirm(`ล้างคะแนนส่วนนี้เฉพาะภาคเรียนที่ ${term}?`)) fill(term, 0, 0, undefined, true); }}>ล้างคะแนน</button></div>)}</div>}
+    {!printMode && <div className="mt-8 flex flex-wrap justify-center gap-4 border-t pt-6">
+      <button disabled={!activeTerm} className="rounded bg-emerald-600 px-6 py-2 text-white disabled:bg-slate-300" onClick={() => activeTerm && setFillTerm(activeTerm)}>ระบบช่วยลงคะแนนอัตโนมัติ</button>
+      <button disabled={!activeTerm} className="rounded bg-red-50 px-6 py-2 text-red-600 disabled:text-slate-400" onClick={() => { if (activeTerm && window.confirm(`ล้างคะแนนส่วนนี้เฉพาะภาคเรียนที่ ${activeTerm}?`)) fill(activeTerm,0,0,undefined,true); }}>ล้างคะแนน</button></div>}
     {fillTerm !== null && <AutoFillAttributesModal isOpen students={data.students} onClose={() => setFillTerm(null)} onFill={(min, max, ids) => fill(fillTerm, min, max, ids)} />}
   </div>;
 }

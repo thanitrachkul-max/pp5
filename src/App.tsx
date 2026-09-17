@@ -247,7 +247,11 @@ function ConfiguredApp() {
     setActiveView('admin');
   };
 
-  const openTeacherView = () => {
+  const [viewedTeacher, setViewedTeacher] = useState<{ id: string; name: string } | null>(null);
+
+  const openTeacherView = (teacher?: { id: string; name: string }) => {
+    setViewedTeacher(teacher ?? null);
+    setTeacherReturnPeriodKey(null);
     clearAdminTabFromUrl();
     setGradebookSession(null);
     setActiveView('teacher');
@@ -404,6 +408,7 @@ function ConfiguredApp() {
       <Suspense fallback={<RouteFallback />}>
         <TeacherDashboard
           currentUser={currentUser}
+          viewedTeacher={viewedTeacher}
           initialPeriodKey={teacherReturnPeriodKey}
           onOpenGradebook={handleOpenGradebook}
           onLogout={handleLogout}

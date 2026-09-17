@@ -37,6 +37,7 @@ import type { AppUser } from '../../types';
 
 interface TeacherDashboardProps {
   currentUser: AppUser;
+  viewedTeacher?: { id: string; name: string } | null;
   initialPeriodKey?: string | null;
   onOpenGradebook: (
     assignment: TeacherAssignmentView,
@@ -246,6 +247,7 @@ function periodStatusClassName(isOpen: boolean): string {
 
 export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   currentUser,
+  viewedTeacher,
   initialPeriodKey = null,
   onOpenGradebook,
   onLogout,
@@ -264,7 +266,8 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const [selectedPeriodKey, setSelectedPeriodKey] = useState<string | null>(() => initialPeriodKey);
   const [selectedPeriodKeys, setSelectedPeriodKeys] = useState<Set<string>>(new Set());
   const [now, setNow] = useState(() => new Date());
-  const displayUserName = teacherGreetingName(currentUser);
+  const teacherId = isAdmin(currentUser) && viewedTeacher ? viewedTeacher.id : currentUser.id;
+  const displayUserName = viewedTeacher?.name ?? teacherGreetingName(currentUser);
   const currentDateTime = useMemo(() => {
     const dateText = now.toLocaleDateString('th-TH', {
       weekday: 'long',
@@ -286,14 +289,14 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     if (showLoading) setLoading(true);
     setError('');
     try {
-      const data = await fetchTeacherAssignments(currentUser.id);
+      const data = await fetchTeacherAssignments(teacherId);
       setAssignments(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'โหลดรายวิชาไม่สำเร็จ');
     } finally {
       if (showLoading) setLoading(false);
     }
-  }, [currentUser.id]);
+  }, [teacherId]);
 
   useEffect(() => {
     void load();
@@ -373,15 +376,16 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     setMessage('');
     try {
       if (
-        !assignment.gradebook_id &&
+        !isAdmin(currentUser) && !assignment.gradebook_id &&
         (!assignment.year_is_active ||
           !assignment.semester_grade_entry_enabled ||
           !isWithinEntryWindow(assignment.entry_start_date, assignment.entry_end_date))
       ) {
         throw new Error('ระบบปิดการกรอกคะแนนแล้ว และยังไม่มีสมุด ปพ.5 สำหรับรายวิชานี้ให้เปิดดู');
       }
-      const gradebookId = await ensureGradebook(assignment, currentUser);
+      const gradebookId = await ensureGradebook(assignment, viewedTeacher ? { ...currentUser, id: teacherId, name: viewedTeacher.name } : currentUser, { adminCreate: isAdmin(currentUser) });
       onOpenGradebook({ ...assignment, gradebook_id: gradebookId }, gradebookId, {
+        ...(isAdmin(currentUser) ? { readOnly: false } : {}),
         returnPeriodKey: selectedPeriodKey ?? periodKey(assignment),
       });
     } catch (err) {

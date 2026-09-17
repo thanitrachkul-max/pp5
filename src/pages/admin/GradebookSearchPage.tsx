@@ -1010,13 +1010,15 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({
         return;
       }
 
-      const { data: gradebookRows, error: gradebookError } = await supabase
-        .from('gradebooks')
-        .select(GRADEBOOK_LIST_SELECT)
-        .in('teaching_assignment_id', assignmentIds)
-        .order('created_at', { ascending: false });
-
-      if (gradebookError) throw gradebookError;
+      // Keep each PostgREST URL below proxy limits when a school has many assignments.
+      const gradebookRows: CompletedGradebook[] = [];
+      for (let start = 0; start < assignmentIds.length; start += 40) {
+        const { data: batch, error: gradebookError } = await supabase.from('gradebooks')
+          .select(GRADEBOOK_LIST_SELECT).in('teaching_assignment_id', assignmentIds.slice(start, start + 40))
+          .is('deleted_at', null).order('created_at', { ascending: false });
+        if (gradebookError) throw gradebookError;
+        gradebookRows.push(...((batch ?? []) as CompletedGradebook[]));
+      }
 
       const completedGradebookByAssignmentId = new Map(
         ((gradebookRows ?? []) as CompletedGradebook[])
@@ -1060,7 +1062,8 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({
       setReports(mapped);
       setError('');
     } catch (err) {
-      console.warn('Unable to load gradebook search data; showing an empty report list.', err);
+      const failure = err as { code?: string; message?: string } | null;
+      console.warn('Unable to load gradebook search data.', JSON.stringify({ code: failure?.code, message: failure?.message }));
       setReports([]);
       setError('โหลดรายการ ปพ.5 ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บแล้วลองใหม่');
     } finally {

@@ -293,6 +293,7 @@ export const StudentsForm: React.FC<Props> = ({
             records: {},
           });
         }
+        setEditModalMode(null);
         setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
       },
     });
@@ -1181,6 +1182,7 @@ export const StudentsForm: React.FC<Props> = ({
             >
               ระบบช่วยลงเวลาเรียน
             </button>
+            <button type="button" onClick={handleClearAttendance} className="rounded-lg bg-red-50 px-6 py-3 text-lg font-bold text-red-600 hover:bg-red-100">ล้างเวลาเรียน</button>
           </div>
         )}
 
@@ -1717,15 +1719,6 @@ export const StudentsForm: React.FC<Props> = ({
 
               <div className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50 p-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex flex-wrap gap-3">
-                  {editModalMode === "attendance" && (
-                    <button
-                      type="button"
-                      onClick={handleClearAttendance}
-                      className="flex items-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
-                    >
-                      <Trash2 size={16} /> ล้างเวลาเรียน
-                    </button>
-                  )}
                   {editModalMode === "students" && !rosterLocked && (
                     <button
                       type="button"

@@ -57,6 +57,7 @@ import type {
 
 interface AssignmentsPageProps {
   currentUser: AppUser;
+  onOpenTeacherView?: (teacher: { id: string; name: string }) => void;
   initialYearId?: string;
   readOnly?: boolean;
   onOpenGradebook?: (
@@ -327,6 +328,7 @@ function isMissingCoTeacherNameColumn(err: unknown): boolean {
 export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
   currentUser,
   initialYearId,
+  onOpenTeacherView,
   readOnly = false,
   onOpenGradebook,
   initialClassLevelCode,
@@ -1838,6 +1840,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
       </div>
       )}
 
+      {selectedTeacherId && selectedTeacher && !readOnly && onOpenTeacherView && <div className="mb-4 flex justify-center"><button className="rounded-lg bg-blue-600 px-5 py-2 font-bold text-white" onClick={() => onOpenTeacherView({ id: selectedTeacher.id, name: `${selectedTeacher.title ?? ''} ${selectedTeacher.full_name}`.trim() })}>หน้ากรอกเกรดครู</button></div>}
       {selectedTeacherId && (
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
