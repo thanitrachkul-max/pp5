@@ -18,6 +18,7 @@ import { AssignmentSummaryCards } from '../../components/AssignmentSummaryCards'
 import { SearchableTeacherSelect } from '../../components/SearchableTeacherSelect';
 import { FilterBar, FilterClearButton, FilterSearch, FilterSelect } from '../../components/FilterBar';
 import { isSchemaCacheErrorFor } from '../../lib/dbErrors';
+import { gradebookSubmissionResetPayload } from '../../lib/gradebookSubmissionReset';
 import {
   assignmentGroupKey,
   assignmentTeacherCounts,
@@ -79,7 +80,7 @@ interface AddForm {
   hours_per_week: string;
   hours_per_semester: string;
   status: AssignmentStatus;
-  approval_status: GradebookApprovalStatus | '';
+  approval_status: GradebookApprovalStatus | 'not_submitted' | '';
   approval_reason: string;
 }
 
@@ -951,8 +952,9 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
 
       if (editingGradebook && nextApprovalStatus) {
         const now = new Date().toISOString();
-        const approvalPayload =
-          nextApprovalStatus === 'revision_requested'
+        const approvalPayload = nextApprovalStatus === 'not_submitted'
+          ? gradebookSubmissionResetPayload(now)
+          : nextApprovalStatus === 'revision_requested'
             ? {
                 approval_status: nextApprovalStatus,
                 approval_reason: nextApprovalReason,
@@ -973,7 +975,9 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
         const { error: gradebookStatusError } = await supabase
           .from('gradebooks')
           .update(approvalPayload)
-          .eq('id', editingGradebook.id);
+          .eq('id', editingGradebook.id)
+          .select('id')
+          .single();
 
         if (gradebookStatusError) {
           if (isSchemaCacheErrorFor(gradebookStatusError, 'approval_status')) {
@@ -2551,15 +2555,21 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                     onChange={(e) =>
                       setAddForm((f) => ({
                         ...f,
-                        approval_status: e.target.value as GradebookApprovalStatus,
+                        approval_status: e.target.value as AddForm['approval_status'],
                       }))
                     }
                     className="w-full px-3 py-2.5 border border-slate-300 rounded-xl bg-white"
                   >
+                    <option value="not_submitted">ยังไม่ส่ง</option>
                     <option value="pending">รออนุมัติ</option>
                     <option value="approved">อนุมัติแล้ว</option>
                     <option value="revision_requested">รอแก้ไข</option>
                   </select>
+                  {addForm.approval_status === 'not_submitted' && (
+                    <p className="mt-3 text-sm text-slate-600">
+                      ยกเลิกสถานะการส่งและผลอนุมัติเดิม เพื่อให้ครูกดส่งใหม่ โดยเก็บข้อมูลและคะแนนทั้งหมดไว้
+                    </p>
+                  )}
                   {addForm.approval_status === 'revision_requested' && (
                     <div className="mt-3">
                       <label className="block text-sm font-medium text-slate-700 mb-1">เหตุผลที่ให้แก้ไข</label>
