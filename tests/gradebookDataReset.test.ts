@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { gradebookDataResetPayload, resetPrimaryTerm } from '../src/lib/gradebookDataReset';
+import { gradebookDataResetPayload, resetPrimaryTerm } from '../api/reset-gradebook';
 
 test('clears every teacher-entered gradebook section and submission state', () => {
   const generalInfo = { subjectCode: 'ค16101' } as any;
