@@ -3420,5 +3420,31 @@ export const SUBJECTS_CATALOG = [
     "hours_per_week": 1,
     "is_active": true,
     "flag": ""
-  }
+  },
+  {
+    subject_code: '33201',
+    subject_name: 'ทักษะสังคมและการดำรงชีวิต',
+    learning_area: 'สังคมศึกษา ศาสนา และวัฒนธรรม',
+    subject_type: 'เพิ่มเติม',
+    default_class_level: 'ม.6',
+    semester_number: 1,
+    credits: 0.5,
+    hours_total: 20,
+    hours_per_week: 1,
+    is_active: true,
+    flag: '',
+  },
+  {
+    subject_code: '33202',
+    subject_name: 'ทักษะสังคมและการดำรงชีวิต',
+    learning_area: 'สังคมศึกษา ศาสนา และวัฒนธรรม',
+    subject_type: 'เพิ่มเติม',
+    default_class_level: 'ม.6',
+    semester_number: 2,
+    credits: 0.5,
+    hours_total: 20,
+    hours_per_week: 1,
+    is_active: true,
+    flag: '',
+  },
 ] as const satisfies readonly SubjectCatalogItem[];
