@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import {
   AlertTriangle,
   ArrowLeft,
+  BrushCleaning,
   ClipboardList,
   CheckCircle2,
   Edit3,
@@ -34,6 +35,7 @@ import { supabase } from '../../lib/supabase';
 import {
   ensureGradebook,
   fetchTeacherAssignments,
+  resetGradebookData,
   type TeacherAssignmentView,
 } from '../../lib/teacherGradebooks';
 import {
@@ -375,6 +377,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
   const [bulkApprovalEdit, setBulkApprovalEdit] = useState<BulkApprovalEditState | null>(null);
   const [approvalSaving, setApprovalSaving] = useState(false);
   const [openingGradebookAssignmentId, setOpeningGradebookAssignmentId] = useState<string | null>(null);
+  const [resettingGradebookAssignmentId, setResettingGradebookAssignmentId] = useState<string | null>(null);
 
   const probeEntryWindowSupport = useCallback(async () => {
     const { error: probeError } = await supabase
@@ -847,6 +850,50 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
       setError(getErrorMessage(err, 'เปิดสมุด ปพ.5 ไม่สำเร็จ'));
     } finally {
       setOpeningGradebookAssignmentId(null);
+    }
+  };
+
+  const handleResetGradebook = async (assignment: AssignmentWithProgress) => {
+    const gradebook = normalizeGradebook(assignment.gradebooks);
+    if (!gradebook) return;
+
+    const subjectName = assignment.subject?.subject_name ?? 'รายวิชานี้';
+    const classroomName = subjectLevelLabel(assignment);
+    if (!window.confirm(
+      `ล้างข้อมูล ปพ.5 วิชา “${subjectName}” ห้อง ${classroomName} ทั้งหมดหรือไม่?\n\nคะแนน เวลาเรียน แบบประเมิน ตัวชี้วัด และสถานะการส่งจะถูกล้างกลับเป็นค่าเริ่มต้น การดำเนินการนี้ไม่สามารถย้อนกลับได้`,
+    )) return;
+
+    setResettingGradebookAssignmentId(assignment.id);
+    setError('');
+    setMessage('');
+    try {
+      const teacherAssignments = await fetchTeacherAssignments(assignment.teacher_id);
+      const matchedAssignment = teacherAssignments.find((item) => item.id === assignment.id);
+      if (!matchedAssignment) {
+        throw new Error('ไม่พบข้อมูลรายวิชาที่มอบหมาย กรุณารีเฟรชแล้วลองใหม่');
+      }
+      const teacherProfile = assignment.teacher;
+      if (!teacherProfile) {
+        throw new Error('ไม่พบข้อมูลครูผู้สอนสำหรับรายการนี้');
+      }
+
+      const reset = await resetGradebookData(matchedAssignment, {
+        id: assignment.teacher_id,
+        username: teacherProfile.username ?? '',
+        name: [teacherProfile.title, teacherProfile.full_name].filter(Boolean).join(' '),
+        role: 'teacher',
+        schoolId: assignment.school_id,
+        isActive: true,
+        title: teacherProfile.title ?? null,
+      });
+      setMessage(reset
+        ? `ล้างข้อมูล ปพ.5 วิชา ${subjectName} ห้อง ${classroomName} แล้ว`
+        : 'สมุด ปพ.5 รายการนี้ยังไม่มีข้อมูลให้ล้าง');
+      await loadAssignments();
+    } catch (err) {
+      setError(getErrorMessage(err, 'ล้างข้อมูล ปพ.5 ไม่สำเร็จ'));
+    } finally {
+      setResettingGradebookAssignmentId(null);
     }
   };
 
@@ -2019,14 +2066,14 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                 <col style={{ width: '4.5%' }} />
                 <col style={{ width: '6.3%' }} />
                 <col style={{ width: '6.3%' }} />
-                <col style={{ width: '16.9%' }} />
+                <col style={{ width: '14.4%' }} />
                 <col style={{ width: '11.5%' }} />
                 <col style={{ width: '8.1%' }} />
                 <col style={{ width: '7.2%' }} />
                 <col style={{ width: '7%' }} />
                 <col style={{ width: '10%' }} />
                 <col style={{ width: '9.2%' }} />
-                <col style={{ width: '9%' }} />
+                <col style={{ width: '11.5%' }} />
               </colgroup>
               <thead className="border-b border-slate-200 bg-slate-50 text-slate-500">
                 <tr>
@@ -2109,6 +2156,20 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                           className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100"
                         >
                           <Edit3 className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void handleResetGradebook(assignment)}
+                          aria-label="ล้างข้อมูล ปพ.5"
+                          title={hasAssignmentInput(assignment) ? 'ล้างข้อมูล ปพ.5' : 'ยังไม่มีข้อมูลให้ล้าง'}
+                          disabled={!hasAssignmentInput(assignment) || resettingGradebookAssignmentId === assignment.id}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-300"
+                        >
+                          {resettingGradebookAssignmentId === assignment.id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <BrushCleaning className="h-3.5 w-3.5" />
+                          )}
                         </button>
                         <button
                           type="button"

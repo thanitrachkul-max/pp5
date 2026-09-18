@@ -2,10 +2,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Readable } from 'node:stream';
 import createGradebook from '../api/create-gradebook.ts';
+import resetGradebook from '../api/reset-gradebook.ts';
 import updateTeacher from '../api/update-teacher.ts';
 import deleteTeacher from '../api/delete-teacher.ts';
 
-for (const [name, handler] of Object.entries({ createGradebook, updateTeacher, deleteTeacher })) {
+for (const [name, handler] of Object.entries({ createGradebook, resetGradebook, updateTeacher, deleteTeacher })) {
   test(`${name}: inactive admin gets 403 before any privileged write`, async () => {
     const originalFetch = globalThis.fetch;
     const envNames = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY'];

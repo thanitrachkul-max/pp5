@@ -868,6 +868,52 @@ export async function ensureGradebook(
   return data.id;
 }
 
+export async function resetGradebookData(
+  assignment: TeacherAssignmentView,
+  teacher: AppUser,
+): Promise<boolean> {
+  const students = await buildStudentRoster(
+    assignment.classroom_id,
+    assignment.academic_year_id,
+  );
+  const hoursPerWeek = String(assignment.hours_per_week ?? '');
+  const hoursPerSemester = String(assignment.hours_per_semester ?? '');
+  const baseGeneralInfo = buildGeneralInfo(
+    assignment,
+    teacher,
+    hoursPerWeek,
+    hoursPerSemester,
+  );
+  const generalInfo = await mergePap5OfficialsIntoGeneralInfo(
+    assignment.school_id,
+    assignment.learning_area,
+    baseGeneralInfo,
+  );
+
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError || !sessionData.session?.access_token) {
+    throw sessionError ?? new Error('ไม่พบเซสชันผู้ดูแลระบบ');
+  }
+
+  const response = await fetch('/api/reset-gradebook', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      authorization: `Bearer ${sessionData.session.access_token}`,
+    },
+    body: JSON.stringify({
+      assignmentId: assignment.id,
+      generalInfo,
+      students,
+    }),
+  });
+  const result = await response.json().catch(() => ({})) as { reset?: boolean; error?: string };
+  if (!response.ok) {
+    throw new Error(result.error || 'ล้างข้อมูล ปพ.5 ไม่สำเร็จ');
+  }
+  return result.reset === true;
+}
+
 export async function loadGradebookSession(
   gradebookId: string,
   assignment: TeacherAssignmentView,
