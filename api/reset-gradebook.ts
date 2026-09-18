@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { createClient } from '@supabase/supabase-js';
-import { gradebookDataResetPayload, resetPrimaryTerm } from '../src/lib/gradebookDataReset';
+import { gradebookDataResetPayload, resetPrimaryTerm } from '../src/lib/gradebookDataReset.js';
 
 interface ResetGradebookPayload {
   assignmentId?: unknown;
