@@ -41,27 +41,6 @@ const catalogByCode = new Map<string, SubjectCatalogItem>(
   SUBJECTS_CATALOG.map((item) => [item.subject_code, item]),
 );
 
-function levelLabel(item: Pick<SubjectCatalogItem, 'default_class_level' | 'semester_number'>): string {
-  return item.semester_number
-    ? `${item.default_class_level} ภาค ${item.semester_number}`
-    : `${item.default_class_level} รายปี`;
-}
-
-function formFromCatalog(item: SubjectCatalogItem): SubjectForm {
-  return {
-    subject_code: item.subject_code,
-    subject_name: item.subject_name,
-    learning_area: item.learning_area,
-    default_class_level: item.default_class_level,
-    subject_type: item.subject_type,
-    credits: item.credits,
-    hours_total: item.hours_total,
-    hours_per_week: item.hours_per_week,
-    semester_number: item.semester_number,
-    is_active: item.is_active,
-  };
-}
-
 function isSchemaMismatch(err: unknown): boolean {
   const message = err instanceof Error ? err.message : String((err as { message?: unknown } | null)?.message ?? err ?? '');
   return (
@@ -185,23 +164,10 @@ export const SubjectsPage: React.FC<SubjectsPageProps> = ({ currentUser }) => {
     setShowModal(true);
   };
 
-  const selectCatalogSubject = (subjectCode: string) => {
-    const item = catalogByCode.get(subjectCode);
-    if (!item) {
-      setForm((current) => ({ ...current, subject_code: subjectCode }));
-      return;
-    }
-    setForm(formFromCatalog(item));
-  };
-
   const updateFormLearningArea = (learningArea: string) => {
     setForm((current) => ({
       ...current,
       learning_area: learningArea,
-      default_class_level: '',
-      semester_number: null,
-      subject_code: '',
-      subject_name: '',
     }));
   };
 
@@ -209,8 +175,6 @@ export const SubjectsPage: React.FC<SubjectsPageProps> = ({ currentUser }) => {
     setForm((current) => ({
       ...current,
       default_class_level: level,
-      subject_code: '',
-      subject_name: '',
     }));
   };
 
@@ -218,8 +182,6 @@ export const SubjectsPage: React.FC<SubjectsPageProps> = ({ currentUser }) => {
     setForm((current) => ({
       ...current,
       semester_number: semester === 'annual' ? null : Number(semester) as 1 | 2,
-      subject_code: '',
-      subject_name: '',
     }));
   };
 
@@ -382,12 +344,6 @@ export const SubjectsPage: React.FC<SubjectsPageProps> = ({ currentUser }) => {
         .map((item) => item.default_class_level),
     ),
   );
-
-  const modalSubjectOptions = SUBJECTS_CATALOG.filter((item) => (
-    item.learning_area === form.learning_area &&
-    (!form.default_class_level || item.default_class_level === form.default_class_level) &&
-    (form.semester_number == null ? item.semester_number == null : item.semester_number === form.semester_number)
-  ));
 
   const selectedCount = selectedSubjectIds.size;
   const allFilteredSelected = filtered.length > 0 && filtered.every((subject) => selectedSubjectIds.has(subject.id));
@@ -700,24 +656,90 @@ export const SubjectsPage: React.FC<SubjectsPageProps> = ({ currentUser }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อและรหัสวิชา</label>
-                <select
+                <label className="block text-sm font-medium text-slate-700 mb-1">รหัสวิชา</label>
+                <input
+                  type="text"
                   value={form.subject_code}
-                  onChange={(e) => selectCatalogSubject(e.target.value)}
+                  onChange={(e) => setForm((current) => ({ ...current, subject_code: e.target.value }))}
+                  placeholder="เช่น ว32101"
                   className="w-full px-3 py-2.5 border border-slate-300 rounded-xl bg-white"
                   required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อวิชา</label>
+                <input
+                  type="text"
+                  value={form.subject_name}
+                  onChange={(e) => setForm((current) => ({ ...current, subject_name: e.target.value }))}
+                  placeholder="เช่น วิทยาการคำนวณ"
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-xl bg-white"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">ประเภทวิชา</label>
+                <select
+                  value={form.subject_type}
+                  onChange={(e) => setForm((current) => ({ ...current, subject_type: e.target.value as Subject['subject_type'] }))}
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-xl bg-white"
                 >
-                  <option value="">— เลือกชื่อ/รหัสวิชา —</option>
-                  {form.subject_code && !catalogByCode.has(form.subject_code) && (
-                    <option value={form.subject_code}>{form.subject_name || 'รายการเดิม'} · {form.subject_code}</option>
-                  )}
-                  {modalSubjectOptions.map((item) => (
-                    <option key={item.subject_code} value={item.subject_code}>
-                      {item.subject_name} · {item.subject_code} · {levelLabel(item)}
-                    </option>
-                  ))}
+                  <option value="พื้นฐาน">พื้นฐาน</option>
+                  <option value="เพิ่มเติม">เพิ่มเติม</option>
                 </select>
               </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">หน่วยกิต</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={form.credits ?? ''}
+                    onChange={(e) => setForm((current) => ({ ...current, credits: e.target.value === '' ? null : Number(e.target.value) }))}
+                    placeholder="เช่น 1"
+                    className="w-full px-3 py-2.5 border border-slate-300 rounded-xl bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">ชม./สัปดาห์</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={form.hours_per_week ?? ''}
+                    onChange={(e) => setForm((current) => ({ ...current, hours_per_week: e.target.value === '' ? null : Number(e.target.value) }))}
+                    placeholder="เช่น 2"
+                    className="w-full px-3 py-2.5 border border-slate-300 rounded-xl bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">ชม./ภาค</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={form.hours_total ?? ''}
+                    onChange={(e) => setForm((current) => ({ ...current, hours_total: e.target.value === '' ? null : Number(e.target.value) }))}
+                    placeholder="เช่น 40"
+                    className="w-full px-3 py-2.5 border border-slate-300 rounded-xl bg-white"
+                  />
+                </div>
+              </div>
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={form.is_active}
+                  onChange={(e) => setForm((current) => ({ ...current, is_active: e.target.checked }))}
+                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
+                เปิดใช้งานรายวิชานี้
+              </label>
+              {!editing && (
+                <p className="rounded-lg bg-blue-50 px-3 py-2 text-xs leading-5 text-blue-700">
+                  กรอกรหัสและชื่อวิชาใหม่ที่ต้องการเพิ่ม ระบบจะบันทึกเป็นรายวิชาใหม่ในหลักสูตรของโรงเรียน
+                </p>
+              )}
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
