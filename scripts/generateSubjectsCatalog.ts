@@ -275,7 +275,9 @@ function buildRows(): SubjectRow[] {
     rows.push(...fromSemesterPair(3, 3, 'm6', item));
   });
   m6AdditionalSpecs.forEach((item) => {
-    const flagged = item.letter === 'ส' ? { ...item, flag: 'ตรวจสอบ' as const } : item;
+    const flagged = item.letter === 'ส'
+      ? { ...item, subjectName: 'ทักษะสังคมและการดำรงชีวิต', flag: 'ตรวจสอบ' as const }
+      : item;
     rows.push(...fromSemesterPair(3, 3, 'm6', flagged));
   });
 

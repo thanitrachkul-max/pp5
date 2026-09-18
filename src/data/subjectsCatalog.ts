@@ -3319,7 +3319,7 @@ export const SUBJECTS_CATALOG = [
   },
   {
     "subject_code": "ส33201",
-    "subject_name": "สังคมศึกษา ศาสนา และวัฒนธรรม",
+    "subject_name": "ทักษะสังคมและการดำรงชีวิต",
     "learning_area": "สังคมศึกษา ศาสนา และวัฒนธรรม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.6",
@@ -3332,7 +3332,7 @@ export const SUBJECTS_CATALOG = [
   },
   {
     "subject_code": "ส33202",
-    "subject_name": "สังคมศึกษา ศาสนา และวัฒนธรรม",
+    "subject_name": "ทักษะสังคมและการดำรงชีวิต",
     "learning_area": "สังคมศึกษา ศาสนา และวัฒนธรรม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.6",
