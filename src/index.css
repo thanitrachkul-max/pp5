@@ -2503,9 +2503,13 @@ main table:not(.excel-table) tbody td {
   .pap5-original-print-document .primary-year-print .primary-year-col-no { width: 4% !important; }
   .pap5-original-print-document .primary-year-print .primary-year-col-code { width: 7% !important; }
   .pap5-original-print-document .primary-year-print .primary-year-col-citizen { width: 12% !important; }
-  .pap5-original-print-document .primary-year-print .primary-year-col-name { width: 20% !important; }
-  .pap5-original-print-document .primary-year-print .primary-year-col-final { width: 7% !important; }
+  .pap5-original-print-document .primary-year-print .primary-year-col-name { width: 16% !important; }
+  .pap5-original-print-document .primary-year-print .primary-year-attribute-final-col { width: 11% !important; }
+  .pap5-original-print-document .primary-year-print .primary-year-analytical-score-col { width: 1.75% !important; }
+  .pap5-original-print-document .primary-year-print .primary-year-analytical-summary-col { width: 5.25% !important; }
+  .pap5-original-print-document .primary-year-print .primary-year-analytical-final-col { width: 26% !important; }
   .pap5-original-print-document .primary-year-print .primary-year-name-cell { white-space: normal !important; overflow-wrap: anywhere !important; }
+  .pap5-original-print-document .primary-year-print .primary-year-final-header { white-space: normal !important; overflow-wrap: anywhere !important; line-height: 1.2 !important; }
   .pap5-original-print-document .primary-year-print .writing-vertical { max-height: 150px; font-size: 10px; }
   .pap5-original-print-document .primary-year-print h2 { font-size: 18px; margin-bottom: 10px; line-height: 1.3; }
 }

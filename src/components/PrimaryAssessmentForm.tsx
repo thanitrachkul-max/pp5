@@ -51,15 +51,20 @@ export function PrimaryAssessmentForm({ data, kind, readOnly = false, printMode 
         <col className="primary-year-col-citizen" />
         <col className="primary-year-col-name" />
         {analytical
-          ? <>{Array.from({ length: 16 }, (_, i) => <col key={`analytical-${i}`} />)}<col className="primary-year-col-final" /></>
-          : <>{groups.flatMap(group => Array.from({ length: group.fields.length * 2 + 3 }, (_, i) => <col key={`${group.name}-${i}`} />))}{kind === '5-8' && <><col /><col /><col className="primary-year-col-final" /></>}</>}
+          ? <>
+              {Array.from({ length: 14 }, (_, i) => <col key={`analytical-score-${i}`} className="primary-year-analytical-score-col" />)}
+              <col className="primary-year-analytical-summary-col" />
+              <col className="primary-year-analytical-summary-col" />
+              <col className="primary-year-col-final primary-year-analytical-final-col" />
+            </>
+          : <>{groups.flatMap(group => Array.from({ length: group.fields.length * 2 + 3 }, (_, i) => <col key={`${group.name}-${i}`} />))}{kind === '5-8' && <><col /><col /><col className="primary-year-col-final primary-year-attribute-final-col" /></>}</>}
       </colgroup>}
       <thead>
       <tr>{["เลขที่","เลขประจำตัว","เลขประจำตัวประชาชน","ชื่อ - สกุล"].map((label, index) => <th key={label} className={['primary-year-col-no', 'primary-year-col-code', 'primary-year-col-citizen', 'primary-year-col-name'][index]} rowSpan={analytical ? 11 : 3}>{label}</th>)}
         {analytical ? <th colSpan={17}>ประเมินตัวชี้วัดชั้น ป.1-6</th> : groups.map(g => <th key={g.name} colSpan={g.fields.length * 2 + 3}>{g.name}</th>)}
-        {!analytical && kind === '5-8' && <th colSpan={2}>สรุประดับคุณภาพ</th>}{(!analytical && kind === '5-8') && <th rowSpan={3}>ผลการประเมินปลายปี<br/>ดีเยี่ยม ดี ผ่าน ไม่ผ่าน</th>}</tr>
+        {!analytical && kind === '5-8' && <th colSpan={2}>สรุประดับคุณภาพ</th>}{(!analytical && kind === '5-8') && <th className="primary-year-final-header" rowSpan={3}>ผลการประเมินปลายปี<br/>ดีเยี่ยม ดี ผ่าน ไม่ผ่าน</th>}</tr>
       {analytical && PRIMARY_ANALYTICAL_LABELS.map((label,i) => <tr key={label}><th colSpan={17} className="!text-left font-normal">{i+1}. {label}</th></tr>)}
-      <tr>{analytical ? <>{fields.map((f,i) => <th key={f.key} colSpan={2}>{i+1}</th>)}<th colSpan={2}>สรุปผลการประเมิน</th><th rowSpan={3}>สรุปผลการประเมินปลายปี<br/>(ดีเยี่ยม ดี ผ่าน ไม่ผ่าน)</th></> : groups.map(g => <React.Fragment key={g.name}>{g.fields.map(f => <th key={f.key} colSpan={2}><span className="writing-vertical inline-block">{f.label}</span></th>)}<th colSpan={2}><span className="writing-vertical inline-block">ผลการประเมิน</span></th><th rowSpan={2}><span className="writing-vertical inline-block">รายคุณลักษณะ (ส)</span></th></React.Fragment>)}
+      <tr>{analytical ? <>{fields.map((f,i) => <th key={f.key} colSpan={2}>{i+1}</th>)}<th colSpan={2}>สรุปผลการประเมิน</th><th className="primary-year-final-header" rowSpan={3}>สรุปผลการประเมินปลายปี<br/>(ดีเยี่ยม ดี ผ่าน ไม่ผ่าน)</th></> : groups.map(g => <React.Fragment key={g.name}>{g.fields.map(f => <th key={f.key} colSpan={2}><span className="writing-vertical inline-block">{f.label}</span></th>)}<th colSpan={2}><span className="writing-vertical inline-block">ผลการประเมิน</span></th><th rowSpan={2}><span className="writing-vertical inline-block">รายคุณลักษณะ (ส)</span></th></React.Fragment>)}
         {!analytical && kind === '5-8' && [1, 2].map(t => <th key={t} rowSpan={2}><span className="writing-vertical inline-block">รวมทุกคุณลักษณะภาคเรียนที่ {t}</span></th>)}</tr>
       <tr>{analytical ? Array.from({ length: 8 }, (_, i) => <th key={i} colSpan={2}>3</th>) : groups.map(g => <React.Fragment key={g.name}>{[...g.fields, { key: 'summary' }].map(f => <React.Fragment key={f.key}><th>1</th><th>2</th></React.Fragment>)}</React.Fragment>)}</tr>
       {analytical && <tr>{Array.from({length:8},(_,i) => <React.Fragment key={i}><th>1</th><th>2</th></React.Fragment>)}</tr>}
