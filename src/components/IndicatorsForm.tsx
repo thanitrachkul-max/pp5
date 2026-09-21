@@ -177,24 +177,32 @@ export const IndicatorsForm: React.FC<Props> = ({ data, scoreConfig, generalInfo
               {data.map((ind, index) => (
                 <tr key={index}>
                   <td className="border border-slate-300 align-top">
-                    <input
-                      type="text"
-                      className="w-full p-1.5 outline-none"
-                      value={ind.id}
-                      onChange={(e) => handleChange(index, 'id', e.target.value)}
-                      placeholder="รหัสตัวชี้วัด"
-                      readOnly={readOnly}
-                    />
+                    {printMode ? (
+                      <span className="indicator-print-code">{ind.id}</span>
+                    ) : (
+                      <input
+                        type="text"
+                        className="w-full p-1.5 outline-none"
+                        value={ind.id}
+                        onChange={(e) => handleChange(index, 'id', e.target.value)}
+                        placeholder="รหัสตัวชี้วัด"
+                        readOnly={readOnly}
+                      />
+                    )}
                   </td>
                   <td colSpan={4} className="border border-slate-300 align-top">
-                    <textarea
-                      className="w-full p-1.5 outline-none resize-none overflow-hidden"
-                      value={ind.description}
-                      onChange={(e) => handleChange(index, 'description', e.target.value)}
-                      placeholder="รายละเอียดตัวชี้วัด"
-                      rows={2}
-                      readOnly={readOnly}
-                    />
+                    {printMode ? (
+                      <div className="indicator-print-description">{ind.description}</div>
+                    ) : (
+                      <textarea
+                        className="w-full p-1.5 outline-none resize-none overflow-hidden"
+                        value={ind.description}
+                        onChange={(e) => handleChange(index, 'description', e.target.value)}
+                        placeholder="รายละเอียดตัวชี้วัด"
+                        rows={2}
+                        readOnly={readOnly}
+                      />
+                    )}
                   </td>
                   <td className="border border-slate-300 text-center align-middle">
                     {!printMode && !readOnly && (

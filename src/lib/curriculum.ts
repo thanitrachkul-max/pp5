@@ -8,6 +8,7 @@ import {
 import {
   getCurriculumRecords,
   getCurriculumSubjectOptions,
+  canonicalCurriculumSubjectName,
   type CurriculumIndicatorRecord,
 } from '../data/curriculum';
 import { extractIndicatorCode } from '../data/curriculum/utils';
@@ -99,9 +100,14 @@ function resolveCurriculumRowsForSubject(
 
   const subject = normalizeText(context.subjectName);
   const area = normalizeText(context.learningArea);
+  const canonicalSubject = context.subjectName
+    ? normalizeText(canonicalCurriculumSubjectName(context.learningArea, context.subjectName))
+    : '';
 
-  if (subject) {
-    const exactSubjectRows = rows.filter((row) => normalizeText(row.subject) === subject);
+  if (subject || canonicalSubject) {
+    const exactSubjectRows = rows.filter(
+      (row) => normalizeText(canonicalCurriculumSubjectName(context.learningArea, row.subject)) === canonicalSubject,
+    );
     if (exactSubjectRows.length > 0) return exactSubjectRows;
 
     const subjectRows = rows.filter((row) => {
@@ -183,18 +189,16 @@ function inferStrandNos(
   subjectCode?: string,
 ): number[] {
   const area = normalizeText(learningArea);
-  const subject = normalizeText(subjectName);
+  const subject = subjectName
+    ? normalizeText(canonicalCurriculumSubjectName(learningArea, subjectName))
+    : '';
   const code = normalizeText(subjectCode);
 
   if (area.includes('สังคมศึกษา')) {
     if (subject.includes('ประวัติ')) return [4];
-    if (subject.includes('เศรษฐ')) return [3];
     if (subject.includes('ภูมิ')) return [5];
-    if (subject.includes('หน้าที่พลเมือง')) return [2];
-    if (subject.includes('ศาสนา') || subject.includes('ศีลธรรม') || subject.includes('จริยธรรม')) return [1];
-
+    if (subject === area || subject.includes('สังคมศึกษา')) return [1, 2, 3];
     if (code.startsWith('ส') && code.includes('ประวัติ')) return [4];
-    if (subject === area || subject.includes('สังคมศึกษา')) return [1];
   }
 
   if (area.includes('วิทยาศาสตร์และเทคโนโลยี')) {
@@ -206,9 +210,7 @@ function inferStrandNos(
   }
 
   if (area.includes('ศิลปะ')) {
-    if (subject.includes('ทัศน')) return [1];
-    if (subject.includes('ดนตรี')) return [2];
-    if (subject.includes('นาฏ')) return [3];
+    return [1, 2, 3];
   }
 
   if (area.includes('สุขศึกษาและพลศึกษา')) {
@@ -221,7 +223,9 @@ function inferStrandNos(
 
 function subjectStandardPrefixes(learningArea: string, subjectName?: string): string[] {
   const area = normalizeText(learningArea);
-  const subject = normalizeText(subjectName);
+  const subject = subjectName
+    ? normalizeText(canonicalCurriculumSubjectName(learningArea, subjectName))
+    : '';
   if (!subject) return [];
 
   if (area.includes('วิทยาศาสตร์และเทคโนโลยี')) {
@@ -235,17 +239,12 @@ function subjectStandardPrefixes(learningArea: string, subjectName?: string): st
 
   if (area.includes('สังคมศึกษา')) {
     if (subject.includes('ประวัติ')) return ['ส 4.'];
-    if (subject.includes('เศรษฐ')) return ['ส 3.'];
     if (subject.includes('ภูมิ')) return ['ส 5.'];
-    if (subject.includes('หน้าที่พลเมือง')) return ['ส 2.'];
-    if (subject.includes('ศาสนา') || subject.includes('ศีลธรรม') || subject.includes('จริยธรรม')) return ['ส 1.'];
-    if (subject === area || subject.includes('สังคมศึกษา')) return ['ส 1.'];
+    if (subject === area || subject.includes('สังคมศึกษา')) return ['ส 1.', 'ส 2.', 'ส 3.'];
   }
 
   if (area.includes('ศิลปะ')) {
-    if (subject.includes('ทัศน')) return ['ศ 1.'];
-    if (subject.includes('ดนตรี')) return ['ศ 2.'];
-    if (subject.includes('นาฏ')) return ['ศ 3.'];
+    return ['ศ 1.', 'ศ 2.', 'ศ 3.'];
   }
 
   if (area.includes('สุขศึกษาและพลศึกษา')) {
@@ -269,11 +268,12 @@ function filterStandardsForSubject(
 }
 
 function fallbackStandards(learningArea: string, classLevelCode: string, subjectName?: string): Standard[] {
+  const canonicalSubject = normalizeText(canonicalCurriculumSubjectName(learningArea, subjectName));
   const match = curriculumData.find(
     (c) =>
       (c.learningArea === learningArea || c.subject === learningArea) &&
       c.gradeLevel === classLevelCode &&
-      (!subjectName || normalizeText(c.subject).includes(normalizeText(subjectName)) || normalizeText(subjectName).includes(normalizeText(c.subject)))
+      (!subjectName || normalizeText(canonicalCurriculumSubjectName(learningArea, c.subject)) === canonicalSubject)
   );
   if (match) return filterStandardsForSubject(match.standards, learningArea, subjectName);
 

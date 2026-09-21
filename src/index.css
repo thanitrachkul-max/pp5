@@ -1947,25 +1947,43 @@ main table:not(.excel-table) tbody td {
 
   .pap5-original-print-document .indicator-print-page .indicator-print-table-frame {
     width: 75% !important;
+    overflow: visible !important;
+    border: 0 !important;
+    padding: 0 !important;
   }
 
   .pap5-original-print-document .indicator-print-page .indicator-print-table {
-    font-size: 12.1px !important;
-    line-height: 1.38 !important;
+    border-collapse: collapse !important;
+    border-spacing: 0 !important;
+    font-size: 10.5px !important;
+    line-height: 1.15 !important;
   }
 
   .pap5-original-print-document .indicator-print-page .indicator-print-table th,
   .pap5-original-print-document .indicator-print-page .indicator-print-table td {
-    padding-top: 4px !important;
-    padding-bottom: 4px !important;
+    border: 1px solid #cbd5e1 !important;
+  }
+
+  .pap5-original-print-document .indicator-print-page .indicator-print-table th {
+    padding-top: 3px !important;
+    padding-bottom: 3px !important;
+  }
+
+  .pap5-original-print-document .indicator-print-page .indicator-print-table tbody td {
+    padding: 2px 5px !important;
   }
 
   .pap5-original-print-document .indicator-print-page .indicator-print-table tbody tr {
-    height: 13.8mm !important;
+    height: auto !important;
+    min-height: 0 !important;
   }
 
-  .pap5-original-print-document .indicator-print-page .indicator-print-table textarea {
-    min-height: 11mm !important;
+  .pap5-original-print-document .indicator-print-page .indicator-print-code,
+  .pap5-original-print-document .indicator-print-page .indicator-print-description {
+    display: block;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   .pap5-original-print-document .instruction-document-title {

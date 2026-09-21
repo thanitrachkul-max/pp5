@@ -13,8 +13,16 @@ import {
   ELECTIVE_LEARNING_AREA,
   occupationBasicElectiveCurriculum,
 } from './elective';
+import {
+  ART_COMBINED_SUBJECT,
+  canonicalCurriculumSubjectName,
+  SOCIAL_COMBINED_SUBJECT,
+  SOCIAL_GEOGRAPHY_SUBJECT,
+  SOCIAL_HISTORY_SUBJECT,
+} from './subjectGroups';
 
 export * from './types';
+export * from './subjectGroups';
 export { CURRICULUM_GRADE_LEVELS };
 
 const CURRICULUM_BY_AREA: Record<string, CurriculumIndicatorRecord[]> = {
@@ -39,17 +47,11 @@ const CURRICULUM_SUBJECT_OPTION_ORDER: Record<string, string[]> = {
     'วิทยาการคำนวณ',
   ],
   'สังคมศึกษา ศาสนา และวัฒนธรรม': [
-    'ศาสนา ศีลธรรม จริยธรรม',
-    'หน้าที่พลเมือง วัฒนธรรม และการดำเนินชีวิตในสังคม',
-    'เศรษฐศาสตร์',
-    'ประวัติศาสตร์',
-    'ภูมิศาสตร์',
+    SOCIAL_COMBINED_SUBJECT,
+    SOCIAL_HISTORY_SUBJECT,
+    SOCIAL_GEOGRAPHY_SUBJECT,
   ],
-  ศิลปะ: [
-    'ทัศนศิลป์',
-    'ดนตรี',
-    'นาฏศิลป์',
-  ],
+  ศิลปะ: [ART_COMBINED_SUBJECT],
   สุขศึกษาและพลศึกษา: [
     'สุขศึกษา',
     'พลศึกษา',
@@ -174,7 +176,8 @@ export function getCurriculumRecords(filters?: {
   let rows = CURRICULUM_BY_AREA[area] ?? [];
 
   if (filters?.subject) {
-    rows = rows.filter((row) => row.subject === filters.subject);
+    const subject = canonicalCurriculumSubjectName(area, filters.subject);
+    rows = rows.filter((row) => canonicalCurriculumSubjectName(area, row.subject) === subject);
   }
   if (filters?.gradeLevel && filters.gradeLevel !== 'all') {
     rows = rows.filter((row) => row.gradeLevel === filters.gradeLevel);

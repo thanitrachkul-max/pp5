@@ -1,4 +1,5 @@
 import type { CurriculumIndicatorRecord } from '../data/curriculum/types';
+import { canonicalizeCurriculumRecordSubject } from '../data/curriculum/subjectGroups';
 
 const STORAGE_KEY = 'ksp-curriculum-indicator-store-v1';
 const LEGACY_HIDDEN_KEY = 'ksp-hidden-curriculum-indicator-ids';
@@ -25,7 +26,17 @@ function readStore(): CurriculumIndicatorStoreData {
         })()
       : { hiddenIds: [], customRecords: [], overrides: {} };
 
-    return migrateLegacyHiddenIds(base);
+    const migrated = migrateLegacyHiddenIds(base);
+    return {
+      ...migrated,
+      customRecords: migrated.customRecords.map(canonicalizeCurriculumRecordSubject),
+      overrides: Object.fromEntries(
+        Object.entries(migrated.overrides).map(([id, row]) => [
+          id,
+          canonicalizeCurriculumRecordSubject(row),
+        ]),
+      ),
+    };
   } catch {
     return { hiddenIds: [], customRecords: [], overrides: {} };
   }
@@ -67,7 +78,7 @@ export function applyCurriculumStoreToBase(
   const hidden = new Set(store.hiddenIds);
   return baseRecords
     .filter((row) => !hidden.has(row.id))
-    .map((row) => store.overrides[row.id] ?? row);
+    .map((row) => canonicalizeCurriculumRecordSubject(store.overrides[row.id] ?? row));
 }
 
 export function getVisibleCustomCurriculumRecords(): CurriculumIndicatorRecord[] {
@@ -116,19 +127,20 @@ export function deleteCurriculumIndicator(id: string): void {
 
 export function saveCurriculumIndicator(record: CurriculumIndicatorRecord): void {
   const store = readStore();
+  const normalizedRecord = canonicalizeCurriculumRecordSubject(record);
 
-  if (isCustomCurriculumIndicatorId(record.id)) {
-    const exists = store.customRecords.some((row) => row.id === record.id);
+  if (isCustomCurriculumIndicatorId(normalizedRecord.id)) {
+    const exists = store.customRecords.some((row) => row.id === normalizedRecord.id);
     const customRecords = exists
-      ? store.customRecords.map((row) => (row.id === record.id ? record : row))
-      : [...store.customRecords, record];
+      ? store.customRecords.map((row) => (row.id === normalizedRecord.id ? normalizedRecord : row))
+      : [...store.customRecords, normalizedRecord];
     writeStore({ ...store, customRecords });
     return;
   }
 
   writeStore({
     ...store,
-    overrides: { ...store.overrides, [record.id]: record },
+    overrides: { ...store.overrides, [normalizedRecord.id]: normalizedRecord },
   });
 }
 

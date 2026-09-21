@@ -2,6 +2,7 @@ import { m3CurriculumData } from '../../m3CurriculumData';
 import type { CurriculumIndicatorRecord } from '../types';
 import { convertLegacyIndicators, dedupeIndicatorRecords } from '../utils';
 import { ART_LEARNING_AREA, ART_STANDARD_DESCRIPTIONS } from './standards';
+import { canonicalizeCurriculumRecordSubject } from '../subjectGroups';
 import rawParsed from './artData.json';
 
 type RawRow = {
@@ -25,16 +26,7 @@ function cleanIndicatorText(value: string | null | undefined): string | null {
 }
 
 function artSubjectFromStrand(row: RawRow): string {
-  switch (row.strandNo) {
-    case 1:
-      return 'ทัศนศิลป์';
-    case 2:
-      return 'ดนตรี';
-    case 3:
-      return 'นาฏศิลป์';
-    default:
-      return row.strandName || ART_LEARNING_AREA;
-  }
+  return row.strandNo > 0 ? ART_LEARNING_AREA : row.strandName || ART_LEARNING_AREA;
 }
 
 function mapRawRow(row: RawRow): CurriculumIndicatorRecord {
@@ -69,7 +61,7 @@ const m3Rows = convertLegacyIndicators(m3Art, 'art-m3', artStrandFromStandard);
 
 /** รวมข้อมูลศิลปะทุกระดับชั้นที่มีในระบบ (จาก PDF หลักสูตรสถานศึกษาและข้อมูลเดิม) */
 export const artCurriculum: CurriculumIndicatorRecord[] = dedupeIndicatorRecords(
-  parsedRows.length > 0 ? parsedRows : m3Rows,
+  (parsedRows.length > 0 ? parsedRows : m3Rows).map(canonicalizeCurriculumRecordSubject),
 );
 
 export { ART_LEARNING_AREA, ART_STANDARD_DESCRIPTIONS } from './standards';

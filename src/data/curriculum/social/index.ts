@@ -8,6 +8,11 @@ import {
   socialStrandFromStandard,
 } from '../utils';
 import { SOCIAL_LEARNING_AREA, SOCIAL_STANDARD_DESCRIPTIONS } from './standards';
+import {
+  canonicalizeCurriculumRecordSubject,
+  SOCIAL_GEOGRAPHY_SUBJECT,
+  SOCIAL_HISTORY_SUBJECT,
+} from '../subjectGroups';
 import rawParsed from './socialData.json';
 
 type RawRow = {
@@ -33,15 +38,13 @@ function cleanIndicatorText(value: string | null | undefined): string | null {
 function socialSubjectFromStrand(row: RawRow): string {
   switch (row.strandNo) {
     case 1:
-      return 'ศาสนา ศีลธรรม จริยธรรม';
     case 2:
-      return 'หน้าที่พลเมือง วัฒนธรรม และการดำเนินชีวิตในสังคม';
     case 3:
-      return 'เศรษฐศาสตร์';
+      return SOCIAL_LEARNING_AREA;
     case 4:
-      return 'ประวัติศาสตร์';
+      return SOCIAL_HISTORY_SUBJECT;
     case 5:
-      return 'ภูมิศาสตร์';
+      return SOCIAL_GEOGRAPHY_SUBJECT;
     default:
       return row.strandName || SOCIAL_LEARNING_AREA;
   }
@@ -88,7 +91,7 @@ const fallbackRows = [
 
 /** รวมข้อมูลสังคมศึกษา ศาสนา และวัฒนธรรมทุกระดับชั้นที่มีในระบบ (จาก PDF หลักสูตรสถานศึกษาและข้อมูลเดิม) */
 export const socialCurriculum: CurriculumIndicatorRecord[] = dedupeIndicatorRecords(
-  parsedRows.length > 0 ? parsedRows : fallbackRows,
+  (parsedRows.length > 0 ? parsedRows : fallbackRows).map(canonicalizeCurriculumRecordSubject),
 );
 
 export { SOCIAL_LEARNING_AREA, SOCIAL_STANDARD_DESCRIPTIONS } from './standards';
