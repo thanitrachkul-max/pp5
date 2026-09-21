@@ -1752,6 +1752,19 @@ main table:not(.excel-table) tbody td {
     transform-origin: top center !important;
   }
 
+  .pap5-original-print-document .score-summary-print-page .pap5-score-summary-table tbody {
+    /* Compact only the student rows; counter-scale their text below so names
+       and scores retain the existing readable font proportions. */
+    transform: scaleY(0.5);
+    transform-origin: top center;
+  }
+
+  .pap5-original-print-document .score-summary-print-page .pap5-score-summary-table .score-summary-cell-content {
+    display: inline-block;
+    transform: scaleY(2);
+    transform-origin: center;
+  }
+
   .pap5-original-print-document .score-summary-print-page .pap5-score-summary-table tbody tr.score-summary-student-row {
     /* Chrome adds the cell's intrinsic line box to table-row sizing. The
        calibrated content height below makes the rendered row match the

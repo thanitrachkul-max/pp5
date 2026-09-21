@@ -55,6 +55,10 @@ function fullName(student: AppData["students"][number]) {
   return student.name || "";
 }
 
+function ScoreSummaryCellContent({ children }: { children?: React.ReactNode }) {
+  return <span className="score-summary-cell-content">{children}</span>;
+}
+
 function scheduledHoursByMonth(data: AppData, month: number) {
   return Object.entries(data.attendance?.hoursMap ?? {}).reduce((sum, [dateKey, hourText]) => {
     if (monthFromDateKey(dateKey) !== month) return sum;
@@ -353,30 +357,34 @@ export function Pap5ScoreSummaryPrintPage({
 
               return (
                 <tr key={student.id} className="score-summary-student-row">
-                  <td>{range.studentStartIndex + studentIndex + 1}</td>
-                  <td>{student.studentId}</td>
-                  <td>{student.citizenId || ""}</td>
-                  <td className="text-left">{fullName(student)}</td>
-                  <td></td>
+                  <td><ScoreSummaryCellContent>{range.studentStartIndex + studentIndex + 1}</ScoreSummaryCellContent></td>
+                  <td><ScoreSummaryCellContent>{student.studentId}</ScoreSummaryCellContent></td>
+                  <td><ScoreSummaryCellContent>{student.citizenId || ""}</ScoreSummaryCellContent></td>
+                  <td className="text-left"><ScoreSummaryCellContent>{fullName(student)}</ScoreSummaryCellContent></td>
+                  <td><ScoreSummaryCellContent /></td>
                   {units.map((unit, index) => {
                     const unitIndex = range.startUnitIndex + index;
                     return (
                       <td key={`${student.id}-unit-${unitIndex}`}>
-                        {hasData ? studentUnitTotal(scoreRow, unit, unitIndex) : ""}
+                        <ScoreSummaryCellContent>
+                          {hasData ? studentUnitTotal(scoreRow, unit, unitIndex) : ""}
+                        </ScoreSummaryCellContent>
                       </td>
                     );
                   })}
                   {includeFinalSummary && (
                     <>
-                      <td>{hasData ? betweenTermTotal : ""}</td>
-                      <td>{hasData ? midterm : ""}</td>
-                      <td>{hasData ? final : ""}</td>
-                      <td>{hasData ? total : ""}</td>
-                      <td>{hasData ? grade : ""}</td>
-                      <td className="fail-text">{hasData && total < 50 ? "0" : ""}</td>
-                      <td className="score-summary-percent-col">{hasData ? total.toFixed(2) : ""}</td>
+                      <td><ScoreSummaryCellContent>{hasData ? betweenTermTotal : ""}</ScoreSummaryCellContent></td>
+                      <td><ScoreSummaryCellContent>{hasData ? midterm : ""}</ScoreSummaryCellContent></td>
+                      <td><ScoreSummaryCellContent>{hasData ? final : ""}</ScoreSummaryCellContent></td>
+                      <td><ScoreSummaryCellContent>{hasData ? total : ""}</ScoreSummaryCellContent></td>
+                      <td><ScoreSummaryCellContent>{hasData ? grade : ""}</ScoreSummaryCellContent></td>
+                      <td className="fail-text"><ScoreSummaryCellContent>{hasData && total < 50 ? "0" : ""}</ScoreSummaryCellContent></td>
+                      <td className="score-summary-percent-col"><ScoreSummaryCellContent>{hasData ? total.toFixed(2) : ""}</ScoreSummaryCellContent></td>
                       <td className={`score-summary-indicator-result-col ${hasData && total >= 50 ? "pass-text" : hasData ? "fail-text" : ""}`}>
-                        {hasData ? (total >= 50 ? "ผ" : "มผ") : ""}
+                        <ScoreSummaryCellContent>
+                          {hasData ? (total >= 50 ? "ผ" : "มผ") : ""}
+                        </ScoreSummaryCellContent>
                       </td>
                     </>
                   )}
