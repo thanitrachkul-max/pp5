@@ -2511,6 +2511,7 @@ main table:not(.excel-table) tbody td {
   .pap5-original-print-document .primary-year-print .primary-year-name-cell { white-space: normal !important; overflow-wrap: anywhere !important; }
   .pap5-original-print-document .primary-year-print .primary-year-final-header { white-space: normal !important; overflow-wrap: anywhere !important; line-height: 1.2 !important; }
   .pap5-original-print-document .primary-year-print .writing-vertical { max-height: 150px; font-size: 10px; }
+  .pap5-original-print-document .attribute-print-page .primary-year-print .writing-vertical { font-size: 6pt !important; font-weight: 400 !important; line-height: 1.05 !important; }
   .pap5-original-print-document .primary-year-print h2 { font-size: 18px; margin-bottom: 10px; line-height: 1.3; }
 }
 
