@@ -185,7 +185,7 @@ export const AttributesForm: React.FC<Props> = ({ students, data, generalInfo, p
                 <th className="bg-orange-excel writing-vertical">ผลการประเมิน</th>
                 <th className="bg-orange-excel writing-vertical">รายคุณลักษณะ</th>
                 <th className="bg-orange-excel writing-vertical">4.1 ตั้งใจ เพียรพยายามในการเรียนและเข้าร่วมกิจกรรมการเรียนรู้</th>
-                <th className="bg-orange-excel writing-vertical">4.2 แสวงหาความรู้จากแหล่งเรียนรู้ต่างๆ ทั้งภายในและภายนอกโรงเรียนด้วยการเลือกใช้สื่ออย่างเหมาะสมสรุปเป็นองค์ความรู้และสามารถนำไปใช้ในชีวิตประจำวันได้</th>
+                <th className="bg-orange-excel writing-vertical attribute-item-4-2">4.2 แสวงหาความรู้จากแหล่งเรียนรู้ต่างๆ ทั้งภายในและภายนอกโรงเรียนด้วยการเลือกใช้สื่ออย่างเหมาะสมสรุปเป็นองค์ความรู้และสามารถนำไปใช้ในชีวิตประจำวันได้</th>
                 <th className="bg-orange-excel writing-vertical">ผลการประเมิน</th>
                 <th className="bg-orange-excel writing-vertical">รายคุณลักษณะ</th>
               </tr>

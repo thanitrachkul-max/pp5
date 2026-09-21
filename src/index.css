@@ -1863,6 +1863,11 @@ main table:not(.excel-table) tbody td {
   .pap5-original-print-document .attribute-print-page .attribute-print-table .writing-vertical {
     height: 54mm !important;
     padding: 1mm 0.6mm !important;
+    font-size: 6.25pt !important;
+  }
+
+  .pap5-original-print-document .attribute-print-page .attribute-print-table .attribute-item-4-2 {
+    font-size: 2.25pt !important;
   }
 
   .pap5-original-print-document .attribute-print-page .excel-scroll-area,
@@ -2512,6 +2517,7 @@ main table:not(.excel-table) tbody td {
   .pap5-original-print-document .primary-year-print .primary-year-final-header { white-space: normal !important; overflow-wrap: anywhere !important; line-height: 1.2 !important; }
   .pap5-original-print-document .primary-year-print .writing-vertical { max-height: 150px; font-size: 10px; }
   .pap5-original-print-document .attribute-print-page .primary-year-print .writing-vertical { font-size: 6pt !important; font-weight: 400 !important; line-height: 1.05 !important; }
+  .pap5-original-print-document .attribute-print-page .primary-year-print .attribute-item-4-2 { font-size: 2pt !important; }
   .pap5-original-print-document .primary-year-print h2 { font-size: 18px; margin-bottom: 10px; line-height: 1.3; }
 }
 
