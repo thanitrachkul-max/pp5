@@ -1970,12 +1970,15 @@ main table:not(.excel-table) tbody td {
   }
 
   .pap5-original-print-document .indicator-print-page .indicator-print-table tbody td {
-    padding: 2px 5px !important;
+    height: 6.4mm !important;
+    min-height: 6.4mm !important;
+    padding: 3px 5px !important;
   }
 
   .pap5-original-print-document .indicator-print-page .indicator-print-table tbody tr {
-    height: auto !important;
-    min-height: 0 !important;
+    /* 6.4 mm is 150% of the previous single-line rendered row height. */
+    height: 6.4mm !important;
+    min-height: 6.4mm !important;
   }
 
   .pap5-original-print-document .indicator-print-page .indicator-print-code,
@@ -2484,18 +2487,18 @@ main table:not(.excel-table) tbody td {
   .pap5-original-print-document .primary-year-print > div { overflow: visible !important; }
   .pap5-original-print-document .primary-year-print table { width: 100% !important; min-width: 0 !important; table-layout: auto !important; }
   .pap5-original-print-document .primary-year-print th,
-  .pap5-original-print-document .primary-year-print td { min-width: 0 !important; max-width: none !important; width: auto !important; padding: 1px 2px !important; font-size: 8px !important; line-height: 1.3 !important; }
+  .pap5-original-print-document .primary-year-print td { min-width: 0 !important; max-width: none !important; width: auto !important; padding: 1px 2px !important; font-size: 10px !important; line-height: 1.3 !important; }
   .pap5-original-print-document .primary-year-print td:nth-child(4) { white-space: nowrap; }
-  .pap5-original-print-document .primary-year-print .writing-vertical { max-height: 150px; font-size: 8px; }
-  .pap5-original-print-document .primary-year-print h2 { font-size: 12px; margin-bottom: 8px; }
+  .pap5-original-print-document .primary-year-print .writing-vertical { max-height: 150px; font-size: 10px; }
+  .pap5-original-print-document .primary-year-print h2 { font-size: 18px; margin-bottom: 10px; line-height: 1.3; }
 }
 
 /* Primary scores use separate term pages and an annual summary, shared by PDF and print. */
 .primary-score-print-page { display: flex; justify-content: center; align-items: center; padding: 16mm; }
 .primary-score-print-content { width: 100%; max-width: 265mm; margin: auto; color: #111827; }
-.primary-score-print-content h2 { text-align: center; font-size: 15px; font-weight: 700; margin-bottom: 6px; }
-.primary-score-print-content p { text-align: center; font-size: 12px; margin-bottom: 14px; }
-.primary-print-score-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 10px; }
+.primary-score-print-content h2 { text-align: center; font-size: 18px; font-weight: 700; line-height: 1.3; margin-bottom: 6px; }
+.primary-score-print-content p { text-align: center; font-size: 13px; line-height: 1.3; margin-bottom: 14px; }
+.primary-print-score-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 11.5px; line-height: 1.2; }
 .primary-print-score-table th, .primary-print-score-table td { border: 1px solid #94a3b8; text-align: center; padding: 3px 2px; overflow-wrap: anywhere; }
 .primary-print-score-table th { background: #f1f5f9; font-weight: 600; }
 .primary-print-score-table tbody td { height: 8mm; }
