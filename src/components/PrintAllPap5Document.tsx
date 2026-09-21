@@ -154,7 +154,7 @@ function AttributesOriginalPrintPage({
     : undefined;
 
   return (
-    <section className="print-page landscape attribute-print-page original-tab-print-page">
+    <section className={`print-page landscape attribute-print-page original-tab-print-page ${isPrimaryGrade(data.generalInfo.gradeLevel) ? "primary-assessment-print-page" : ""}`}>
       <PrintPageNumber pageNumber={pageNumber} />
       {isPrimaryGrade(data.generalInfo.gradeLevel) ? <PrimaryAssessmentForm data={{ ...data, students }} kind={range} printMode offset={studentRange.studentStartIndex} onChange={noop} /> : <Form
         students={students}
@@ -187,7 +187,7 @@ function AnalyticalOriginalPrintPage({
     : undefined;
 
   return (
-    <section className="print-page landscape analytical-print-page original-tab-print-page">
+    <section className={`print-page landscape analytical-print-page original-tab-print-page ${isPrimaryGrade(data.generalInfo.gradeLevel) ? "primary-assessment-print-page" : ""}`}>
       <PrintPageNumber pageNumber={pageNumber} />
       {isPrimaryGrade(data.generalInfo.gradeLevel) ? <PrimaryAssessmentForm data={{ ...data, students }} kind="analytical" printMode offset={studentRange.studentStartIndex} onChange={noop} /> : <AnalyticalForm
         students={students}
