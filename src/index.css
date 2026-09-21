@@ -1753,19 +1753,30 @@ main table:not(.excel-table) tbody td {
   }
 
   .pap5-original-print-document .score-summary-print-page .pap5-score-summary-table tbody tr.score-summary-student-row {
-    height: calc(7.8mm - 10px) !important;
-    max-height: calc(7.8mm - 10px) !important;
+    /* Chrome adds the cell's intrinsic line box to table-row sizing. The
+       calibrated content height below makes the rendered row match the
+       regular score-table row height (8.4mm). */
+    height: calc(7.8mm - 14px) !important;
+    max-height: calc(7.8mm - 14px) !important;
   }
 
   .pap5-original-print-document .score-summary-print-page .pap5-score-summary-table tbody tr.score-summary-student-row > td {
-    height: calc(7.8mm - 10px) !important;
-    min-height: calc(7.8mm - 10px) !important;
-    max-height: calc(7.8mm - 10px) !important;
-    padding: 3px 5px !important;
+    height: calc(7.8mm - 14px) !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 2px 5px !important;
     font-size: 11.5px !important;
-    line-height: 1.18 !important;
+    line-height: 1 !important;
     overflow: hidden !important;
     white-space: nowrap !important;
+  }
+
+  .pap5-original-print-document .score-summary-print-page:not(.score-summary-print-page-wide) .pap5-score-summary-table tbody tr.score-summary-student-row,
+  .pap5-original-print-document .score-summary-print-page:not(.score-summary-print-page-wide) .pap5-score-summary-table tbody tr.score-summary-student-row > td {
+    /* The regular-width table keeps the larger body font, so its calibrated
+       content box is slightly taller than the wide-table variant. */
+    height: 17.55px !important;
+    max-height: 17.55px !important;
   }
 
   .pap5-original-print-document .score-summary-print-page-wide .pap5-score-summary-table tbody tr.score-summary-student-row > td {
