@@ -23,7 +23,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.1/2",
-    "midwayIndicator": "ส 1.1 ป.1/2 ชื่นชมและบอกแบบอย่างการดําเนินชีวิตและ ข้อคิดจากประวัติสาวก ชาดก/เรื่องเล่าและศาสนิกชนตัวอย่าง ตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ป.1/2 ชื่นชมและบอกแบบอย่างการดำเนินชีวิตและ ข้อคิดจากประวัติ สาวก ชาดก/เรื่องเล่าและศาสนิกชนตัวอย่าง ตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -38,7 +38,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.1/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ป.1/3 บอกความหมาย",
+    "exitIndicator": "ส 1.1 ป.1/3 บอกความหมาย ความสำคัญ และเคารพพระรัตนตรัย ปฏิบัติตามหลักธรรมโอวาท ๓ ในพระพุทธศาสนาหรือหลักธรรม ของศาสนาที่ตนนับถือตามที่กำหนด",
     "learningAreaNote": null
   },
   {
@@ -51,7 +51,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.1/4",
-    "midwayIndicator": "ส 1.1 ป.1/4 เห็นคุณค่าและสวดมนต์ แผ่เมตตา มีสติ ที่เป็นพื้นฐานของสมาธิในพระพุทธศาสนา หรือการพัฒนาจิต ตามแนวทางของศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ป.1/4 เห็นคุณค่าและสวดมนต์ แผ่เมตตา มีสติ ที่เป็นพื้นฐานของสมาธิในพระพุทธศาสนา หรือการพัฒนาจิต ตามแนวทางของศาสนาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -65,7 +65,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ป.1/1",
-    "midwayIndicator": "ส 1.2 ป.1/1 บําเพ็ญประโยชน์ต่อวัด หรือศาสนสถานของ ศาสนาที่ตนนับถือ",
+    "midwayIndicator": "ส 1.2 ป.1/1 บำเพ็ญประโยชน์ต่อวัด หรือศาสนสถานของ ศาสนาที่ตนนับถือ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -94,7 +94,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ป.1/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.2 ป.1/3 ปฏิบัติตนในศาสนพิธี",
+    "exitIndicator": "ส 1.2 ป.1/3 ปฏิบัติตนในศาสนพิธี พิธีกรรม และวันสำคัญทางศาสนา ตามที่กำหนดได้ถูกต้อง",
     "learningAreaNote": null
   },
   {
@@ -121,7 +121,7 @@
     "standardCode": "ส 2.1",
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ป.1/2",
-    "midwayIndicator": "ส 2.1 ป.1/2 ยกตัวอย่างความสามารถและความดีของตนเอง ผู้อื่นและบอกผลจากการกระทํานั้น",
+    "midwayIndicator": "ส 2.1 ป.1/2 ยกตัวอย่างความสามารถและความดีของตนเอง ผู้อื่นและบอกผลจากการกระทำนั้น",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -164,7 +164,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ป.1/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.2 ป.1/3 มีส่วนร่วมในการ ตัดสินใจและทํากิจกรรม ในครอบครัวและโรงเรียน",
+    "exitIndicator": "ส 2.2 ป.1/3 มีส่วนร่วมในการ ตัดสินใจและทำกิจกรรม ในครอบครัวและโรงเรียน ตามกระบวนการประชาธิปไตย",
     "learningAreaNote": null
   },
   {
@@ -177,7 +177,7 @@
     "standardCode": "ส 3.1",
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ป.1/1",
-    "midwayIndicator": "ส 3.1 ป.1/1 ระบุสินค้า และบริการที่ใช้ประโยชน์ ในชีวิตประจําวัน",
+    "midwayIndicator": "ส 3.1 ป.1/1 ระบุสินค้า และบริการที่ใช้ประโยชน์ ในชีวิตประจำวัน",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -192,7 +192,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ป.1/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.1 ป.1/2 ยกตัวอย่าง",
+    "exitIndicator": "ส 3.1 ป.1/2 ยกตัวอย่าง การใช้จ่ายเงินในชีวิตประจำวัน ที่ไม่เกินตัวและเห็นประโยชน์ ของการออม",
     "learningAreaNote": null
   },
   {
@@ -206,7 +206,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ป.1/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.1 ป.1/3 ยกตัวอย่างการ",
+    "exitIndicator": "ส 3.1 ป.1/3 ยกตัวอย่างการ ใช้ทรัพยากรในชีวิตประจำวัน อย่างประหยัด",
     "learningAreaNote": null
   },
   {
@@ -219,7 +219,7 @@
     "standardCode": "ส 3.2",
     "standardDescription": "",
     "indicatorCode": "ส 3.2 ป.1/1",
-    "midwayIndicator": "ส 3.2 ป.1/1 อธิบายเหตุผลความจําเป็นที่คนต้องทํางาน อย่างสุจริต",
+    "midwayIndicator": "ส 3.2 ป.1/1 อธิบายเหตุผลความจำเป็นที่คนต้องทำงาน อย่างสุจริต",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -233,7 +233,7 @@
     "standardCode": "ส 4.1",
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ป.1/1",
-    "midwayIndicator": "ส 4.1 ป.1/1 บอกวัน เดือน ปี และการนับช่วงเวลา ตามปฏิทินที่ใช้ในชีวิตประจําวัน",
+    "midwayIndicator": "ส 4.1 ป.1/1 บอกวัน เดือน ปี และการนับช่วงเวลา ตามปฏิทินที่ใช้ในชีวิตประจำวัน",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -247,7 +247,7 @@
     "standardCode": "ส 4.1",
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ป.1/2",
-    "midwayIndicator": "ส 4.1 ป.1/2 เรียงลําดับเหตุการณ์ในชีวิตประจําวัน ตามวันเวลาที่เกิดขึ้น",
+    "midwayIndicator": "ส 4.1 ป.1/2 เรียงลำดับเหตุการณ์ในชีวิตประจำวัน ตามวันเวลาที่เกิดขึ้น",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -275,7 +275,7 @@
     "standardCode": "ส 4.2",
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ป.1/1",
-    "midwayIndicator": "ส 4.2 ป.1/1 บอกความเปลี่ยนแปลงของสภาพแวดล้อม สิ่งของ เครื่องใช้ หรือการดําเนินชีวิตของตนเองกับสมัยของ พ่อแม่ ปู่ย่า ตายาย",
+    "midwayIndicator": "ส 4.2 ป.1/1 บอกความเปลี่ยนแปลงของสภาพแวดล้อม สิ่งของ เครื่องใช้ หรือการดำเนินชีวิตของตนเองกับสมัยของ พ่อแม่ ปู่ย่า ตายาย",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -290,7 +290,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ป.1/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.2 ป.1/2 บอกเหตุการณ์",
+    "exitIndicator": "ส 4.2 ป.1/2 บอกเหตุการณ์ ที่เกิดขึ้นในอดีตที่มีผลกระทบต่อ ตนเองในปัจจุบัน",
     "learningAreaNote": null
   },
   {
@@ -303,7 +303,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ป.1/1",
-    "midwayIndicator": "ส 4.3 ป.1/1 อธิบายความหมายและความสําคัญของ สัญลักษณ์สําคัญของชาติไทย และปฏิบัติตนได้ถูกต้อง",
+    "midwayIndicator": "ส 4.3 ป.1/1 อธิบายความหมายและความสำคัญของ สัญลักษณ์สำคัญของชาติไทย และปฏิบัติตนได้ถูกต้อง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -317,7 +317,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ป.1/2",
-    "midwayIndicator": "ส 4.3 ป.1/2 บอกสถานที่สําคัญซึ่งเป็นแหล่งวัฒนธรรม ในชุมชน",
+    "midwayIndicator": "ส 4.3 ป.1/2 บอกสถานที่สำคัญซึ่งเป็นแหล่งวัฒนธรรม ในชุมชน",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -345,7 +345,7 @@
     "standardCode": "ส 5.1",
     "standardDescription": "",
     "indicatorCode": "ส 5.1 ป.1/1",
-    "midwayIndicator": "ส 5.1 ป.1/1 จําแนกสิ่งแวดล้อมรอบตัวที่เกิดขึ้นเอง ตามธรรมชาติและที่มนุษย์สร้างขึ้น",
+    "midwayIndicator": "ส 5.1 ป.1/1 จำแนกสิ่งแวดล้อมรอบตัวที่เกิดขึ้นเอง ตามธรรมชาติและที่มนุษย์สร้างขึ้น",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -359,7 +359,7 @@
     "standardCode": "ส 5.1",
     "standardDescription": "",
     "indicatorCode": "ส 5.1 ป.1/2",
-    "midwayIndicator": "ส 5.1 ป.1/2 ระบุความสัมพันธ์ของตําแหน่ง ระยะ ทิศ ของสิ่งต่าง ๆ",
+    "midwayIndicator": "ส 5.1 ป.1/2 ระบุความสัมพันธ์ของตำแหน่ง ระยะ ทิศ ของสิ่งต่าง ๆ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -388,7 +388,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ป.1/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ป.1/1 บอกสิ่งแวดล้อม",
+    "exitIndicator": "ส 5.2 ป.1/1 บอกสิ่งแวดล้อม ที่เกิดตามธรรมชาติที่ส่งผลต่อ ความเป็นอยู่ของมนุษย์",
     "learningAreaNote": null
   },
   {
@@ -416,7 +416,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ป.1/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ป.1/3 มีส่วนร่วมในการ",
+    "exitIndicator": "ส 5.2 ป.1/3 มีส่วนร่วมในการ ดูแลสิ่งแวดล้อมที่บ้านและห้องเรียน",
     "learningAreaNote": null
   },
   {
@@ -429,7 +429,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.2/1",
-    "midwayIndicator": "ส 1.1 ป.2/1 บอกความสําคัญของพระพุทธศาสนาหรือ ศาสนาที่ตนนับถือ",
+    "midwayIndicator": "ส 1.1 ป.2/1 บอกความสำคัญของพระพุทธศาสนาหรือ ศาสนาที่ตนนับถือ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -443,7 +443,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.2/2",
-    "midwayIndicator": "ส 1.1 ป.2/2 สรุปพุทธประวัติ ตั้งแต่ประสูติจนถึง การออกผนวช หรือประวัติศาสดาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ป.2/2 สรุปพุทธประวัติ ตั้งแต่ประสูติจนถึง การออกผนวช หรือประวัติศาสดาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -457,7 +457,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.2/3",
-    "midwayIndicator": "ส 1.1 ป.2/3 ชื่นชมและบอกแบบอย่างการดําเนินชีวิต และข้อคิดจากประวัติสาวก ชาดก เรื่องเล่าและศาสนิกชน ตัวอย่างตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ป.2/3 ชื่นชมและบอกแบบอย่างการดำเนินชีวิต และข้อคิดจากประวัติสาวก ชาดก เรื่องเล่าและศาสนิกชน ตัวอย่างตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -472,7 +472,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.2/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ป.2/4 บอกความหมาย ความสําคัญ และเคารพ",
+    "exitIndicator": "ส 1.1 ป.2/4 บอกความหมาย ความสำคัญ และเคารพ พระรัตนตรัย ปฏิบัติตามหลักธรรม โอวาท ๓ ในพระพุทธศาสนา หรือ หลักธรรม ของศาสนาที่ตนนับถือ ตามที่กำหนด",
     "learningAreaNote": null
   },
   {
@@ -486,7 +486,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.2/5",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ป.2/5 ชื่นชมการทําความดี",
+    "exitIndicator": "ส 1.1 ป.2/5 ชื่นชมการทำความดี ของตนเอง บุคคลในครอบครัวและ ในโรงเรียน ตามหลักศาสนา",
     "learningAreaNote": null
   },
   {
@@ -499,7 +499,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.2/6",
-    "midwayIndicator": "ส 1.1 ป.2/6 เห็นคุณค่าและสวดมนต์ แผ่เมตตา มีสติที่เป็น พื้นฐานของสมาธิในพระพุทธศาสนาหรือการพัฒนาจิต ตามแนวทางของศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ป.2/6 เห็นคุณค่าและสวดมนต์ แผ่เมตตา มีสติที่เป็น พื้นฐานของสมาธิในพระพุทธศาสนาหรือการพัฒนาจิต ตามแนวทางของศาสนาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -513,7 +513,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.2/7",
-    "midwayIndicator": "ส 1.1 ป.2/7 บอกชื่อศาสนา ศาสดา และความสําคัญ ของคัมภีร์ของศาสนาที่ตนนับถือและศาสนาอื่น ๆ",
+    "midwayIndicator": "ส 1.1 ป.2/7 บอกชื่อศาสนา ศาสดา และความสำคัญ ของคัมภีร์ของศาสนาที่ตนนับถือและศาสนาอื่น ๆ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -527,7 +527,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ป.2/1",
-    "midwayIndicator": "ส 1.2 ป.2/1 ปฏิบัติตนอย่างเหมาะสมต่อสาวกของศาสนา ที่ตนนับถือ ตามที่กําหนดได้ถูกต้อง",
+    "midwayIndicator": "ส 1.2 ป.2/1 ปฏิบัติตนอย่างเหมาะสมต่อสาวกของศาสนา ที่ตนนับถือ ตามที่กำหนดได้ถูกต้อง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -542,7 +542,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ป.2/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.2 ป.2/2 ปฏิบัติตนในศาสนพิธี",
+    "exitIndicator": "ส 1.2 ป.2/2 ปฏิบัติตนในศาสนพิธี พิธีกรรม และวันสำคัญทางศาสนา ตามที่กำหนดได้ถูกต้อง",
     "learningAreaNote": null
   },
   {
@@ -556,7 +556,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ป.2/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.1 ป.2/1 ปฏิบัติตน",
+    "exitIndicator": "ส 2.1 ป.2/1 ปฏิบัติตน ตามข้อตกลง กติกา กฎ ระเบียบ และหน้าที่ที่ต้องปฏิบัติ ในชีวิตประจำวัน",
     "learningAreaNote": null
   },
   {
@@ -584,7 +584,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ป.2/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.1 ป.2/3 แสดงพฤติกรรม",
+    "exitIndicator": "ส 2.1 ป.2/3 แสดงพฤติกรรม ในการยอมรับความคิด ความเชื่อ และการปฏิบัติของบุคคลอื่น ที่แตกต่างกันโดยปราศจากอคติ",
     "learningAreaNote": null
   },
   {
@@ -625,7 +625,7 @@
     "standardCode": "ส 2.2",
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ป.2/2",
-    "midwayIndicator": "ส 2.2 ป.2/2 ระบุผู้มีบทบาท อํานาจในการตัดสินใจ ในโรงเรียน และชุมชน",
+    "midwayIndicator": "ส 2.2 ป.2/2 ระบุผู้มีบทบาท อำนาจในการตัดสินใจ ในโรงเรียน และชุมชน",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -639,7 +639,7 @@
     "standardCode": "ส 3.1",
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ป.2/1",
-    "midwayIndicator": "ส 3.1 ป.2/1 ระบุทรัพยากรที่นํามาผลิตสินค้าและบริการ ที่ใช้ในชีวิตประจําวัน",
+    "midwayIndicator": "ส 3.1 ป.2/1 ระบุทรัพยากรที่นำมาผลิตสินค้าและบริการ ที่ใช้ในชีวิตประจำวัน",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -667,7 +667,7 @@
     "standardCode": "ส 3.1",
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ป.2/3",
-    "midwayIndicator": "ส 3.1 ป.2/3 บันทึกรายรับ-รายจ่ายของตนเอง",
+    "midwayIndicator": "ส 3.1 ป.2/3 บันทึกรายรับ -รายจ่ายของตนเอง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -682,7 +682,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ป.2/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.1 ป.2/4 สรุปผลดีของ",
+    "exitIndicator": "ส 3.1 ป.2/4 สรุปผลดีของ การใช้จ่ายที่เหมาะสมกับรายได้ และการออม",
     "learningAreaNote": null
   },
   {
@@ -723,7 +723,7 @@
     "standardCode": "ส 4.1",
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ป.2/1",
-    "midwayIndicator": "ส 4.1 ป.2/1 ใช้คําระบุเวลาที่แสดงเหตุการณ์ในอดีต ปัจจุบัน และอนาคต",
+    "midwayIndicator": "ส 4.1 ป.2/1 ใช้คำระบุเวลาที่แสดงเหตุการณ์ในอดีต ปัจจุบัน และอนาคต",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -737,7 +737,7 @@
     "standardCode": "ส 4.1",
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ป.2/2",
-    "midwayIndicator": "ส 4.1 ป.2/2 ลําดับเหตุการณ์ที่เกิดขึ้นในครอบครัว หรือ ในชีวิตของตนเองโดยใช้หลักฐานที่เกี่ยวข้อง",
+    "midwayIndicator": "ส 4.1 ป.2/2 ลำดับเหตุการณ์ที่เกิดขึ้นในครอบครัว หรือ ในชีวิตของตนเองโดยใช้หลักฐานที่เกี่ยวข้อง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -751,7 +751,7 @@
     "standardCode": "ส 4.2",
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ป.2/1",
-    "midwayIndicator": "ส 4.2 ป.2/1 สืบค้นถึงการเปลี่ยนแปลงในวิถีชีวิตประจําวัน ของคนในชุมชนของตนจากอดีตถึงปัจจุบัน",
+    "midwayIndicator": "ส 4.2 ป.2/1 สืบค้นถึงการเปลี่ยนแปลงในวิถีชีวิตประจำวัน ของคนในชุมชนของตนจากอดีตถึงปัจจุบัน",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -766,7 +766,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ป.2/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.2 ป.2/2 อธิบายผลกระทบ",
+    "exitIndicator": "ส 4.2 ป.2/2 อธิบายผล กระทบ ของการเปลี่ยนแปลงที่มีต่อวิถีชีวิต ของคนในชุมชน",
     "learningAreaNote": null
   },
   {
@@ -779,7 +779,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ป.2/1",
-    "midwayIndicator": "ส 4.3 ป.2/1 ระบุบุคคลที่ทําประโยชน์ต่อท้องถิ่น หรือ ประเทศชาติ",
+    "midwayIndicator": "ส 4.3 ป.2/1 ระบุบุคคลที่ทำประโยชน์ต่อท้องถิ่น หรือ ประเทศชาติ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -794,7 +794,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ป.2/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.3 ป.2/2 ยกตัวอย่าง วัฒนธรรม ประเพณี",
+    "exitIndicator": "ส 4.3 ป.2/2 ยกตัวอย่าง วัฒนธรรม ประเพณี และภูมิปัญญาไทยที่ภาคภูมิใจ และควรอนุรักษ์ไว้",
     "learningAreaNote": null
   },
   {
@@ -808,7 +808,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.1 ป.2/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.1 ป.2/1 ระบุสิ่งแวดล้อม",
+    "exitIndicator": "ส 5.1 ป.2/1 ระบุสิ่งแวดล้อม ทางธรรมชาติและที่มนุษย์สร้างขึ้น ซึ่งปรากฏระหว่างบ้านกับโรงเรียน",
     "learningAreaNote": null
   },
   {
@@ -821,7 +821,7 @@
     "standardCode": "ส 5.1",
     "standardDescription": "",
     "indicatorCode": "ส 5.1 ป.2/2",
-    "midwayIndicator": "ส 5.1 ป.2/2 ระบุตําแหน่งและลักษณะทางกายภาพ ของสิ่งต่าง ๆ ที่ปรากฏในแผนผัง แผนที่ รูปถ่าย และลูกโลก",
+    "midwayIndicator": "ส 5.1 ป.2/2 ระบุตำแหน่งและลักษณะทางกายภาพ ของสิ่งต่าง ๆ ที่ปรากฏในแผนผัง แผนที่ รูปถ่าย และลูกโลก",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -835,7 +835,7 @@
     "standardCode": "ส 5.1",
     "standardDescription": "",
     "indicatorCode": "ส 5.1 ป.2/3",
-    "midwayIndicator": "ส 5.1 ป.2/3 สังเกตและแสดงความสัมพันธ์ระหว่างโลก ดวงอาทิตย์และดวงจันทร์ที่ทําให้เกิดปรากฏการณ์",
+    "midwayIndicator": "ส 5.1 ป.2/3 สังเกตและแสดงความสัมพันธ์ระหว่างโลก ดวงอาทิตย์และดวงจันทร์ที่ทำให้เกิดปรากฏการณ์",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -849,7 +849,7 @@
     "standardCode": "ส 5.2",
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ป.2/1",
-    "midwayIndicator": "ส 5.2 ป.2/1 อธิบายความสําคัญของสิ่งแวดล้อม ทางธรรมชาติและที่มนุษย์สร้างขึ้น",
+    "midwayIndicator": "ส 5.2 ป.2/1 อธิบายความสำคัญของสิ่งแวดล้อม ทางธรรมชาติและที่มนุษย์สร้างขึ้น",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -863,7 +863,7 @@
     "standardCode": "ส 5.2",
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ป.2/2",
-    "midwayIndicator": "ส 5.2 ป.2/2 จําแนกและใช้ทรัพยากรธรรมชาติที่ใช้แล้ว ไม่หมดไป ที่ใช้แล้วหมดไป และสร้างทดแทนขึ้นใหม่ได้ อย่างคุ้มค่า",
+    "midwayIndicator": "ส 5.2 ป.2/2 จำแนกและใช้ทรัพยากรธรรมชาติที่ใช้แล้ว ไม่หมดไป ที่ใช้แล้วหมดไป และสร้างทดแทนขึ้นใหม่ได้ อย่างคุ้มค่า",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -878,7 +878,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ป.2/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ป.2/3 อธิบาย",
+    "exitIndicator": "ส 5.2 ป.2/3 อธิบาย ความสัมพันธ์ระหว่างฤดูกาลกับ การดำเนินชีวิตของมนุษย์",
     "learningAreaNote": null
   },
   {
@@ -892,7 +892,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ป.2/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ป.2/4 มีส่วนร่วมในการ",
+    "exitIndicator": "ส 5.2 ป.2/4 มีส่วนร่วมในการ จัดการสิ่งแวดล้อมในโรงเรียน",
     "learningAreaNote": null
   },
   {
@@ -905,7 +905,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.3/1",
-    "midwayIndicator": "ส 1.1 ป.3/1 อธิบายความสําคัญของพระพุทธศาสนา หรือศาสนาที่ตนนับถือในฐานะที่เป็นรากฐานสําคัญ ของวัฒนธรรมไทย",
+    "midwayIndicator": "ส 1.1 ป.3/1 อธิบายความสำคัญของพระพุทธศาสนา หรือศาสนาที่ตนนับถือในฐานะที่เป็นรากฐานสำคัญ ของวัฒนธรรมไทย",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -919,7 +919,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.3/2",
-    "midwayIndicator": "ส 1.1 ป.3/2 สรุปพุทธประวัติตั้งแต่การบําเพ็ญเพียร จนถึงปรินิพพาน หรือประวัติของศาสดาที่ตนนับถือ ตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ป.3/2 สรุปพุทธประวัติตั้งแต่การบำเพ็ญเพียร จนถึงปรินิพพาน หรือประวัติของศาสดาที่ตนนับถือ ตามที่กำหนด",
     "exitIndicator": "ส 1.1 ป.3/2 เห็นคุณค่าและ",
     "learningAreaNote": null
   },
@@ -933,7 +933,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.3/3",
-    "midwayIndicator": "ส 1.1 ป.3/3 ชื่นชมและบอกแบบอย่างการดําเนินชีวิตและ ข้อคิดจากประวัติสาวก ชาดก เรื่องเล่าและศาสนิกชนตัวอย่าง ตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ป.3/3 ชื่นชมและบอกแบบอย่างการดำเนินชีวิตและ ข้อคิดจากประวัติสาวก ชาดก เรื่องเล่าและศาสนิกชนตัวอย่าง ตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -947,7 +947,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.3/4",
-    "midwayIndicator": "ส 1.1 ป.3/4 บอกความหมาย ความสําคัญของพระไตรปิฎก หรือคัมภีร์ของศาสนาที่ตนนับถือ",
+    "midwayIndicator": "ส 1.1 ป.3/4 บอกความหมาย ความสำคัญของพระไตรปิฎก หรือคัมภีร์ของศาสนาที่ตนนับถือ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -962,7 +962,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.3/5",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ป.3/5 แสดงความเคารพ",
+    "exitIndicator": "ส 1.1 ป.3/5 แสดงความเคารพ พระรัตนตรัย และปฏิบัติตาม หลักธรรมโอวาท ๓ ในพระพุทธศาสนาหรือหลักธรรม ของศาสนาที่ตนนับถือ ตามที่กำหนด",
     "learningAreaNote": null
   },
   {
@@ -975,7 +975,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.3/6",
-    "midwayIndicator": "ส 1.1 ป.3/6 เห็นคุณค่าและสวดมนต์ แผ่เมตตา มีสติที่เป็น พื้นฐานของสมาธิในพระพุทธศาสนา หรือการพัฒนาจิต ตามแนวทางของศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ป.3/6 เห็นคุณค่าและสวดมนต์ แผ่เมตตา มีสติที่เป็น พื้นฐานของสมาธิในพระพุทธศาสนา หรือการพัฒนาจิต ตามแนวทางของศาสนาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -989,7 +989,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.3/7",
-    "midwayIndicator": "ส 1.1 ป.3/7 บอกชื่อ ความสําคัญ และปฏิบัติตนได้ อย่างเหมาะสมต่อศาสนวัตถุ ศาสนสถาน และศาสนบุคคล ของศาสนาอื่นๆ",
+    "midwayIndicator": "ส 1.1 ป.3/7 บอกชื่อ ความสำคัญ และปฏิบัติตนได้ อย่างเหมาะสมต่อศาสนวัตถุ ศาสนสถาน และศาสนบุคคล ของศาสนาอื่นๆ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1003,7 +1003,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ป.3/1",
-    "midwayIndicator": "ส 1.2 ป.3/1 ปฏิบัติตนอย่างเหมาะสมต่อสาวก ศาสนาสถาน ศาสนวัตถุของศาสนาที่ตนนับถือตามที่กําหนดได้ถูกต้อง",
+    "midwayIndicator": "ส 1.2 ป.3/1 ปฏิบัติตนอย่างเหมาะสมต่อสาวก ศาสนาสถาน ศาสนวัตถุของศาสนาที่ตนนับถือตามที่กำหนดได้ถูกต้อง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1032,7 +1032,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ป.3/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.1 ป.3/1 สรุปประโยชน์และ ปฏิบัติตนตามประเพณีและ",
+    "exitIndicator": "ส 2.1 ป.3/1 สรุปประโยชน์และ ปฏิบัติตนตามประเพณีและ วัฒนธรรมในครอบครัวและท้องถิ่น",
     "learningAreaNote": null
   },
   {
@@ -1045,7 +1045,7 @@
     "standardCode": "ส 2.1",
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ป.3/2",
-    "midwayIndicator": "ส 2.1 ป.3/2 บอกพฤติกรรมการดําเนินชีวิตของตนเองและ ผู้อื่นที่อยู่ในกระแสวัฒนธรรมที่หลากหลาย",
+    "midwayIndicator": "ส 2.1 ป.3/2 บอกพฤติกรรมการดำเนินชีวิตของตนเองและ ผู้อื่นที่อยู่ในกระแสวัฒนธรรมที่หลากหลาย",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1059,7 +1059,7 @@
     "standardCode": "ส 2.1",
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ป.3/3",
-    "midwayIndicator": "ส 2.1 ป.3/3 อธิบายความสําคัญของวันหยุดราชการที่สําคัญ",
+    "midwayIndicator": "ส 2.1 ป.3/3 อธิบายความสำคัญของวันหยุดราชการที่สำคัญ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1116,7 +1116,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ป.3/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.2 ป.3/3 ยกตัวอย่าง",
+    "exitIndicator": "ส 2.2 ป.3/3 ยกตัวอย่าง การเปลี่ยนแปลงในชั้นเรียน โรงเรียนและชุมชน ที่เป็นผลจาก การตัดสินใจของบุคคลและกลุ่ม",
     "learningAreaNote": null
   },
   {
@@ -1129,7 +1129,7 @@
     "standardCode": "ส 3.1",
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ป.3/1",
-    "midwayIndicator": "ส 3.1 ป.3/1 จําแนกความต้องการและความจําเป็นในการ ใช้สินค้าและบริการในการดํารงชีวิต",
+    "midwayIndicator": "ส 3.1 ป.3/1 จำแนกความต้องการและความจำเป็นในการ ใช้สินค้าและบริการในการดำรงชีวิต",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1157,7 +1157,7 @@
     "standardCode": "ส 3.1",
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ป.3/3",
-    "midwayIndicator": "ส 3.1 ป.3/3 อธิบายได้ว่าทรัพยากรที่มีอยู่จํากัดมีผลต่อ การผลิตและบริโภคสินค้าและบริการ",
+    "midwayIndicator": "ส 3.1 ป.3/3 อธิบายได้ว่าทรัพยากรที่มีอยู่จำกัดมีผลต่อ การผลิตและบริโภคสินค้าและบริการ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1185,7 +1185,7 @@
     "standardCode": "ส 3.2",
     "standardDescription": "",
     "indicatorCode": "ส 3.2 ป.3/2",
-    "midwayIndicator": "ส 3.2 ป.3/2 บอกความสําคัญของภาษีและบทบาทของ ประชาชนในการเสียภาษี",
+    "midwayIndicator": "ส 3.2 ป.3/2 บอกความสำคัญของภาษีและบทบาทของ ประชาชนในการเสียภาษี",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1199,7 +1199,7 @@
     "standardCode": "ส 3.2",
     "standardDescription": "",
     "indicatorCode": "ส 3.2 ป.3/3",
-    "midwayIndicator": "ส 3.2 ป.3/3 อธิบายเหตุผลการแข่งขันทางการค้า ที่มีผลทําให้ราคาสินค้าลดลง",
+    "midwayIndicator": "ส 3.2 ป.3/3 อธิบายเหตุผลการแข่งขันทางการค้า ที่มีผลทำให้ราคาสินค้าลดลง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1213,7 +1213,7 @@
     "standardCode": "ส 4.1",
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ป.3/1",
-    "midwayIndicator": "ส 4.1 ป.3/1 เทียบศักราชที่สําคัญตามปฏิทินที่ใช้ ในชีวิตประจําวัน",
+    "midwayIndicator": "ส 4.1 ป.3/1 เทียบศักราชที่สำคัญตามปฏิทินที่ใช้ ในชีวิตประจำวัน",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1227,7 +1227,7 @@
     "standardCode": "ส 4.1",
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ป.3/2",
-    "midwayIndicator": "ส 4.1 ป.3/2 แสดงลําดับเหตุการณ์สําคัญของโรงเรียนและ ชุมชนโดยระบุหลักฐานและแหล่งข้อมูลที่เกี่ยวข้อง",
+    "midwayIndicator": "ส 4.1 ป.3/2 แสดงลำดับเหตุการณ์สำคัญของโรงเรียนและ ชุมชนโดยระบุหลักฐานและแหล่งข้อมูลที่เกี่ยวข้อง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1255,7 +1255,7 @@
     "standardCode": "ส 4.2",
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ป.3/2",
-    "midwayIndicator": "ส 4.2 ป.3/2 สรุปลักษณะที่สําคัญของขนบธรรมเนียม ประเพณีและวัฒนธรรมของชุมชน",
+    "midwayIndicator": "ส 4.2 ป.3/2 สรุปลักษณะที่สำคัญของขนบธรรมเนียม ประเพณีและวัฒนธรรมของชุมชน",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1270,7 +1270,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ป.3/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.2 ป.3/3 เปรียบเทียบ ความเหมือนและความต่าง",
+    "exitIndicator": "ส 4.2 ป.3/3 เปรียบเทียบ ความเหมือนและความต่าง ทางวัฒนธรรมของชุมชนตนเองกับ ชุมชนอื่น ๆ",
     "learningAreaNote": null
   },
   {
@@ -1312,7 +1312,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ป.3/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.3 ป.3/3 เล่าวีรกรรมของ",
+    "exitIndicator": "ส 4.3 ป.3/3 เล่าวีรกรรมของ บรรพบุรุษไทยที่มีส่วนปกป้อง ประเทศชาติ",
     "learningAreaNote": null
   },
   {
@@ -1325,7 +1325,7 @@
     "standardCode": "ส 5.1",
     "standardDescription": "",
     "indicatorCode": "ส 5.1 ป.3/1",
-    "midwayIndicator": "ส 5.1 ป.3/1 สํารวจข้อมูลทางภูมิศาสตร์ในโรงเรียนและ ชุมชน โดยใช้แผนผัง แผนที่ และรูปถ่าย เพื่อแสดงความสัมพันธ์ ของตําแหน่ง ระยะ ทิศทาง",
+    "midwayIndicator": "ส 5.1 ป.3/1 สำรวจข้อมูลทางภูมิศาสตร์ในโรงเรียนและ ชุมชน โดยใช้แผนผัง แผนที่ และรูปถ่าย เพื่อแสด งความสัม พันธ์ ของตำแหน่ง ระยะ ทิศทาง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1340,7 +1340,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.1 ป.3/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.1 ป.3/2 วาดแผนผัง",
+    "exitIndicator": "ส 5.1 ป.3/2 วาดแผนผัง เพื่อแสดงตำแหน่งที่ตั้งของสถานที่ สำคัญในบริเวณโรงเรียนและชุมชน",
     "learningAreaNote": null
   },
   {
@@ -1367,7 +1367,7 @@
     "standardCode": "ส 5.2",
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ป.3/2",
-    "midwayIndicator": "ส 5.2 ป.3/2 อธิบายการใช้ประโยชน์จากสิ่งแวดล้อม และ ทรัพยากรธรรมชาติในการสนอง ความต้องการพื้นฐาน ของมนุษย์และการประกอบอาชีพ",
+    "midwayIndicator": "ส 5.2 ป.3/2 อธิบายการใช้ประโยชน์จากสิ่งแวดล้อม และ ทรัพยากร ธรรมชาติในการสนอง ความต้องการพื้นฐาน ของมนุษย์และการประกอบอาชีพ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1381,7 +1381,7 @@
     "standardCode": "ส 5.2",
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ป.3/3",
-    "midwayIndicator": "ส 5.2 ป.3/3 อธิบายสาเหตุที่ทําให้เกิดมลพิษโดยมนุษย์",
+    "midwayIndicator": "ส 5.2 ป.3/3 อธิบายสาเหตุที่ทำให้เกิดมลพิษโดยมนุษย์",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1409,7 +1409,7 @@
     "standardCode": "ส 5.2",
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ป.3/5",
-    "midwayIndicator": "ส 5.2 ป.3/5 อธิบายความสัมพันธ์ระหว่างลักษณะ ทางกายภาพกับการดําเนินชีวิตของคนในชุมชน",
+    "midwayIndicator": "ส 5.2 ป.3/5 อธิบายความสัมพันธ์ระหว่างลักษณะ ทางกายภาพกับการดำเนินชีวิตของคนในชุมชน",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1437,7 +1437,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.4/1",
-    "midwayIndicator": "ส 1.1 ป.4/1 อธิบายความสําคัญของพระพุทธศาสนา หรือ ศาสนาที่ตนนับถือ ในฐานะเป็นศูนย์รวมจิตใจของศาสนิกชน",
+    "midwayIndicator": "ส 1.1 ป.4/1 อธิบายความสำคัญของพระพุทธศาสนา หรือ ศาสนาที่ตนนับถือ ในฐานะเป็นศูนย์รวมจิตใจของศาสนิกชน",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1451,7 +1451,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.4/2",
-    "midwayIndicator": "ส 1.1 ป.4/2 สรุปพุทธประวัติตั้งแต่บรรลุธรรมจนถึง ประกาศธรรม หรือประวัติศาสดาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ป.4/2 สรุปพุทธประวัติตั้งแต่บรรลุธรรมจนถึง ประกาศธรรม หรือประวัติศาสดาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1465,7 +1465,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.4/3",
-    "midwayIndicator": "ส 1.1 ป.4/3 เห็นคุณค่า และปฏิบัติตนตามแบบอย่าง การดําเนินชีวิตและข้อคิดจากประวัติสาวก ชาดก เรื่องเล่า และศาสนิกชนตัวอย่างตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ป.4/3 เห็นคุณค่า และปฏิบัติตนตามแบบอย่าง การดำเนินชีวิตและข้อคิดจากประวัติสาวก ชาดก เรื่องเล่า และศาสนิกชนตัวอย่างตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1480,7 +1480,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.4/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ป.4/4 แสดงความเคารพ",
+    "exitIndicator": "ส 1.1 ป.4/4 แสดงความเคารพ พระรัตนตรัย ปฏิบัติตามไตรสิกขา และหลักธรรม โอวาท ๓ ในพระพุทธศาสน าหรือหลักธรรม ของศาสนาที่ตนนับถือตามที่กำหนด",
     "learningAreaNote": null
   },
   {
@@ -1494,7 +1494,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.4/5",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ป.4/5 ชื่นชมการทําความดี ของตนเอง บุคคลในครอบครัว",
+    "exitIndicator": "ส 1.1 ป.4/5 ชื่นชมการทำความดี ของตนเอง บุคคลในครอบครัว โรงเรียนและชุมชนตามหลักศาสนา พร้อมทั้งบอกแนวปฏิบัติในการ ดำเนินชีวิต",
     "learningAreaNote": null
   },
   {
@@ -1507,7 +1507,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.4/6",
-    "midwayIndicator": "ส 1.1 ป.4/6 เห็นคุณค่าและสวดมนต์ แผ่เมตตา มีสติที่เป็น พื้นฐานของสมาธิในพระพุทธศาสนาหรือการพัฒนาจิต ตามแนวทางของศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ป.4/6 เห็นคุณค่าและสวดมนต์ แผ่เมตตา มีสติที่เป็น พื้นฐานของสมาธิในพระพุทธศาสนาหรือการพัฒนาจิต ตามแนวทางของศาสนาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1521,7 +1521,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.4/7",
-    "midwayIndicator": "ส 1.1 ป.4/7 ปฏิบัติตนตามหลักธรรมของศาสนาที่ตนนับถือ เพื่อการอยู่ร่วมกันเป็นชาติได้อย่างสมานฉันท์",
+    "midwayIndicator": "ส 1.1 ป.4/7 ปฏิบัติตนตามหลั กธรรมของศาสนาที่ตนนับถือ เพื่อการอยู่ร่วมกันเป็นชาติได้อย่างสมานฉันท์",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1549,7 +1549,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ป.4/1",
-    "midwayIndicator": "ส 1.2 ป.4/1 อภิปรายความสําคัญและมีส่วนร่วมในการ บํารุงรักษาศาสนสถานของศาสนาที่ตนนับถือ",
+    "midwayIndicator": "ส 1.2 ป.4/1 อภิปรายความสำคัญและมีส่วนร่วมในการ บำรุงรักษาศาสนสถานของศาสนาที่ตนนับถือ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1563,7 +1563,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ป.4/2",
-    "midwayIndicator": "ส 1.2 ป.4/2 มีมรรยาทของความเป็นศาสนิกชนที่ดี ตามที่กําหนด",
+    "midwayIndicator": "ส 1.2 ป.4/2 มีมรรยาทของความเป็นศาสนิกชนที่ดี ตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1578,7 +1578,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ป.4/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.2 ป.4/3 ปฏิบัติตนในศาสนพิธี",
+    "exitIndicator": "ส 1.2 ป.4/3 ปฏิบัติตนในศาสนพิธี พิธีกรรมและวันสำคัญทางศาสนา ตามที่กำหนดได้ถูกต้อง",
     "learningAreaNote": null
   },
   {
@@ -1605,7 +1605,7 @@
     "standardCode": "ส 2.1",
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ป.4/2",
-    "midwayIndicator": "ส 2.1 ป.4/2 ปฏิบัติตนในการเป็นผู้นําและผู้ตามที่ดี",
+    "midwayIndicator": "ส 2.1 ป.4/2 ปฏิบัติตนในการเป็นผู้นำและผู้ตามที่ดี",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1648,7 +1648,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ป.4/5",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.1 ป.4/5 เสนอวิธีการ",
+    "exitIndicator": "ส 2.1 ป.4/5 เสนอวิธีการ ที่จะอยู่ร่วมกัน อย่างสันติสุข ในชีวิตประจำวัน",
     "learningAreaNote": null
   },
   {
@@ -1662,7 +1662,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ป.4/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.2 ป.4/1 อธิบายอํานาจ อธิปไตยและความสําคัญของ ระบอบประชาธิปไตย",
+    "exitIndicator": "ส 2.2 ป.4/1 อธิบายอำนาจ อธิปไตยและควา มสำคัญของ ระบอบประชาธิปไตย",
     "learningAreaNote": null
   },
   {
@@ -1690,7 +1690,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ป.4/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.2 ป.4/3 อธิบายความสําคัญ ของสถาบันพระมหากษัตริย์ ตามระบอบประชาธิปไตยอันมี",
+    "exitIndicator": "ส 2.2 ป.4/3 อธิบายความสำคัญ ของสถาบันพระมหากษัตริย์ ตามระบอบประชาธิปไตยอันมี พระมหากษัตริย์ทรงเป็นประมุข",
     "learningAreaNote": null
   },
   {
@@ -1732,7 +1732,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ป.4/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.1 ป.4/3 อธิบายหลักการของ",
+    "exitIndicator": "ส 3.1 ป.4/3 อธิบายหลักการของ เศรษฐกิจพอเพียงและนำไปใช้ ในชีวิตประจำวันของตนเอง",
     "learningAreaNote": null
   },
   {
@@ -1746,7 +1746,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.2 ป.4/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.2 ป.4/1 อธิบายความสัมพันธ์ ทางเศรษฐกิจของคนในชุมชน",
+    "exitIndicator": "ส 3.2 ป.4/1 อธิบา ยความสัมพันธ์ ทางเศรษฐกิจของคนในชุมชน",
     "learningAreaNote": null
   },
   {
@@ -1816,7 +1816,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ป.4/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.2 ป.4/1 อธิบายการตั้งหลักแหล่ง และพัฒนาการของมนุษย์ ยุคก่อนประวัติศาสตร์และ",
+    "exitIndicator": "ส 4.2 ป.4/1 อธิบายการตั้งหลักแหล่ ง และพัฒนาการของมนุษย์ ยุคก่อนประวัติศาสตร์และ ยุคประวัติศาสตร์ โดยสังเขป",
     "learningAreaNote": null
   },
   {
@@ -1829,7 +1829,7 @@
     "standardCode": "ส 4.2",
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ป.4/2",
-    "midwayIndicator": "ส 4.2 ป.4/2 ยกตัวอย่างหลักฐานทางประวัติศาสตร์ที่พบ ในท้องถิ่นที่แสดงพัฒนาการของมนุษยชาติ ยกตัวอย่างหลักฐานทางประวัติศาสตร์ที่พบ ในท้องถิ่นที่แสดงพัฒนาการของมนุษยชาติ",
+    "midwayIndicator": "ส 4.2 ป.4/2 ยกตัวอย่างหลักฐานทางประวัติศาสตร์ที่พบ ในท้องถิ่นที่แสดงพัฒนาการของมนุษยชาติ ในดินแดนไทย",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1844,7 +1844,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ป.4/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.3 ป.4/1 อธิบายพัฒนาการ",
+    "exitIndicator": "ส 4.3 ป.4/1 อธิบายพัฒนาการ ของอาณาจักรสุโขทัยโดยสังเขป",
     "learningAreaNote": null
   },
   {
@@ -1857,7 +1857,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ป.4/2",
-    "midwayIndicator": "ส 4.3 ป.4/2 บอกประวัติและผลงานของบุคคลสําคัญ สมัยสุโขทัย",
+    "midwayIndicator": "ส 4.3 ป.4/2 บอกประวัติและผลงานของบุคคลสำคัญ สมัยสุโขทัย",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1871,7 +1871,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ป.4/3",
-    "midwayIndicator": "ส 4.3 ป.4/3 อธิบายภูมิปัญญาไทยที่สําคัญ สมัยสุโขทัย ที่น่าภาคภูมิใจและควรค่าแก่การอนุรักษ์",
+    "midwayIndicator": "ส 4.3 ป.4/3 อธิบายภูมิปัญญาไทยที่สำคัญ สมัยสุโขทัย ที่น่าภาคภูมิใจและควรค่าแก่การอนุรักษ์",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1899,7 +1899,7 @@
     "standardCode": "ส 5.1",
     "standardDescription": "",
     "indicatorCode": "ส 5.1 ป.4/2",
-    "midwayIndicator": "ส 5.1 ป.4/2 ระบุแหล่งทรัพยากรและสถานที่สําคัญ ในจังหวัดของตนด้วยแผนที่และรูปถ่าย",
+    "midwayIndicator": "ส 5.1 ป.4/2 ระบุแหล่งทรัพยากรและสถานที่สำคัญ ในจังหวัดของตนด้วยแผนที่และรูปถ่าย",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1913,7 +1913,7 @@
     "standardCode": "ส 5.1",
     "standardDescription": "",
     "indicatorCode": "ส 5.1 ป.4/3",
-    "midwayIndicator": "ส 5.1 ป.4/3 อธิบายลักษณะทางกายภาพที่ส่งผลต่อ แหล่งทรัพยากรและสถานที่สําคัญในจังหวัด",
+    "midwayIndicator": "ส 5.1 ป.4/3 อธิบายลักษณะทางกายภาพที่ส่งผลต่อ แหล่งทรัพยากรและสถานที่สำคัญในจังหวัด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1928,7 +1928,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ป.4/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ป.4/1 วิเคราะห์ สิ่งแวดล้อมทางกายภาพ",
+    "exitIndicator": "ส 5.2 ป.4/1 วิเคราะห์ สิ่งแวดล้อมทางกายภาพ ที่ส่งผลต่อการดำเนินชีวิต ของคนในจังหวัด",
     "learningAreaNote": null
   },
   {
@@ -1941,7 +1941,7 @@
     "standardCode": "ส 5.2",
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ป.4/2",
-    "midwayIndicator": "ส 5.2 ป.4/2 อธิบายการเปลี่ยนแปลงสิ่งแวดล้อมในจังหวัด และผลที่เกิดจากการเปลี่ยนแปลง",
+    "midwayIndicator": "ส 5.2 ป.4/2 อธิบายการเปลี่ยนแปลงสิ่งแวดล้อมในจังหวัด และผ ลที่เกิดจากการเปลี่ยนแปลง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1956,7 +1956,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ป.4/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ป.4/3 นําเสนอแนวทาง",
+    "exitIndicator": "ส 5.2 ป.4/3 นำเสนอแนวทาง การจัดการสิ่งแวดล้อมในจังหวัด",
     "learningAreaNote": null
   },
   {
@@ -1969,7 +1969,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.5/1",
-    "midwayIndicator": "ส 1.1 ป.5/1 วิเคราะห์ความสําคัญของพระพุทธศาสนาหรือ ศาสนาที่ตนนับถือในฐานะที่เป็นมรดกทางวัฒนธรรมและ หลักในการพัฒนาชาติไทย",
+    "midwayIndicator": "ส 1.1 ป.5/1 วิเคราะห์ความสำคัญของพระพุทธศาสนาหรือ ศาสนาที่ตนนับถือในฐานะที่เป็นมรดกทางวัฒนธรรมและ หลักในการพัฒนาชาติไทย",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1983,7 +1983,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.5/2",
-    "midwayIndicator": "ส 1.1 ป.5/2 สรุปพุทธประวัติตั้งแต่เสด็จกรุงกบิลพัสดุ์จนถึง พุทธกิจสําคัญ หรือประวัติศาสดาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ป.5/2 สรุปพุทธประวัติตั้งแต่เสด็จกรุงกบิลพัสดุ์จนถึง พุทธกิจสำคัญ หรือประวัติศาสดาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -1997,7 +1997,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.5/3",
-    "midwayIndicator": "ส 1.1 ป.5/3 เห็นคุณค่า และประพฤติตนตามแบบอย่าง การดําเนินชีวิตและข้อคิดจากประวัติสาวก ชาดก เรื่องเล่า และศาสนิกชนตัวอย่างตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ป.5/3 เห็นคุณค่า และประพฤติตนตามแบบอย่าง การดำเนินชีวิตและข้อคิดจากประวัติสาวก ชาดก เรื่องเล่า และศาสนิกชนตัวอย่างตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2011,7 +2011,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.5/4",
-    "midwayIndicator": "ส 1.1 ป.5/4 อธิบายองค์ประกอบและความสําคัญของ พระไตรปิฎกหรือคัมภีร์ของศาสนาที่ตนนับถือ",
+    "midwayIndicator": "ส 1.1 ป.5/4 อธิบายองค์ประกอบและความสำคัญของ พระไตรปิฎกหรือคัมภีร์ของศาสนาที่ตนนับถือ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2026,7 +2026,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.5/5",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ป.5/5 แสดงความเคารพ",
+    "exitIndicator": "ส 1.1 ป.5/5 แสดงความเคารพ พระรัตนตรัย และปฏิบัติตาม ไตรสิกขา และหลักธรรมโอวาท ๓ ในพระพุทธศาสนา หรือหลักธรรม ของศาสนาที่ตนนับถือตามที่กำหนด",
     "learningAreaNote": null
   },
   {
@@ -2039,7 +2039,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.5/6",
-    "midwayIndicator": "ส 1.1 ป.5/6 เห็นคุณค่าและสวดมนต์ แผ่เมตตา มีสติที่เป็น พื้นฐานของสมาธิในพระพุทธศาสนาหรือการพัฒนาจิต ตามแนวทางของศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ป.5/6 เห็นคุณค่าและสวดมนต์ แผ่เมตตา มีสติที่เป็น พื้ นฐานของสมาธิในพระพุทธศาสนาหรือการพัฒนาจิต ตามแนวทางของศาสนาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2054,7 +2054,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.5/7",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ป.5/7 ปฏิบัติตนตาม",
+    "exitIndicator": "ส 1.1 ป.5/7 ปฏิบัติตนตาม หลักธรรมของศาสนาที่ตนนับถือ เพื่อการพัฒนาตนเองและ สิ่งแวดล้อม",
     "learningAreaNote": null
   },
   {
@@ -2082,7 +2082,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ป.5/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.2 ป.5/2 ปฏิบัติตนในศาสนพิธี",
+    "exitIndicator": "ส 1.2 ป.5/2 ปฏิบัติตนในศาสนพิธี พิธีกรรม และวันสำคัญทางศาสนา ตามที่กำหนด และอภิปราย ประโยชน์ที่ได้รับจากการเข้าร่วม กิจกรรม",
     "learningAreaNote": null
   },
   {
@@ -2095,7 +2095,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ป.5/3",
-    "midwayIndicator": "ส 1.2 ป.5/3 มีมรรยาทของความเป็นศาสนิกชนที่ดี ตามที่กําหนด",
+    "midwayIndicator": "ส 1.2 ป.5/3 มีมรรยาทของความเป็นศาสนิกชนที่ดี ตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2110,7 +2110,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ป.5/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.1 ป.5/1 ยกตัวอย่างและ",
+    "exitIndicator": "ส 2.1 ป.5/1 ยกตัวอย่างและ ปฏิบัติตนตามสถานภาพ บทบาท สิทธิเสรีภาพ และหน้าที่ในฐานะ พลเมืองดี",
     "learningAreaNote": null
   },
   {
@@ -2137,7 +2137,7 @@
     "standardCode": "ส 2.1",
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ป.5/3",
-    "midwayIndicator": "ส 2.1 ป.5/3 เห็นคุณค่าวัฒนธรรมไทยที่มีผลต่อการดําเนินชีวิต ในสังคมไทย",
+    "midwayIndicator": "ส 2.1 ป.5/3 เห็นคุณค่าวัฒนธรรมไทยที่มีผลต่อการดำเนินชีวิต ในสังคมไทย",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2152,7 +2152,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ป.5/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.1 ป.5/4 มีส่วนร่วมในการ",
+    "exitIndicator": "ส 2.1 ป.5/4 มีส่วนร่วมในการ อนุรักษ์และเผยแพร่ภูมิปัญญา ท้องถิ่นของชุมชน",
     "learningAreaNote": null
   },
   {
@@ -2165,7 +2165,7 @@
     "standardCode": "ส 2.2",
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ป.5/1",
-    "midwayIndicator": "ส 2.2 ป.5/1 อธิบายโครงสร้าง อํานาจหน้าที่และความสําคัญ ของการปกครองส่วนท้องถิ่น",
+    "midwayIndicator": "ส 2.2 ป.5/1 อธิบายโครงสร้าง อำ นาจหน้าที่และความสำคัญ ของการปกครองส่วนท้องถิ่น",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2179,7 +2179,7 @@
     "standardCode": "ส 2.2",
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ป.5/2",
-    "midwayIndicator": "ส 2.2 ป.5/2 ระบุบทบาท หน้าที่ และวิธีการเข้าดํารงตําแหน่ง ของผู้บริหารท้องถิ่น",
+    "midwayIndicator": "ส 2.2 ป.5/2 ระบุบทบาท หน้าที่ และวิธีการเข้าดำรงตำแหน่ง ของผู้บริหารท้องถิ่น",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2194,7 +2194,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ป.5/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.2 ป.5/3 วิเคราะห์ประโยชน์",
+    "exitIndicator": "ส 2.2 ป.5/3 วิเคราะห์ประโยชน์ ที่ชุมชน จะได้รับจากองค์กรปกครอง ส่วนท้องถิ่น",
     "learningAreaNote": null
   },
   {
@@ -2222,7 +2222,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ป.5/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.1 ป.5/2 ประยุกต์ใช้แนวคิด",
+    "exitIndicator": "ส 3.1 ป.5/2 ประยุกต์ใช้แนวคิด ของปรัชญาของเศรษฐกิจพอเพียง ในการทำกิจกรรมต่าง ๆ ในครอบครัว โรงเรียน และชุมชน",
     "learningAreaNote": null
   },
   {
@@ -2235,7 +2235,7 @@
     "standardCode": "ส 3.1",
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ป.5/3",
-    "midwayIndicator": "ส 3.1 ป.5/3 อธิบายหลักการสําคัญและประโยชน์ของสหกรณ์",
+    "midwayIndicator": "ส 3.1 ป.5/3 อธิบายหลักการสำคัญและประโยชน์ของสหกรณ์",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2264,7 +2264,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.2 ป.5/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.2 ป.5/2 จําแนกผลดีและ ผลเสียของการกู้ยืม",
+    "exitIndicator": "ส 3.2 ป.5/2 จำแนกผลดีและ ผลเสียของการกู้ยืม",
     "learningAreaNote": null
   },
   {
@@ -2292,7 +2292,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ป.5/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.1 ป.5/2 รวบรวมข้อมูลจาก รวบรวมข้อมูล",
+    "exitIndicator": "ส 4.1 ป.5/2 รวบรวมข้อมูลจาก แหล่งต่าง ๆ เพื่อตอบคำถามทาง ประวัติศาสตร์อย่างมีเหตุผล",
     "learningAreaNote": null
   },
   {
@@ -2334,7 +2334,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ป.5/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.2 ป.5/2 อภิปรายอิทธิพล",
+    "exitIndicator": "ส 4.2 ป.5/2 อภิปรายอิทธิพล ของวัฒนธรรมต่างชาติที่มีต่อ สังคมไทยปัจจุบันโดยสังเขป",
     "learningAreaNote": null
   },
   {
@@ -2348,7 +2348,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ป.5/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.3 ป.5/1 อธิบายพัฒนาการ",
+    "exitIndicator": "ส 4.3 ป.5/1 อธิบายพัฒนาการ ของอาณาจักร อยุธยาและธนบุรี โดยสังเขป",
     "learningAreaNote": null
   },
   {
@@ -2361,7 +2361,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ป.5/2",
-    "midwayIndicator": "ส 4.3 ป.5/2 อธิบายปัจจัยที่ส่งเสริมความเจริญรุ่งเรือง ทางเศรษฐกิจ และการปกครองของอาณาจักรอยุธยา",
+    "midwayIndicator": "ส 4.3 ป.5/2 อธิบายปัจจัยที่ส่งเสริมความเจริญรุ่งเรือง ทางเศรษฐกิจ และ การปกครองของอาณาจักรอยุธยา",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2375,7 +2375,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ป.5/3",
-    "midwayIndicator": "ส 4.3 ป.5/3 บอกประวัติและผลงานของบุคคลสําคัญ สมัยอยุธยาและธนบุรีที่น่าภาคภูมิใจ",
+    "midwayIndicator": "ส 4.3 ป.5/3 บอกประวัติและผลงานของบุคคลสำคัญ สมัยอยุธยาและธนบุรีที่น่าภาคภูมิใจ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2389,7 +2389,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ป.5/4",
-    "midwayIndicator": "ส 4.3 ป.5/4 อธิบายภูมิปัญญาไทยที่สําคัญสมัยอยุธยาและ ธนบุรีที่น่าภาคภูมิใจและควรค่าแก่การอนุรักษ์ไว้ หมายเหตุ * วิธีการทางประวัติศาสตร์เป็นกระบวนการที่ใช้ในการจัดการเรียนรู้เพื่อให้ผู้เรียนเข้าถึงองค์ความรู้ ทางประวัติศาสตร์ ดังนั้น วิธีการทางประวัติศาสตร์จึงระบุไว้ในทุกกลุ่มตัวชี้วัดที่แสดงเนื้อหา ทางประวัติศาสตร์ที่ผู้เรียนควรศึกษา",
+    "midwayIndicator": "ส 4.3 ป.5/4 อธิบายภูมิปัญญาไทยที่สำคัญสมัยอยุธยาและ ธนบุรีที่น่าภาคภูมิใจและควรค่าแก่การอนุรักษ์ไว้ หมายเหตุ วิธีการทางประวัติศาสตร์เป็นกระบวนการที่ใช้ในการจัดการเรียนรู้เพื่อให้ผู้เรียนเข้าถึงองค์ความรู้ ทางประวัติศาสตร์ ดังนั้น วิธีการทางประวัติศาสตร์จึงระบุไว้ในทุกกลุ่มตัวชี้วัดที่แสดงเนื้อหา ทางประวัติศาสตร์ที่ผู้เรียนควรศึกษา",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2417,7 +2417,7 @@
     "standardCode": "ส 5.1",
     "standardDescription": "",
     "indicatorCode": "ส 5.1 ป.5/2",
-    "midwayIndicator": "ส 5.1 ป.5/2 อธิบายลักษณะทางกายภาพที่ส่งผลต่อ แหล่งทรัพยากรและสถานที่สําคัญในภูมิภาคของตน",
+    "midwayIndicator": "ส 5.1 ป.5/2 อธิบายลักษณะทางกายภาพที่ส่งผลต่อ แหล่งทรัพยากรและสถานที่สำคัญในภูมิ ภาคของตน",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2446,7 +2446,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ป.5/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ป.5/2 วิเคราะห์อิทธิพล",
+    "exitIndicator": "ส 5.2 ป.5/2 วิเคราะห์อิทธิพล ของสิ่งแวดล้อมทางธรรมชาติ ที่ก่อให้เกิดวิถีการดำเนินชีวิต ในภูมิภาคของตน",
     "learningAreaNote": null
   },
   {
@@ -2460,7 +2460,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ป.5/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ป.5/3 นําเสนอตัวอย่าง",
+    "exitIndicator": "ส 5.2 ป.5/3 นำเสนอตัวอย่าง ที่สะท้อนให้เห็นผลจากการรักษา และทำลายสิ่งแวดล้อม และเสนอ แนวทางในการจัดการสิ่งแวดล้อม ในภูมิภาคของตน",
     "learningAreaNote": null
   },
   {
@@ -2473,7 +2473,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.6/1",
-    "midwayIndicator": "ส 1.1 ป.6/1 วิเคราะห์ความสําคัญของพระพุทธศาสนา ในฐานะเป็นศาสนาประจําชาติ หรือความสําคัญของศาสนา ที่ตนนับถือ",
+    "midwayIndicator": "ส 1.1 ป.6/1 วิเคราะห์ความสำคัญของพระพุทธศาสนา ในฐานะเป็นศาสนาประจำชาติ หรือความสำคัญของศาสนา ที่ตนนับถือ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2487,7 +2487,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.6/2",
-    "midwayIndicator": "ส 1.1 ป.6/2 สรุปพุทธประวัติตั้งแต่ปลงอายุสังขารจนถึง สังเวชนียสถาน หรือประวัติศาสดาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ป.6/2 สรุปพุทธประวัติตั้งแต่ปลงอายุสังขารจนถึง สังเวชนียสถาน หรือประวัติศาสดาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2501,7 +2501,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.6/3",
-    "midwayIndicator": "ส 1.1 ป.6/3 เห็นคุณค่าและประพฤติตนตามแบบอย่าง การดําเนินชีวิตและข้อคิดจากประวัติสาวก ชาดก เรื่องเล่า และศาสนิกชนตัวอย่างตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ป.6/3 เห็นคุณค่าและประพฤติตนตามแบบอย่าง การดำเนินชีวิตและข้อคิดจากประวัติสาวก ชาดก เรื่องเล่า และศาสนิกชนตัวอย่างตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2515,7 +2515,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.6/4",
-    "midwayIndicator": "ส 1.1 ป.6/4 วิเคราะห์ความสําคัญและเคารพ พระรัตนตรัย ปฏิบัติตามไตรสิกขาและหลักธรรมโอวาท 3 ในพระพุทธศาสนา หรือหลักธรรมของศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ป.6/4 วิเคราะห์ความสำคัญและเคารพ พระรัตนตรัย ปฏิบัติตามไตรสิกขาและหลักธรรมโอวาท ๓ ใ นพระพุทธศาสนา หรือหลักธรรมของศาสนาที่ตนนับถือ ตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2530,7 +2530,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.6/5",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ป.6/5 ชื่นชมการทําความดี ของบุคคลในประเทศตามหลัก",
+    "exitIndicator": "ส 1.1 ป.6/5 ชื่นชมการทำความดี ของบุคคลในประเทศตามหลัก ศาสนา พร้อมทั้งบอกแนวปฏิบัติ ในการดำเนินชีวิต",
     "learningAreaNote": null
   },
   {
@@ -2543,7 +2543,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.6/6",
-    "midwayIndicator": "ส 1.1 ป.6/6 เห็นคุณค่าและสวดมนต์แผ่เมตตา และบริหารจิต เจริญปัญญา มีสติที่เป็นพื้นฐานของสมาธิในพระพุทธศาสนา หรือการพัฒนาจิตตามแนวทางของศาสนาที่ตนนับถือ ตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ป.6/6 เห็นคุณค่าและสวดมนต์แผ่เมตตา และบริหารจิต เจริญปัญญา มีสติที่เป็นพื้นฐานของสมาธิในพระพุทธศาสนา หรือการพัฒนาจิตตามแนวทางของศาสนาที่ตนนับถือ ตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2558,7 +2558,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.6/7",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ป.6/7 ปฏิบัติตนตาม",
+    "exitIndicator": "ส 1.1 ป.6/7 ปฏิบัติตนตาม หลักธรรมของศาสนาที่ตนนับถือ เพื่อแก้ปัญหา อบายมุขและสิ่งเสพติด",
     "learningAreaNote": null
   },
   {
@@ -2572,7 +2572,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.6/8",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ป.6/8 อธิบายหลักธรรม",
+    "exitIndicator": "ส 1.1 ป.6/8 อธิบายหลักธรรม สำคัญของศาสนาอื่น ๆ โดยสังเขป",
     "learningAreaNote": null
   },
   {
@@ -2586,7 +2586,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ป.6/9",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ป.6/9 อธิบายลักษณะ",
+    "exitIndicator": "ส 1.1 ป.6/9 อธิบายลักษณะ สำคัญของศาสนพิธี พิธีกรรมของ ศาสนาอื่น ๆ และปฏิบัติตนได้ อย่างเหมาะสมเมื่อต้องเข้าร่วมพิธี",
     "learningAreaNote": null
   },
   {
@@ -2613,7 +2613,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ป.6/2",
-    "midwayIndicator": "ส 1.2 ป.6/2 มีมรรยาทของความเป็นศาสนิกชนที่ดี ตามที่กําหนด",
+    "midwayIndicator": "ส 1.2 ป.6/2 มีมรรยาทของความเป็นศาสนิกชนที่ดี ตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2628,7 +2628,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ป.6/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.2 ป.6/3 อธิบายประโยชน์ ของการเข้าร่วมในศาสนพิธี พิธีกรรม และกิจกรรม ในวันสําคัญทางศาสนา",
+    "exitIndicator": "ส 1.2 ป.6/3 อธิบายประโยชน์ ของการเข้าร่วมในศาสนพิธี พิธีกรรม และกิจกรรม ในวันสำคัญทางศาสนา ตามที่กำหนด และปฏิบัติตนได้ ถูกต้อง",
     "learningAreaNote": null
   },
   {
@@ -2641,7 +2641,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ป.6/4",
-    "midwayIndicator": "ส 1.2 ป.6/4 แสดงตนเป็นพุทธมามกะ หรือแสดงตนเป็น ศาสนิกชนของศาสนาที่ตนนับถือ",
+    "midwayIndicator": "ส 1.2 ป.6/4 แสดงตนเป็นพุทธมามกะ หรือแสดงตนเป็น ศาสนิก ชนของศาสนาที่ตนนับถื อ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2655,7 +2655,7 @@
     "standardCode": "ส 2.1",
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ป.6/1",
-    "midwayIndicator": "ส 2.1 ป.6/1 ปฏิบัติตามกฎหมายที่เกี่ยวข้องกับชีวิตประจําวัน ของครอบครัวและชุมชน",
+    "midwayIndicator": "ส 2.1 ป.6/1 ปฏิบัติตามกฎหมายที่เกี่ยวข้องกั บชีวิตประจำวัน ของครอบครัวและชุมชน",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2669,7 +2669,7 @@
     "standardCode": "ส 2.1",
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ป.6/2",
-    "midwayIndicator": "ส 2.1 ป.6/2 วิเคราะห์การเปลี่ยนแปลงวัฒนธรรมตาม กาลเวลาและธํารงรักษาวัฒนธรรมอันดีงาม",
+    "midwayIndicator": "ส 2.1 ป.6/2 วิเคราะห์การเปลี่ยนแปลงวัฒนธรรมตาม กาลเวลาและธำรงรักษาวัฒนธรรมอันดีงาม",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2711,7 +2711,7 @@
     "standardCode": "ส 2.1",
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ป.6/5",
-    "midwayIndicator": "ส 2.1 ป.6/5 ติดตามข้อมูลข่าวสารเหตุการณ์ต่าง ๆ ในชีวิตประจําวัน เลือกรับและใช้ข้อมูลข่าวสารในการเรียนรู้ ได้เหมาะสม",
+    "midwayIndicator": "ส 2.1 ป.6/5 ติดตามข้อมูลข่าวสารเหตุการณ์ต่าง ๆ ในชีวิตประจำวัน เลือกรับและใช้ข้อมูลข่าวสารในการเรียนรู้ ได้เหมาะสม",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2740,7 +2740,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ป.6/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.2 ป.6/2 มีส่วนร่วม",
+    "exitIndicator": "ส 2.2 ป.6/2 มีส่วนร่วม ในกิจกรรมต่าง ๆ ที่ส่งเสริม ประชาธิปไตยในท้องถิ่นและ ประเทศ",
     "learningAreaNote": null
   },
   {
@@ -2753,7 +2753,7 @@
     "standardCode": "ส 2.2",
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ป.6/3",
-    "midwayIndicator": "ส 2.2 ป.6/3 อภิปรายบทบาท ความสําคัญในการใช้สิทธิ ออกเสียงเลือกตั้งตามระบอบประชาธิปไตย",
+    "midwayIndicator": "ส 2.2 ป.6/3 อภิปรายบทบาท ความสำคัญในการใช้สิทธิ ออกเสียงเลือกตั้งตามระบอบประชาธิปไตย",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2796,7 +2796,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ป.6/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.1 ป.6/3 บอกวิธีและประโยชน์",
+    "exitIndicator": "ส 3.1 ป.6/3 บ อกวิธีแล ะประโยชน์ ของการใช้ทรัพยากรอย่างยั่งยืน",
     "learningAreaNote": null
   },
   {
@@ -2810,7 +2810,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.2 ป.6/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.2 ป.6/1 อธิบายความสัมพันธ์",
+    "exitIndicator": "ส 3.2 ป.6/1 อธิบา ยความสัมพันธ์ ระหว่างผู้ผลิต ผู้บริโภค ธนาคาร และรัฐบาล",
     "learningAreaNote": null
   },
   {
@@ -2837,7 +2837,7 @@
     "standardCode": "ส 4.1",
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ป.6/1",
-    "midwayIndicator": "ส 4.1 ป.6/1 อธิบายความสําคัญของวิธีการทางประวัติศาสตร์ ในการศึกษาเรื่องราวทางประวัติศาสตร์อย่างง่าย ๆ อธิบายความสําคัญของวิธีการทางประวัติศาสตร์ ในการศึกษาเรื่องราวทางประวัติศาสตร์อย่างง่าย ๆ",
+    "midwayIndicator": "ส 4.1 ป.6/1 อธิบายความสำคัญของวิธีการทางประวัติศาสตร์ ในการศึกษาเรื่องราวทางประวัติศาส ตร์อย่างง่าย ๆ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2852,7 +2852,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ป.6/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.1 ป.6/2 นําเสนอข้อมูล นําเสนอข้อมูล",
+    "exitIndicator": "ส 4.1 ป.6/2 นำเสนอข้อมูล จากหลักฐานที่หลากหลายในการ ทำความเข้าใจเรื่องราวสำคัญ ในอดีต",
     "learningAreaNote": null
   },
   {
@@ -2866,7 +2866,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ป.6/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.2 ป.6/1 อธิบายสภาพสังคม เศรษฐกิจและการเมืองของ",
+    "exitIndicator": "ส 4.2 ป.6/1 อธิบายสภาพสังคม เศรษฐกิจและการเมืองของ ประเทศเพื่อนบ้านในปัจจุบัน",
     "learningAreaNote": null
   },
   {
@@ -2894,7 +2894,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ป.6/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.3 ป.6/1 อธิบายพัฒนาการ",
+    "exitIndicator": "ส 4.3 ป.6/1 อธิบายพัฒนาการ ของไทยสมัยรัตนโกสินทร์โดยสังเขป",
     "learningAreaNote": null
   },
   {
@@ -2908,7 +2908,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ป.6/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.3 ป.6/2 อธิบายปัจจัยที่",
+    "exitIndicator": "ส 4.3 ป.6/2 อธิบายปัจจัยที่ ส่งเสริมความเจริญรุ่งเรืองทาง เศรษฐกิจและการปกครองของไทย สมัยรัตนโกสินทร์",
     "learningAreaNote": null
   },
   {
@@ -2921,7 +2921,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ป.6/3",
-    "midwayIndicator": "ส 4.3 ป.6/3 ยกตัวอย่างผลงานของบุคคลสําคัญด้านต่าง ๆ สมัยรัตนโกสินทร์",
+    "midwayIndicator": "ส 4.3 ป.6/3 ยก ตัวอย่างผลงานของบุคคลสำคัญด้านต่าง ๆ สมัยรัตนโกสินทร์",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2935,7 +2935,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ป.6/4",
-    "midwayIndicator": "ส 4.3 ป.6/4 อธิบายภูมิปัญญาไทยที่สําคัญสมัยรัตนโกสินทร์ ที่น่าภาคภูมิใจ และควรค่าแก่การอนุรักษ์ไว้ หมายเหตุ * วิธีการทางประวัติศาสตร์เป็นกระบวนการที่ใช้ในการจัดการเรียนรู้เพื่อให้ผู้เรียนเข้าถึงองค์ความรู้ ทางประวัติศาสตร์ ดังนั้น วิธีการทางประวัติศาสตร์จึงระบุไว้ในทุกกลุ่มตัวชี้วัดที่แสดงเนื้อหา ทางประวัติศาสตร์ที่ผู้เรียนควรศึกษา",
+    "midwayIndicator": "ส 4.3 ป.6/4 อธิบายภูมิปัญญาไทยที่สำคัญสมัยรัตนโกสินทร์ ที่น่าภาคภูมิใจ และควรค่าแก่การอนุรักษ์ไว้ หมายเหตุ วิธีการทางประวัติศาสตร์เป็นกระบวนการที่ใช้ในการจัดการเรียนรู้เพื่อให้ผู้เรียนเข้าถึงองค์ความรู้ ทางประวัติศาสตร์ ดังนั้น วิธีการทางประวัติศาสตร์จึงระบุไว้ในทุกกลุ่มตัวชี้วัดที่แสดงเนื้อหา ทางประวัติศาสตร์ที่ผู้เรียนควรศึกษา",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -2978,7 +2978,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ป.6/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ป.6/1 วิเคราะห์ปฏิสัมพันธ์",
+    "exitIndicator": "ส 5.2 ป.6/1 วิเคราะห์ปฏิสัมพันธ์ ระหว่างสิ่งแวดล้อมทางกายภาพ กับลักษณะกิจกรรมทางเศรษฐกิจ และสังคมในประเทศไทย",
     "learningAreaNote": null
   },
   {
@@ -3006,7 +3006,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ป.6/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ป.6/3 นําเสนอตัวอย่าง",
+    "exitIndicator": "ส 5.2 ป.6/3 นำเสนอตัวอย่าง ที่สะท้อนให้เห็นผลจากการรักษา และทำลายทรัพยากร และ สิ่งแวดล้อม และเสนอแนวทาง ในการจัดการที่ยั่งยืนในประเทศไทย",
     "learningAreaNote": null
   },
   {
@@ -3034,7 +3034,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.1/10",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ม.1/10 ปฏิบัติตนต่อ",
+    "exitIndicator": "ส 1.1 ม.1/10 ปฏิบัติตนต่อ ศาสนิกชนอื่นในสถานการณ์ต่าง ๆ ได้อย่างเหมาะสม",
     "learningAreaNote": null
   },
   {
@@ -3047,7 +3047,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.1/11",
-    "midwayIndicator": "ส 1.1 ม.1/11 วิเคราะห์การกระทําของบุคคลที่เป็นแบบอย่าง ด้านศาสนสัมพันธ์ และนําเสนอแนวทางการปฏิบัติของตนเอง",
+    "midwayIndicator": "ส 1.1 ม.1/11 วิเคราะห์การกระทำของบุคคลที่เป็นแบบอย่าง ด้านศาสนสัมพันธ์ และนำเสนอแนวทางการปฏิบัติของตนเอง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3061,7 +3061,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.1/2",
-    "midwayIndicator": "ส 1.1 ม.1/2 วิเคราะห์ความสําคัญของพระพุทธศาสนาหรือ ศาสนาที่ตนนับถือ ที่มีต่อสภาพแวดล้อมในสังคมไทย รวมทั้ง การพัฒนาตนและครอบครัว",
+    "midwayIndicator": "ส 1.1 ม.1/2 วิเคราะห์ความสำคัญของพระพุทธศาสนาหรือ ศาสนาที่ตนนับถือ ที่มีต่อสภาพแวดล้อมในสังคมไทย รวมทั้ง การพัฒนาตนและครอบครัว",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3075,7 +3075,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.1/3",
-    "midwayIndicator": "ส 1.1 ม.1/3 วิเคราะห์พุทธประวัติตั้งแต่ประสูติจนถึง บําเพ็ญทุกรกิริยาหรือประวัติศาสดาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.1/3 วิเคราะห์พุทธประวัติตั้งแต่ประสูติ จนถึง บำเพ็ญทุกรกิริยาหรือประวัติศาสดาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3089,7 +3089,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.1/4",
-    "midwayIndicator": "ส 1.1 ม.1/4 วิเคราะห์และประพฤติตนตามแบบอย่าง การดําเนินชีวิตและข้อคิดจากประวัติสาวก ชาดก เรื่องเล่า และศาสนิกชนตัวอย่างตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.1/4 วิเคราะห์และประพฤติตนตามแบบอย่าง การดำเนินชีวิตและข้อคิดจากประวัติสาวก ชาดก เรื่องเล่า และศาสนิกชนตัวอย่างตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3104,7 +3104,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.1/5",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ม.1/5 อธิบายพุทธคุณและ",
+    "exitIndicator": "ส 1.1 ม.1/5 อธิบายพุทธคุณและ ข้อธรรมสำคัญในกรอบอริยสัจ ๔ หรือหลักธรรมของศาสนาที่ตนนับถือ ตามที่กำหนด เห็นคุณค่าและนำไป พัฒนาแก้ปัญหาของตนเองและ ครอบครัว",
     "learningAreaNote": null
   },
   {
@@ -3117,7 +3117,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.1/6",
-    "midwayIndicator": "ส 1.1 ม.1/6 เห็นคุณค่าของการพัฒนาจิตเพื่อการเรียนรู้ และการดําเนินชีวิต ด้วยวิธีคิดแบบโยนิโสมนสิการ คือวิธีคิด แบบคุณค่าแท้ – คุณค่าเทียม และวิธีคิดแบบคุณ – โทษ และ ทางออกหรือการพัฒนาจิตตามแนวทางของศาสนาที่ตนนับถือ",
+    "midwayIndicator": "ส 1.1 ม.1/6 เห็นคุณค่าของการพัฒนาจิตเพื่อการเรียนรู้ และการดำเนินชีวิต ด้วยวิธีคิดแบบโยนิโสมนสิการ คือวิธีคิด แบบคุณค่าแท้ – คุณค่าเทียม และวิธีคิดแบบคุณ – โท ษ และ ทางออกหรือการพัฒนาจิตตามแนวทางของศาสนาที่ตนนับถือ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3131,7 +3131,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.1/7",
-    "midwayIndicator": "ส 1.1 ม.1/7 สวดมนต์ แผ่เมตตา บริหารจิตและเจริญปัญญา ด้วยอานาปานสติ หรือตามแนวทางของศาสนาที่ตนนับถือ ตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.1/7 สวดมนต์ แผ่เมตตา บริหารจิตและเจริญปัญญา ด้วยอานาปานสติ หรือตามแนวทางของศาสนาที่ตนนับถือ ตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3146,7 +3146,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.1/8",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ม.1/8 วิเคราะห์และปฏิบัติตน",
+    "exitIndicator": "ส 1.1 ม.1/8 วิเคราะห์และปฏิบัติตน ตามหลักธรรมทางศาสนาที่ตนนับถือ ในการดำรงชีวิตแบบพอเพียง และดูแลรักษาสิ่งแว ดล้อม เพื่อการอยู่ร่วมกันได้อย่างสันติสุข",
     "learningAreaNote": null
   },
   {
@@ -3159,7 +3159,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.1/9",
-    "midwayIndicator": "ส 1.1 ม.1/9 วิเคราะห์เหตุผล ความจําเป็นที่ทุกคนต้องศึกษา เรียนรู้ศาสนาอื่น ๆ",
+    "midwayIndicator": "ส 1.1 ม.1/9 วิเคราะห์เหตุผล ความจำเป็นที่ทุกคนต้องศึกษา เรียนรู้ศาสนาอื่น ๆ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3173,7 +3173,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.1/1",
-    "midwayIndicator": "ส 1.2 ม.1/1 บําเพ็ญประโยชน์ต่อศาสนสถานของศาสนา ที่ตนนับถือ",
+    "midwayIndicator": "ส 1.2 ม.1/1 บำเพ็ญประโยชน์ต่อศาสนสถานของศาสนา ที่ตนนับถือ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3202,7 +3202,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.1/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.2 ม.1/3 ปฏิบัติตน",
+    "exitIndicator": "ส 1.2 ม.1/3 ปฏิบัติตน อย่างเหมาะสมต่อบุคคลต่างๆ ตามหลักศาสนาที่ตนนับถือ ตามที่กำหนด",
     "learningAreaNote": null
   },
   {
@@ -3216,7 +3216,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.1/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.2 ม.1/4 จัดพิธีกรรม และ",
+    "exitIndicator": "ส 1.2 ม.1/4 จัดพิธีกรรม และ ปฏิบัติตนในศาสนพิธี พิธีกรรม ได้ถูกต้อง",
     "learningAreaNote": null
   },
   {
@@ -3229,7 +3229,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.1/5",
-    "midwayIndicator": "ส 1.2 ม.1/5 อธิบายประวัติ ความสําคัญ และปฏิบัติตน ในวันสําคัญทางศาสนาที่ตนนับถือ ตามที่กําหนดได้ถูกต้อง",
+    "midwayIndicator": "ส 1.2 ม.1/5 อธิบายประวัติ ความสำคัญ และปฏิบัติตน ในวันสำคัญทางศาสนาที่ตนนับถือ ตามที่กำหนดได้ถูกต้อง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3257,7 +3257,7 @@
     "standardCode": "ส 2.1",
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.1/2",
-    "midwayIndicator": "ส 2.1 ม.1/2 ระบุความสามารถของตนเองในการทําประโยชน์ ต่อสังคมและประเทศชาติ",
+    "midwayIndicator": "ส 2.1 ม.1/2 ระบุความสามารถของตนเองในการทำประโยชน์ ต่อสังคมและประเทศชาติ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3272,7 +3272,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.1/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.1 ม.1/3 อภิปรายเกี่ยวกับ",
+    "exitIndicator": "ส 2.1 ม.1/3 อภิปรายเกี่ยวกับ คุณค่าทางวัฒนธรรมที่เป็นปัจจัย ในการสร้างความสัมพันธ์ที่ดีหรือ อาจนำไปสู่ความเข้าใจผิดต่อกัน",
     "learningAreaNote": null
   },
   {
@@ -3286,7 +3286,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.1/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.1 ม.1/4 แสดงออกถึง",
+    "exitIndicator": "ส 2.1 ม.1/4 แสดงออกถึง การเคารพในสิทธิเสรีภาพของ ตนเองและผู้อื่น",
     "learningAreaNote": null
   },
   {
@@ -3299,7 +3299,7 @@
     "standardCode": "ส 2.2",
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ม.1/1",
-    "midwayIndicator": "ส 2.2 ม.1/1 อธิบายหลักการ เจตนารมณ์ โครงสร้าง และ",
+    "midwayIndicator": "ส 2.2 ม.1/1 อธิบายหลักการ เจตนารมณ์ โครงสร้าง และ สาระสำคัญของรัฐธรรมนูญแห่งราชอาณาจักรไทยฉบับปัจจุบัน โดยสังเขป",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3313,7 +3313,7 @@
     "standardCode": "ส 2.2",
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ม.1/2",
-    "midwayIndicator": "ส 2.2 ม.1/2 วิเคราะห์บทบาทการถ่วงดุลของอํานาจอธิปไตย ในรัฐธรรมนูญแห่งราชอาณาจักรไทยฉบับปัจจุบัน",
+    "midwayIndicator": "ส 2.2 ม.1/2 วิเคราะห์บทบาทการถ่วงดุลของอำนาจอธิปไตย ในรัฐธรรมนูญแห่งราชอาณาจักรไทยฉบับปัจจุบัน",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3328,7 +3328,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ม.1/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.2 ม.1/3 ปฏิบัติตนตาม",
+    "exitIndicator": "ส 2.2 ม.1/3 ปฏิบัติตนตาม บทบัญญัติของรัฐธรรมนูญ แห่งราชอาณาจักรไทยฉบับปัจจุบัน ที่เกี่ยวข้องกับตนเอง",
     "learningAreaNote": null
   },
   {
@@ -3341,7 +3341,7 @@
     "standardCode": "ส 3.1",
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ม.1/1",
-    "midwayIndicator": "ส 3.1 ม.1/1 อธิบายความหมายและความสําคัญ ของเศรษฐศาสตร์",
+    "midwayIndicator": "ส 3.1 ม.1/1 อธิบายความหมายและความสำคัญ ของเศรษฐศาสตร์",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3356,7 +3356,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ม.1/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.1 ม.1/2 วิเคราะห์ค่านิยม และพฤติกรรมการบริโภคของ",
+    "exitIndicator": "ส 3.1 ม.1/2 วิเคราะห์ค่านิยม และพฤติกรรมการบริโภคของ คนในสังคมซึ่งส่งผลต่อเศรษฐกิจ ของชุ มชนและประเทศ",
     "learningAreaNote": null
   },
   {
@@ -3370,7 +3370,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ม.1/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.1 ม.1/3 อธิบายความเป็นมา หลักการและความสําคัญของ ปรัชญาของเศรษฐกิจพอเพียง ต่อสังคมไทย",
+    "exitIndicator": "ส 3.1 ม.1/3 อธิบายความเป็นมา หลักการและความสำคัญของ ปรัชญาของเศรษฐกิจพอเพียง ต่อสังคมไทย",
     "learningAreaNote": null
   },
   {
@@ -3411,7 +3411,7 @@
     "standardCode": "ส 3.2",
     "standardDescription": "",
     "indicatorCode": "ส 3.2 ม.1/3",
-    "midwayIndicator": "ส 3.2 ม.1/3 ระบุปัจจัยที่มีอิทธิพลต่อการกําหนดอุปสงค์ และอุปทาน",
+    "midwayIndicator": "ส 3.2 ม.1/3 ระบุปัจจัยที่มีอิทธิพลต่อการกำหนดอุปสงค์ และอุปทาน",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3426,7 +3426,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.2 ม.1/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.2 ม.1/4 อภิปรายผลของ",
+    "exitIndicator": "ส 3.2 ม.1/4 อภิปรายผลของ การมีกฎหมายเกี่ยวกับทรัพย์สิน ทางปัญญา",
     "learningAreaNote": null
   },
   {
@@ -3439,7 +3439,7 @@
     "standardCode": "ส 4.1",
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ม.1/1",
-    "midwayIndicator": "ส 4.1 ม.1/1 วิเคราะห์ความสําคัญของเวลาในการศึกษา ประวัติศาสตร์ วิเคราะห์ความสําคัญของเวลาในการศึกษา ประวัติศาสตร์ วิเคราะห์ความสําคัญของเวลาในการศึกษา ประวัติศาสตร์",
+    "midwayIndicator": "ส 4.1 ม.1/1 วิเคราะห์ความสำคัญของเวลาในการศึกษา ประวัติศาสตร์",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3453,7 +3453,7 @@
     "standardCode": "ส 4.1",
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ม.1/2",
-    "midwayIndicator": "ส 4.1 ม.1/2 เทียบศักราชตามระบบต่าง ๆ ที่ใช้ศึกษา ประวัติศาสตร์ เทียบศักราชตามระบบต่าง ๆ ที่ใช้ศึกษา ประวัติศาสตร์ เทียบศักราชตามระบบต่าง ๆ ที่ใช้ศึกษา ประวัติศาสตร์",
+    "midwayIndicator": "ส 4.1 ม.1/2 เทียบศักราชตามระบบต่าง ๆ ที่ใช้ศึกษา ประวัติศาสตร์",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3468,7 +3468,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ม.1/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.1 ม.1/3 นําวิธีการ นําวิธีการ นําวิธีการ",
+    "exitIndicator": "ส 4.1 ม.1/3 นำวิธีการ ทางประวัติศาสตร์มาใช้ศึกษา เหตุการณ์ทางประวัติศาสตร์",
     "learningAreaNote": null
   },
   {
@@ -3482,7 +3482,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ม.1/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.2 ม.1/1 อธิบายพัฒนาการ",
+    "exitIndicator": "ส 4.2 ม.1/1 อธิบายพัฒนาการ ทางสังคม เศรษฐกิจและการเมือง ของประเทศต่าง ๆ ในภูมิภาคเอเชีย ตะวันออกเฉียงใต้",
     "learningAreaNote": null
   },
   {
@@ -3495,7 +3495,7 @@
     "standardCode": "ส 4.2",
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ม.1/2",
-    "midwayIndicator": "ส 4.2 ม.1/2 ระบุความสําคัญของแหล่งอารยธรรม ในภูมิภาคเอเชียตะวันออกเฉียงใต้",
+    "midwayIndicator": "ส 4.2 ม.1/2 ระบุความสำคัญของแหล่งอารยธรรม ในภูมิภาคเอเชียตะวันออกเฉียงใต้",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3510,7 +3510,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.1/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.3 ม.1/1 อธิบายเรื่องราว",
+    "exitIndicator": "ส 4.3 ม.1/1 อธิบายเรื่องราว ทางประวัติศาสตร์ สมัยก่อนสุโขทัย ในดินแดนไทยโดยสังเขป",
     "learningAreaNote": null
   },
   {
@@ -3524,7 +3524,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.1/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.3 ม.1/2 วิเคราะห์พัฒนาการ",
+    "exitIndicator": "ส 4.3 ม.1/2 วิเคราะห์พัฒนาการ ของอาณาจักรสุโขทัยในด้านต่าง ๆ",
     "learningAreaNote": null
   },
   {
@@ -3537,7 +3537,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.1/3",
-    "midwayIndicator": "ส 4.3 ม.1/3 วิเคราะห์อิทธิพลของวัฒนธรรม และ ภูมิปัญญาไทยสมัยสุโขทัยและสังคมไทยในปัจจุบัน หมายเหตุ * วิธีการทางประวัติศาสตร์เป็นกระบวนการที่ใช้ในการจัดการเรียนรู้เพื่อให้ผู้เรียนเข้าถึงองค์ความรู้ ทางประวัติศาสตร์ ดังนั้น วิธีการทางประวัติศาสตร์จึงระบุไว้ในทุกกลุ่มตัวชี้วัดที่แสดงเนื้อหา ทางประวัติศาสตร์ที่ผู้เรียนควรศึกษา",
+    "midwayIndicator": "ส 4.3 ม.1/3 วิเคราะห์อิทธิพลของวัฒนธรรม และ ภูมิปัญญาไทยสมัยสุโขทัยและสังคมไทยในปัจจุบัน หมายเหตุ วิธีการทางประวัติศาสตร์เป็นกระบวนการที่ใช้ในการจัดการเรียนรู้เพื่อให้ผู้เรียนเข้าถึงองค์ความรู้ ทางประวัติศาสตร์ ดังนั้น วิธีการทางประวัติศาสตร์จึงระบุไว้ในทุกกลุ่มตัวชี้วัดที่แสดงเนื้อหา ทางประวัติศาสตร์ที่ผู้เรียนควรศึกษา",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3593,7 +3593,7 @@
     "standardCode": "ส 5.2",
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ม.1/1",
-    "midwayIndicator": "ส 5.2 ม.1/1 สํารวจและระบุทําเลที่ตั้งของกิจกรรม ทางเศรษฐกิจและสังคมในทวีปเอเชีย ทวีปออสเตรเลีย และโอเชียเนีย",
+    "midwayIndicator": "ส 5.2 ม.1/1 สำรวจและระบุทำเลที่ตั้งของกิจกรรม ทางเศรษฐกิจและสังคมในทวีปเอเชีย ทวีปออสเตรเลีย และโอเชียเนีย",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3608,7 +3608,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ม.1/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ม.1/2 วิเคราะห์ปัจจัย",
+    "exitIndicator": "ส 5.2 ม.1/2 วิเคราะห์ปัจจัย ทางกายภาพและปัจจัยทางสังคม ที่ส่งผลต่อทำเลที่ตั้งของกิจกรรม ทางเศรษฐกิจและสังคม ในทวีปเอเชีย ทวีปออสเตรเลีย และโอเชียเนีย",
     "learningAreaNote": null
   },
   {
@@ -3636,7 +3636,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ม.1/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ม.1/4 วิเคราะห์แนวทาง",
+    "exitIndicator": "ส 5.2 ม.1/4 วิเคราะห์แนวทาง การจัดการภัยพิบัติและการจัดการ ทรัพยากรและสิ่งแวดล้อมในทวีป เอเชีย ทวีปออสเตรเลีย และโอเชียเนีย ที่ยั่งยืน",
     "learningAreaNote": null
   },
   {
@@ -3663,7 +3663,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.2/10",
-    "midwayIndicator": "ส 1.1 ม.2/10 สวดมนต์ แผ่เมตตา บริหารจิตและ เจริญปัญญาด้วยอานาปานสติ หรือตามแนวทางของศาสนา ที่ตนนับถือ",
+    "midwayIndicator": "ส 1.1 ม.2/10 สวดมนต์ แผ่เมตตา บริหารจิตและ เจริญปัญญาด้วยอานา ปานสติ หรือตามแนวทางของศาสนา ที่ตนนับถือ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3678,7 +3678,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.2/11",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ม.2/11 วิเคราะห์การปฏิบัติตน",
+    "exitIndicator": "ส 1.1 ม.2/11 วิเคราะห์การปฏิบัติตน ตามหลักธรรมทางศาสนาที่ตนนับถือ เพื่อการดำรงตนอย่างเหมาะสม ในกระแสความเปลี่ยนแปลงของโลก และการอยู่ร่วมกัน อย่างสันติสุข",
     "learningAreaNote": null
   },
   {
@@ -3691,7 +3691,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.2/2",
-    "midwayIndicator": "ส 1.1 ม.2/2 วิเคราะห์ความสําคัญของพระพุทธศาสนา หรือศาสนาที่ตนนับถือที่ช่วยเสริมสร้างความเข้าใจอันดีกับ ประเทศเพื่อนบ้าน",
+    "midwayIndicator": "ส 1.1 ม.2/2 วิเคราะห์ความสำคัญของพระพุทธศาสนา หรือศาสนาที่ตนนับถือที่ช่วยเสริมสร้างความเข้าใจอันดีกับ ประเทศเพื่อนบ้าน",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3705,7 +3705,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.2/3",
-    "midwayIndicator": "ส 1.1 ม.2/3 วิเคราะห์ความสําคัญของพระพุทธศาสนา หรือศาสนาที่ตนนับถือในฐานะที่เป็นรากฐานของวัฒนธรรม เอกลักษณ์ของชาติและมรดกของชาติ",
+    "midwayIndicator": "ส 1.1 ม.2/3 วิเคราะห์ความสำคัญของพระพุทธศาสนา หรือศาสนาที่ตนนับถือในฐานะที่เป็นรากฐานของวัฒนธรรม เอกลักษณ์ของชาติและมรดกของชาติ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3719,7 +3719,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.2/4",
-    "midwayIndicator": "ส 1.1 ม.2/4 อภิปรายความสําคัญของพระพุทธศาสนา หรือศาสนาที่ตนนับถือกับการพัฒนาชุมชนและ การจัดระเบียบสังคม",
+    "midwayIndicator": "ส 1.1 ม.2/4 อภิปร ายความสำคัญของพระพุทธศาสนา หรือศาสนาที่ตนนับถือกับการพัฒนาชุมชนและ การจัดระเบียบสังคม",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3733,7 +3733,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.2/5",
-    "midwayIndicator": "ส 1.1 ม.2/5 วิเคราะห์พุทธประวัติ หรือประวัติศาสดาของ ศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.2/5 วิเคราะห์พุทธประวัติ หรือประวัติศาสดาของ ศาสนาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3747,7 +3747,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.2/6",
-    "midwayIndicator": "ส 1.1 ม.2/6 วิเคราะห์และประพฤติตนตามแบบอย่าง การดําเนินชีวิตและข้อคิดจากประวัติสาวก ชาดก เรื่องเล่า และศาสนิกชนตัวอย่างตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.2/6 วิเคราะห์และประพฤติตนตามแบบอย่าง การดำเนินชีวิตและข้อคิดจากประวัติสาวก ชาดก เรื่องเล่า และศาสนิกชนตัวอย่างตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3776,7 +3776,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.2/8",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ม.2/8 อธิบายธรรมคุณและ",
+    "exitIndicator": "ส 1.1 ม.2/8 อธิบายธรรมคุณและ ข้อธรรมสำคัญในกรอบอริยสัจ ๔ หรือ หลักธรรมของศาสนาที่ตนนับถือ ตามที่กำหนด เห็นคุณค่าและนำไป พัฒนา แก้ปัญหาของชุมชนและสั งคม",
     "learningAreaNote": null
   },
   {
@@ -3789,7 +3789,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.2/9",
-    "midwayIndicator": "ส 1.1 ม.2/9 เห็นคุณค่าของการพัฒนาจิตเพื่อการเรียนรู้ และดําเนินชีวิต ด้วยวิธีคิดแบบโยนิโสมนสิการ คือ วิธีคิด แบบอุบายปลุกเร้าคุณธรรม และวิธีคิดแบบอรรถธรรมสัมพันธ์ หรือการพัฒนาจิตตามแนวทางของศาสนาที่ตนนับถือ",
+    "midwayIndicator": "ส 1.1 ม.2/9 เห็นคุณค่าของการพัฒนาจิตเพื่อการเรียนรู้ และดำเนินชีวิต ด้วยวิธีคิดแบบโยนิโสมนสิการ คือ วิธีคิด แบบอุบายปลุกเร้าคุณธรรม และวิธีคิดแบบอรรถธรรมสัมพันธ์ หรือการพัฒนาจิตตามแนวทางของศาสนาที่ตนนับถือ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3804,7 +3804,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.2/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.2 ม.2/1 ปฏิบัติตนอย่างหมาะ",
+    "exitIndicator": "ส 1.2 ม.2/1 ปฏิบัติตนอย่างหมาะ สมต่อบุคคลต่าง ๆ ตามหลักศาสนา ที่ตนนับถือตามที่กำหนด",
     "learningAreaNote": null
   },
   {
@@ -3817,7 +3817,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.2/2",
-    "midwayIndicator": "ส 1.2 ม.2/2 มีมรรยาทของความเป็นศาสนิกชนที่ดี ตามที่กําหนด",
+    "midwayIndicator": "ส 1.2 ม.2/2 มีมรรยาทของความเป็นศาสนิกชนที่ดี ตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3845,7 +3845,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.2/4",
-    "midwayIndicator": "ส 1.2 ม.2/4 อธิบายคําสอนที่เกี่ยวเนื่องกับวันสําคัญ ทางศาสนา และปฏิบัติตนได้ถูกต้อง",
+    "midwayIndicator": "ส 1.2 ม.2/4 อธิบายคำสอนที่เกี่ยวเนื่องกับวันสำคัญ ทางศาสนา และปฏิบัติตนได้ถูกต้อง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3860,7 +3860,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.2/5",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.2 ม.2/5 อธิบายความแตกต่าง",
+    "exitIndicator": "ส 1.2 ม.2/5 อธิบายความแตกต่าง ของศาสนพิธี พิธีกรรม ตามแนวปฏิบัติ ของศาสนาอื่น ๆ เพื่อนำไปสู่การยอมรับ และความเข้าใจซึ่งกันและกัน",
     "learningAreaNote": null
   },
   {
@@ -3874,7 +3874,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.2/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.1 ม.2/1 อธิบายและปฏิบัติตน",
+    "exitIndicator": "ส 2.1 ม.2/1 อธิบายและปฏิบัติตน ตามกฎหมาย ที่เกี่ยวข้องกับตนเอง ครอบครัว ชุมชนและประเทศ",
     "learningAreaNote": null
   },
   {
@@ -3887,7 +3887,7 @@
     "standardCode": "ส 2.1",
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.2/2",
-    "midwayIndicator": "ส 2.1 ม.2/2 เห็นคุณค่าในการปฏิบัติตนตามสถานภาพ บทบาท สิทธิเสรีภาพ หน้าที่ในฐานะพลเมืองดีตามวิถี ประชาธิปไตย",
+    "midwayIndicator": "ส 2.1 ม.2/2 เห็นคุณค่าในการปฏิบัติตนตามสถานภาพ บทบาท สิทธิเสรีภาพ หน้าที่ในฐานะพลเมืองดีตามวิถี ประชา ธิปไตย",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3901,7 +3901,7 @@
     "standardCode": "ส 2.1",
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.2/3",
-    "midwayIndicator": "ส 2.1 ม.2/3 วิเคราะห์บทบาท ความสําคัญ และความสัมพันธ์ ของสถาบันทางสังคม",
+    "midwayIndicator": "ส 2.1 ม.2/3 วิเคราะห์บทบาท ความสำคัญ และความสัมพันธ์ ของสถาบันทางสังคม",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3916,7 +3916,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.2/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.1 ม.2/4 อธิบายความคล้ายคลึง",
+    "exitIndicator": "ส 2.1 ม.2/4 อธิบายความคล้ายคลึง และความแตกต่างของวัฒนธรรมไทย และวัฒนธรรมของประเทศ ในภูมิภาคเอเชีย เพื่อนำไปสู่ ความเข้าใจอันดีระหว่างกัน",
     "learningAreaNote": null
   },
   {
@@ -3944,7 +3944,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ม.2/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.2 ม.2/2 วิเคราะห์ข้อมูล",
+    "exitIndicator": "ส 2.2 ม.2/2 วิเคราะห์ข้อมูล ข่าวสารทางการเมือง การปกครอง ที่มีผลกระทบต่อสังคมไทยสมัย ปัจจุบัน",
     "learningAreaNote": null
   },
   {
@@ -3971,7 +3971,7 @@
     "standardCode": "ส 3.1",
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ม.2/3",
-    "midwayIndicator": "ส 3.1 ม.2/3 เสนอแนวทาง",
+    "midwayIndicator": "ส 3.1 ม.2/3 เสนอแนวทาง การพัฒนาการผลิตในท้องถิ่น ตามปรัชญาของเศรษฐกิจพอเพียง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -3999,7 +3999,7 @@
     "standardCode": "ส 3.2",
     "standardDescription": "",
     "indicatorCode": "ส 3.2 ม.2/2",
-    "midwayIndicator": "ส 3.2 ม.2/2 อธิบายปัจจัยการผลิตสินค้าและบริการ และปัจจัยที่มีอิทธิพลต่อการผลิตสินค้าและบริการ ยกตัวอย่างที่สะท้อนให้เห็นการพึ่งพาอาศัยกัน และการแข่งขันกันทางเศรษฐกิจในภูมิภาคเอเชีย",
+    "midwayIndicator": "ส 3.2 ม.2/2 ยกตัวอย่างที่สะท้อนให้เห็นการพึ่งพาอาศัยกัน และการแข่งขันกันทางเศรษฐกิจในภูมิภาคเอเชีย",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4027,7 +4027,7 @@
     "standardCode": "ส 3.2",
     "standardDescription": "",
     "indicatorCode": "ส 3.2 ม.2/4",
-    "midwayIndicator": "ส 3.2 ม.2/4 อภิปรายแนวทางการคุ้มครองสิทธิของตนเอง ในฐานะผู้บริโภค",
+    "midwayIndicator": "ส 3.2 ม.2/4 วิเคราะห์การแข่งขัน ทางการค้า ในประเทศและ ต่างประเทศที่ส่งผลต่อคุณภาพสินค้า ปริมาณการผลิตและราคาสินค้า",
     "exitIndicator": "ส 3.2 ม.2/4 วิเคราะห์การแข่งขัน ทางการค้า ในประเทศและ",
     "learningAreaNote": null
   },
@@ -4041,7 +4041,7 @@
     "standardCode": "ส 4.1",
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ม.2/1",
-    "midwayIndicator": "ส 4.1 ม.2/1 ประเมินความน่าเชื่อถือของหลักฐานทาง ประวัติศาสตร์ในลักษณะต่าง ๆ ประเมินความน่าเชื่อถือของหลักฐาน ทางประวัติศาสตร์ในลักษณะต่าง ๆ",
+    "midwayIndicator": "ส 4.1 ม.2/1 ประเมินความน่าเชื่อถือของหลักฐานทาง ประวัติศาสตร์ในลักษณะต่าง ๆ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4055,7 +4055,7 @@
     "standardCode": "ส 4.1",
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ม.2/2",
-    "midwayIndicator": "ส 4.1 ม.2/2 วิเคราะห์ความแตกต่างระหว่างความจริงกับ ข้อเท็จจริงของเหตุการณ์ทางประวัติศาสตร์ วิเคราะห์ความแตกต่างระหว่างความจริงกับ ข้อเท็จจริงของเหตุการณ์ทางประวัติศาสตร์",
+    "midwayIndicator": "ส 4.1 ม.2/2 วิเคราะห์ความแตกต่างระหว่างค วามจริงกับ ข้อเท็จจริงของเหตุการณ์ทางประวัติศาสตร์",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4070,7 +4070,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ม.2/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.1 ม.2/3 เห็นความสําคัญของ เห็นความสําคัญของ",
+    "exitIndicator": "ส 4.1 ม.2/3 เห็นความสำคัญของ การตีความหลักฐานทางประวัติศาสตร์ ที่น่าเชื่อถือ",
     "learningAreaNote": null
   },
   {
@@ -4084,7 +4084,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ม.2/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.2 ม.2/1 อธิบายพัฒนาการ",
+    "exitIndicator": "ส 4.2 ม.2/1 อธิบายพัฒนาการ ทางสังคม เศรษฐกิจ และการเมือง ของภูมิภาคเอเชีย",
     "learningAreaNote": null
   },
   {
@@ -4097,7 +4097,7 @@
     "standardCode": "ส 4.2",
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ม.2/2",
-    "midwayIndicator": "ส 4.2 ม.2/2 ระบุความสําคัญของแหล่งอารยธรรมโบราณ ในภูมิภาคเอเชีย",
+    "midwayIndicator": "ส 4.2 ม.2/2 ระบุความสำคัญของแหล่งอารยธรรมโบราณ ในภูมิภาคเอเชีย",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4112,7 +4112,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.2/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.3 ม.2/1 วิเคราะห์พัฒนาการของ อาณาจักรอยุธยาและธนบุรี",
+    "exitIndicator": "ส 4.3 ม.2/1 วิเคราะห์พัฒนาการ ของ อาณาจักรอยุธยาและธนบุรี ในด้านต่าง ๆ",
     "learningAreaNote": null
   },
   {
@@ -4126,7 +4126,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.2/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.3 ม.2/2 วิเคราะห์ปัจจัย ที่ส่งผลต่อความมั่นคงและ",
+    "exitIndicator": "ส 4.3 ม.2/2 วิเคราะห์ปัจจัย ที่ส่งผลต่อความมั่นคงและ ความเจริญรุ่งเรืองของอาณาจักรอยุธยา",
     "learningAreaNote": null
   },
   {
@@ -4139,7 +4139,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.2/3",
-    "midwayIndicator": "ส 4.3 ม.2/3 ระบุภูมิปัญญาและวัฒนธรรมไทยสมัยอยุธยา และธนบุรี และอิทธิพลของภูมิปัญญาดังกล่าวต่อการพัฒนา ชาติไทยในยุคต่อมา หมายเหตุ * วิธีการทางประวัติศาสตร์เป็นกระบวนการที่ใช้ในการจัดการเรียนรู้เพื่อให้ผู้เรียนเข้าถึงองค์ความรู้ ทางประวัติศาสตร์ ดังนั้น วิธีการทางประวัติศาสตร์จึงระบุไว้ในทุกกลุ่มตัวชี้วัดที่แสดงเนื้อหา ทางประวัติศาสตร์ที่ผู้เรียนควรศึกษา",
+    "midwayIndicator": "ส 4.3 ม.2/3 ระบุภูมิปัญญาและวัฒนธรรมไทยสมัยอยุธยา และธนบุรี และอิทธิพลของภูมิปัญญาดังกล่าวต่อการพัฒนา ชาติไทยในยุคต่อมา หมายเหตุ วิธีการทางประวัติศาสตร์เป็นกระบวนการที่ใช้ในการจัดการเรียนรู้เพื่อให้ผู้เรียนเข้าถึงองค์ความรู้ ทางประวัติศาสตร์ ดังนั้น วิธีการทางประวัติศาสตร์จึงระบุไว้ในทุกกลุ่มตัวชี้วัดที่แสดงเนื้อหา ทางประวัติศาสตร์ที่ผู้เรียนควรศึกษา",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4153,7 +4153,7 @@
     "standardCode": "ส 5.1",
     "standardDescription": "",
     "indicatorCode": "ส 5.1 ม.2/1",
-    "midwayIndicator": "ส 5.1 ม.2/1 วิเคราะห์ลักษณะทางกายภาพของทวีปยุโรป และทวีปแอฟริกา โดยใช้เครื่องมือทางภูมิศาสตร์สืบค้นข้อมูล",
+    "midwayIndicator": "ส 5.1 ม.2/1 วิเคราะห์ลักษณะทางกายภาพของทวีปยุโรป และทวีปแอฟริกา โดยใช้เครื่องมือทางภูมิศาสตร์สืบค้นข้อ มูล",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4195,7 +4195,7 @@
     "standardCode": "ส 5.2",
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ม.2/1",
-    "midwayIndicator": "ส 5.2 ม.2/1 สํารวจและระบุทําเลที่ตั้งของกิจกรรม ทางเศรษฐกิจและสังคมในทวีปยุโรป และทวีปแอฟริกา",
+    "midwayIndicator": "ส 5.2 ม.2/1 สำรวจและระบุทำเลที่ตั้งของกิจกรรม ทางเศรษฐกิจและสังคมในทวีปยุโรป และทวีปแอฟริกา",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4210,7 +4210,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ม.2/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ม.2/2 วิเคราะห์ปัจจัย",
+    "exitIndicator": "ส 5.2 ม.2/2 วิเคราะห์ปัจจัย ทางกายภาพและปัจจัยทางสังคม ที่ส่งผลต่อทำเลที่ตั้งของกิจกรรม ทางเศรษฐกิจและสังคมในทวีปยุโรป และทวีปแอฟริกา",
     "learningAreaNote": null
   },
   {
@@ -4238,7 +4238,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ม.2/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ม.2/4 วิเคราะห์แนวทาง",
+    "exitIndicator": "ส 5.2 ม.2/4 วิเคราะห์แนวทาง การจัดการภัยพิบัติและการจัดการ ทรัพยากรและสิ่งแวดล้อมในทวีปยุโรป และทวีปแอฟริกาที่ยั่งยืน",
     "learningAreaNote": null
   },
   {
@@ -4266,7 +4266,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.3/10",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ม.3/10 วิเคราะห์ความแตกต่าง",
+    "exitIndicator": "ส 1.1 ม.3/10 วิเคราะห์ความแตกต่าง และยอมรับวิถีการดำเนินชีวิตของ ศาสนิกชนในศาสนาอื่น ๆ",
     "learningAreaNote": null
   },
   {
@@ -4279,7 +4279,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.3/2",
-    "midwayIndicator": "ส 1.1 ม.3/2 วิเคราะห์ความสําคัญของพระพุทธศาสนา หรือศาสนาที่ตนนับถือในฐานะที่ช่วยสร้างสรรค์ อารยธรรม และความสงบสุขแก่โลก",
+    "midwayIndicator": "ส 1.1 ม.3/2 วิเคราะห์ความสำคัญของพระพุทธศาสนา หรือศาสนาที่ตนนับถือในฐานะที่ช่วยสร้างสรรค์ อารยธรรม และความสงบสุขแก่โลก",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4294,7 +4294,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.3/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ม.3/3 อภิปรายความสําคัญ ของพระพุทธศาสนาหรือศาสนา",
+    "exitIndicator": "ส 1.1 ม.3/3 อภิปรายความสำคัญ ของพระพุทธศาสนาหรือศาสนา ที่ตนนับถือกับปรัชญาของเศรษฐกิจ พอเพียงและการพัฒนาอย่างยั่งยืน",
     "learningAreaNote": null
   },
   {
@@ -4307,7 +4307,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.3/4",
-    "midwayIndicator": "ส 1.1 ม.3/4 วิเคราะห์พุทธประวัติจากพระพุทธรูปปางต่าง ๆ หรือประวัติศาสดาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.3/4 วิเคราะห์พุทธประวัติจากพระพุทธรูปปางต่าง ๆ หรือประวัติศาสดาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4321,7 +4321,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.3/5",
-    "midwayIndicator": "ส 1.1 ม.3/5 วิเคราะห์และประพฤติตนตามแบบอย่าง การดําเนินชีวิตและข้อคิดจากประวัติสาวก ชาดกเรื่องเล่า และศาสนิกชนตัวอย่างตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.3/5 วิเคราะห์และประพฤติตนตามแบบอย่าง การดำ เนินชีวิตและข้อคิดจากประวัติสาวก ชาดกเรื่องเล่า และศาสนิกชนตัวอย่างตามที่กำหนด",
     "exitIndicator": "ส 1.1 ม.3/5 เสนอแนวคิด",
     "learningAreaNote": null
   },
@@ -4335,7 +4335,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.3/6",
-    "midwayIndicator": "ส 1.1 ม.3/6 อธิบายสังฆคุณ และข้อธรรมสําคัญ ในกรอบอริยสัจ 4 หรือหลักธรรมของศาสนาที่ตนนับถือ ตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.3/6 อธิบายสังฆคุณ และข้อธรรมสำคัญ ในกรอบอริยสัจ ๔ หรือหลักธรรมของศาสนาที่ตนนับถือ ตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4350,7 +4350,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.3/7",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ม.3/7 เห็นคุณค่า และวิเคราะห์",
+    "exitIndicator": "ส 1.1 ม.3/7 เห็นคุณค่า และวิเคราะห์ การปฏิบัติตนตามหลักธรรมในการ พัฒนาตนเพื่อเตรียมพร้อมสำหรับ การทำงานและการมีครอบครัว",
     "learningAreaNote": null
   },
   {
@@ -4363,7 +4363,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.3/8",
-    "midwayIndicator": "ส 1.1 ม.3/8 เห็นคุณค่าของการพัฒนาจิตเพื่อการเรียนรู้ และดําเนินชีวิต ด้วยวิธีคิดแบบโยนิโสมนสิการ คือ วิธีคิด แบบอริยสัจ และวิธีคิดแบบสืบสาวเหตุปัจจัย หรือการพัฒนาจิตตามแนวทางของศาสนาที่ตนนับถือ",
+    "midwayIndicator": "ส 1.1 ม.3/8 เห็นคุณค่าของการพัฒนาจิตเพื่อการเรียนรู้ และดำเนินชีวิต ด้วยวิธีคิดแบบโยนิโสมนสิการ คือ วิธีคิด แบบอริยสัจ และวิธีคิดแบบสืบสาวเหตุปัจจัย หรือการพัฒนาจิตตามแนวทางของศาสนาที่ตนนับถือ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4377,7 +4377,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.3/9",
-    "midwayIndicator": "ส 1.1 ม.3/9 สวดมนต์ แผ่เมตตา บริหารจิตและเจริญปัญญา ด้วยอานาปานสติ หรือตามแนวทางของศาสนาที่ตนนับถือ",
+    "midwayIndicator": "ส 1.1 ม.3/9 สวดมนต์ แผ่เมตตา บริหารจิตและเจริญปัญญา ด้วยอานาปา นสติ หรือตามแนวทางของศาสนาที่ตนนับถือ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4391,7 +4391,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.3/1",
-    "midwayIndicator": "ส 1.2 ม.3/1 วิเคราะห์หน้าที่และบทบาทของสาวก และปฏิบัติตนต่อสาวกตามที่กําหนดได้ถูกต้อง",
+    "midwayIndicator": "ส 1.2 ม.3/1 วิเคราะห์หน้าที่และบทบาทของสาวก และปฏิบัติตนต่อสาวกตามที่กำหนดได้ถูกต้อง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4405,7 +4405,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.3/2",
-    "midwayIndicator": "ส 1.2 ม.3/2 ปฏิบัติตนอย่างเหมาะสมต่อบุคคลต่าง ๆ ตามหลักศาสนาตามที่กําหนด",
+    "midwayIndicator": "ส 1.2 ม.3/2 ปฏิบัติตนอย่างเหมาะสมต่อบุคคลต่าง ๆ ตามหลักศา สนาตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4447,7 +4447,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.3/5",
-    "midwayIndicator": "ส 1.2 ม.3/5 อธิบายประวัติวันสําคัญทางศาสนา ตามที่กําหนดและปฏิบัติตนได้ถูกต้อง",
+    "midwayIndicator": "ส 1.2 ม.3/5 อธิบายประวัติวันสำคัญทางศาสนา ตามที่กำหนดและปฏิบัติตนได้ถูกต้อง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4476,7 +4476,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.3/7",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.2 ม.3/7 นําเสนอแนวทาง",
+    "exitIndicator": "ส 1.2 ม.3/7 นำเสนอแนวทาง ในการธำรงรักษาศาสนาที่ตนนับถือ",
     "learningAreaNote": null
   },
   {
@@ -4489,7 +4489,7 @@
     "standardCode": "ส 2.1",
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.3/1",
-    "midwayIndicator": "ส 2.1 ม.3/1 อธิบายความแตกต่างของการกระทําความผิด ระหว่างคดีอาญา และคดีแพ่ง",
+    "midwayIndicator": "ส 2.1 ม.3/1 อธิบายความแตกต่างของการกระทำความผิด ระหว่างคดีอาญา และคดีแพ่ง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4546,7 +4546,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ม.3/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.2 ม.3/1 อธิบายระบอบ",
+    "exitIndicator": "ส 2.2 ม.3/1 อธิบายระบอบ การปกครองแบบต่าง ๆ ที่ใช้ ในยุคปัจจุบัน",
     "learningAreaNote": null
   },
   {
@@ -4573,7 +4573,7 @@
     "standardCode": "ส 2.2",
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ม.3/3",
-    "midwayIndicator": "ส 2.2 ม.3/3 วิเคราะห์รัฐธรรมนูญฉบับปัจจุบันในมาตราต่าง ๆ ที่เกี่ยวข้องกับการเลือกตั้ง การมีส่วนร่วม และการตรวจสอบ การใช้อํานาจรัฐ",
+    "midwayIndicator": "ส 2.2 ม.3/3 วิเคราะห์รัฐธรรมนูญฉบับปัจจุบันในมาตราต่าง ๆ ที่เกี่ยวข้องกับการเลือกตั้ง การมีส่วนร่วม และการตรวจสอบ การใช้อำนาจรัฐ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4588,7 +4588,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ม.3/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.2 ม.3/4 วิเคราะห์ประเด็น",
+    "exitIndicator": "ส 2.2 ม.3/4 วิเคราะห์ ประเด็น ปัญหาที่เป็นอุปสรรคต่อการพัฒนา ประชาธิปไตยของประเทศไทย และเสนอแนวทางแก้ไข",
     "learningAreaNote": null
   },
   {
@@ -4616,7 +4616,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ม.3/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.1 ม.3/2 มีส่วนร่วมในการ",
+    "exitIndicator": "ส 3.1 ม.3/2 มีส่วนร่วมในการ แก้ไขปัญหาและพัฒนาท้องถิ่น ตามปรัชญาของเศรษฐกิจพอเพียง",
     "learningAreaNote": null
   },
   {
@@ -4658,7 +4658,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.2 ม.3/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.2 ม.3/2 แสดงความคิดเห็น ต่อนโยบายและกิจกรรม",
+    "exitIndicator": "ส 3.2 ม.3/2 แสดงความคิดเห็น ต่อนโยบายและกิจกรรม ทางเศรษฐกิจของ รัฐ ที่มีต่อบุคคล กลุ่มคน และประเทศชาติ",
     "learningAreaNote": null
   },
   {
@@ -4672,7 +4672,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.2 ม.3/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.2 ม.3/3 อภิปรายบทบาท ความสําคัญของการรวมกลุ่ม ทางเศรษฐกิจระหว่างประเทศ",
+    "exitIndicator": "ส 3.2 ม.3/3 อภิปรายบทบาท ความสำคัญของการรวมกลุ่ม ทางเศรษฐกิจระหว่างประเทศ",
     "learningAreaNote": null
   },
   {
@@ -4727,7 +4727,7 @@
     "standardCode": "ส 4.1",
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ม.3/1",
-    "midwayIndicator": "ส 4.1 ม.3/1 วิเคราะห์เรื่องราวเหตุการณ์สําคัญทาง ประวัติศาสตร์ได้อย่างมีเหตุผลตามวิธีการทางประวัติศาสตร์ วิเคราะห์เรื่องราวเหตุการณ์สําคัญ ทางประวัติศาสตร์ได้อย่างมีเหตุผลตามวิธีการทางประวัติศาสตร์",
+    "midwayIndicator": "ส 4.1 ม.3/1 วิเคราะห์เรื่องราวเหตุการณ์สำคัญทาง ประวัติศาสตร์ได้อย่างมีเหตุผลตามวิธีการทางประวัติศาสตร์",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4742,7 +4742,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ม.3/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.1 ม.3/2 ใช้วิธีการ ใช้วิธีการ",
+    "exitIndicator": "ส 4.1 ม.3/2 ใช้วิธีการ ทางประวัติศาสตร์ในการศึกษา เรื่องราวต่าง ๆ ที่ตนสนใจ",
     "learningAreaNote": null
   },
   {
@@ -4756,7 +4756,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ม.3/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.2 ม.3/1 อธิบายพัฒนาการ",
+    "exitIndicator": "ส 4.2 ม.3/1 อธิบายพัฒนาการ ทางสังคม เศรษฐกิจและการเมือง ของภูมิภาคต่าง ๆ ในโลกโดยสังเขป",
     "learningAreaNote": null
   },
   {
@@ -4770,7 +4770,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ม.3/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.2 ม.3/2 วิเคราะห์ผลของ",
+    "exitIndicator": "ส 4.2 ม.3/2 วิเคราะห์ผลของ การเปลี่ยนแปลงที่นำไปสู่ ความร่วมมือและความขัดแย้ง ในคริสต์ศตวรรษที่ ๒๐ ตลอดจน ความพยายามในการขจัดปัญหา ความขัดแย้ง",
     "learningAreaNote": null
   },
   {
@@ -4784,7 +4784,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.3/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.3 ม.3/1 วิเคราะห์พัฒนาการ",
+    "exitIndicator": "ส 4.3 ม.3/1 วิเคราะห์พัฒนาการ ของไทยสมัยรัตนโกสินทร์ในด้านต่าง ๆ",
     "learningAreaNote": null
   },
   {
@@ -4825,7 +4825,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.3/4",
-    "midwayIndicator": "ส 4.3 ม.3/4 วิเคราะห์บทบาทของไทยในสมัย ประชาธิปไตย หมายเหตุ * วิธีการทางประวัติศาสตร์เป็นกระบวนการที่ใช้ในการจัดการเรียนรู้เพื่อให้ผู้เรียนเข้าถึงองค์ความรู้ ทางประวัติศาสตร์ ดังนั้น วิธีการทางประวัติศาสตร์จึงระบุไว้ในทุกกลุ่มตัวชี้วัดที่แสดงเนื้อหา ทางประวัติศาสตร์ที่ผู้เรียนควรศึกษา",
+    "midwayIndicator": "ส 4.3 ม.3/4 วิเคราะห์บทบาทของไทยในสมัย ประชาธิปไตย หมายเหตุ วิธีการทางประวัติศาสตร์เป็นกระบวนการที่ใช้ในการจัดการเรียนรู้เพื่อให้ผู้เรียนเข้าถึงองค์ความรู้ ทางประวัติศาสตร์ ดังนั้น วิธีการทางประวัติศาสตร์จึงระบุไว้ในทุกกลุ่มตัวชี้วัดที่แสดงเนื้อหา ทางประวัติศาสตร์ที่ผู้เรียนควรศึกษา",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4867,7 +4867,7 @@
     "standardCode": "ส 5.2",
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ม.3/1",
-    "midwayIndicator": "ส 5.2 ม.3/1 สํารวจและระบุทําเลที่ตั้งของกิจกรรม ทางเศรษฐกิจและสังคมในทวีปอเมริกาเหนือ และทวีปอเมริกาใต้",
+    "midwayIndicator": "ส 5.2 ม.3/1 สำรวจและระบุทำเลที่ตั้งของกิจกรรม ทางเศรษฐกิจและสังคมในทวีปอเมริกาเหนือ และทวีปอเมริกาใต้",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4882,7 +4882,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ม.3/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ม.3/2 วิเคราะห์ปัจจัย",
+    "exitIndicator": "ส 5.2 ม.3/2 วิเคราะห์ปัจจัย ทางกายภาพและปัจจัยทางสังคม ที่ส่งผลต่อทำเลที่ตั้งของกิจกรรม ทางเศรษฐกิจและสังคมในทวีป อเมริกาเหนือและทวีปอเมริกาใต้",
     "learningAreaNote": null
   },
   {
@@ -4895,7 +4895,7 @@
     "standardCode": "ส 5.2",
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ม.3/3",
-    "midwayIndicator": "ส 5.2 ม.3/3 สืบค้น อภิปรายประเด็นปัญหาจากปฏิสัมพันธ์ ระหว่างสิ่งแวดล้อมทางกายภาพกับมนุษย์ที่เกิดขึ้นในทวีป อเมริกาเหนือ และทวีปอเมริกาใต้",
+    "midwayIndicator": "ส 5.2 ม.3/3 สืบค้น อภิปรายประเด็นปัญหาจากปฏิสัมพันธ์ ระหว่ างสิ่งแวดล้อมทางกายภาพกับมนุษย์ที่เกิดขึ้นในทวีป อเมริกาเหนือ และทวีปอเมริกาใต้",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4910,7 +4910,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ม.3/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ม.3/4 วิเคราะห์แนวทาง",
+    "exitIndicator": "ส 5.2 ม.3/4 วิเคราะห์แนวทาง การจัดการภัยพิบัติและการจัดการ ทรัพยากรและสิ่งแวดล้อมในทวีป อเมริกาเหนือ และทวีปอเมริกาใต้ ที่ยั่งยืน",
     "learningAreaNote": null
   },
   {
@@ -4937,7 +4937,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/1",
-    "midwayIndicator": "ส 1.1 ม.4-6/1 วิเคราะห์สังคมชมพูทวีป และคติความเชื่อ 1 ทางศาสนาสมัยก่อนพระพุทธเจ้า หรือสังคมสมัย หลักธรรมในกรอบอริยสัจ 4 หรือ ของศาสดาที่ตนนับถือ หลักคําสอนของศาสนาที่ตนนับถือ",
+    "midwayIndicator": "ส 1.1 ม.4-6/1 วิเคราะห์สังคมชมพูทวีป และคติความเชื่อ ทางศาสนาสมัยก่อนพระพุทธเจ้า หรือสังคมสมัย ของศาสดาที่ตนนับถือ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4951,7 +4951,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/10",
-    "midwayIndicator": "ส 1.1 ม.4-6/10 วิเคราะห์พระพุทธศาสนาในการฝึกตน ไม่ให้ประมาท มุ่งประโยชน์และสันติภาพบุคคล สังคม และโลก หรือแนวคิดของศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.4-6/10 วิเคราะห์พระพุทธศาสนาในการฝึกตน ไม่ให้ประมาท มุ่งประโยชน์และสันติภาพบุคคล สังคม และโลก หรือแนวคิดของศาสนาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4965,7 +4965,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/11",
-    "midwayIndicator": "ส 1.1 ม.4-6/11 วิเคราะห์พระพุทธศาสนากับปรัชญาของ เศรษฐกิจพอเพียง และการพัฒนาประเทศแบบยั่งยืน หรือแนวคิดของศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.4-6/11 วิเคราะห์พระพุทธศาสนากับปรัชญาของ เศรษฐกิจพอเพียง และการพัฒนาประเทศแบบยั่งยืน หรือแนวคิดของศาสนาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4979,7 +4979,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/12",
-    "midwayIndicator": "ส 1.1 ม.4-6/12 วิเคราะห์ความสําคัญของพระพุทธศาสนา เกี่ยวกับการศึกษาที่สมบูรณ์ การเมืองและสันติภาพ หรือแนวคิดของศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.4-6/12 วิเคราะห์ความสำคัญของพระพุทธศาสนา เกี่ยวกับการศึกษาที่สมบูรณ์ การเมืองและสันติภาพ หรือแนวคิดของศาสนาที่ตนนับถื อตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -4994,7 +4994,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/13",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ม.4-6/13 วิเคราะห์",
+    "exitIndicator": "ส 1.1 ม.4-6/13 วิเคราะห์ หลักธรรมในกรอบอริยสัจ ๔ หรือ หลักคำสอนของศาสนาที่ตนนับถือ",
     "learningAreaNote": null
   },
   {
@@ -5007,7 +5007,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/14",
-    "midwayIndicator": "ส 1.1 ม.4-6/14 วิเคราะห์ข้อคิดและแบบอย่าง การดําเนินชีวิตจากประวัติสาวก ชาดก เรื่องเล่า และศาสนิกชนตัวอย่างตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.4-6/14 วิเคราะห์ข้อคิดและแบบอย่าง การดำเนินชีวิตจากประวัติสาวก ชาดก เรื่องเล่า และศาสนิกชนตัวอย่างตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5021,7 +5021,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/15",
-    "midwayIndicator": "ส 1.1 ม.4-6/15 วิเคราะห์คุณค่าและความสําคัญ ของการสังคายนา พระไตรปิฎก หรือคัมภีร์ ของศาสนาที่ตนนับถือ และการเผยแผ่",
+    "midwayIndicator": "ส 1.1 ม.4-6/15 วิเคราะห์คุณค่าและความสำคัญ ของการสังคายนา พระไตรปิฎก หรือคัมภีร์ ของศาสนาที่ตนนับถือ และการเผยแผ่",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5036,7 +5036,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/16",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ม.4-6/16 เชื่อมั่นต่อ",
+    "exitIndicator": "ส 1.1 ม.4-6/16 เชื่อมั่นต่อ ผลของการทำความดี ความชั่ว สามารถวิเคราะห์สถานก ารณ์ ที่ต้องเผชิญและตัดสินใจเลือก ดำเนินการ หรือปฏิบัติตน ได้อย่างมีเหตุผลถูกต้องตามหลักธรรม จริยธรรม และกำหนดเป้าหมาย บทบาทการดำเนินชีวิตเพื่อ การอยู่ร่วมกันอย่างสันติสุข และ อยู่ร่วมกันเป็นชาติอย่างสมานฉันท์",
     "learningAreaNote": null
   },
   {
@@ -5063,7 +5063,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/18",
-    "midwayIndicator": "ส 1.1 ม.4-6/18 ตระหนักในคุณค่าและความสําคัญ ของค่านิยม จริยธรรมที่เป็นตัวกําหนดความเชื่อและ พฤติกรรมที่แตกต่างกันของศาสนิกชนศาสนาต่าง ๆ เพื่อขจัดความขัดแย้งและอยู่ร่วมกันในสังคมอย่างสันติสุข",
+    "midwayIndicator": "ส 1.1 ม.4-6/18 ตระหนักในคุณค่าและความสำคัญ ของค่านิยม จริยธรรมที่เป็นตัวกำหนดความเชื่อและ พฤติกรรมที่แตกต่างกันของศาสนิกชนศาสนาต่าง ๆ เพื่อขจัดความขัดแย้งและอยู่ร่วมกันในสังคมอย่างสันติสุข",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5077,7 +5077,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/19",
-    "midwayIndicator": "ส 1.1 ม.4-6/19 เห็นคุณค่า เชื่อมั่น และมุ่งมั่นพัฒนาชีวิต ด้วยการพัฒนาจิตและพัฒนาการเรียนรู้ด้วยวิธีคิดแบบ โยนิโสมนสิการหรือการพัฒนาจิตตามแนวทางของศาสนา ที่ตนนับถือ",
+    "midwayIndicator": "ส 1.1 ม.4-6/19 เห็นคุณค่า เชื่อมั่น และมุ่งมั่นพัฒนาชีวิต ด้วยการพัฒนาจิตและพัฒนาการเรียนรู้ด้วยวิธีคิดแบบ โยนิโสมนสิการ หรือการพัฒนาจิตตามแนวทางของศาสนา ที่ตนนับถือ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5091,7 +5091,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/2",
-    "midwayIndicator": "ส 1.1 ม.4-6/2 วิเคราะห์พระพุทธเจ้าในฐานะเป็นมนุษย์ ผู้ฝึกตนได้อย่างสูงสุดในการตรัสรู้ การก่อตั้ง วิธีการสอน ผลของการทําความดี ความชั่ว และการเผยแผ่พระพุทธศาสนา หรือวิเคราะห์ประวัติศาสดา สามารถวิเคราะห์สถานการณ์ ที่ตนนับถือตามที่กําหนด ที่ต้องเผชิญและตัดสินใจเลือก",
+    "midwayIndicator": "ส 1.1 ม.4-6/2 วิเคราะห์พระพุทธเจ้าในฐานะเป็นมนุษย์ ผู้ฝึกตนได้อย่างสูงสุดในการตรัสรู้ การก่อตั้ง วิธีการสอน และการเผยแผ่พระพุทธศาสนา หรือวิเคราะห์ประวัติศาสดา ที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5120,7 +5120,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/21",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ม.4-6/21 วิเคราะห์",
+    "exitIndicator": "ส 1.1 ม.4-6/21 วิเคราะห์ หลักธรรมสำคัญในการอยู่ร่ วมกัน อย่างสันติสุขของศาสนาอื่น ๆ และ ชักชวน ส่งเสริม สนับสนุนให้บุคคลอื่น เห็นความสำคัญของการทำความดีต่อกัน",
     "learningAreaNote": null
   },
   {
@@ -5147,7 +5147,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/3",
-    "midwayIndicator": "ส 1.1 ม.4-6/3 วิเคราะห์พุทธประวัติด้านการบริหาร และการธํารงรักษาศาสนา หรือวิเคราะห์ประวัติศาสดา ได้อย่างมีเหตุผลถูกต้องตามหลักธรรม ที่ตนนับถือตามที่กําหนด จริยธรรม และกําหนดเป้าหมาย",
+    "midwayIndicator": "ส 1.1 ม.4-6/3 วิเคราะห์พุทธประวัติด้านการบริหาร และการธำรงรักษาศาสนา หรือวิเคราะห์ประวัติศาสดา ที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5161,7 +5161,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/4",
-    "midwayIndicator": "ส 1.1 ม.4-6/4 วิเคราะห์ข้อปฏิบัติทางสายกลาง ในพระพุทธศาสนาหรือแนวคิดของศาสนาที่ตนนับถือ บทบาทการดําเนินชีวิตเพื่อ ตามที่กําหนด การอยู่ร่วมกันอย่างสันติสุข และ",
+    "midwayIndicator": "ส 1.1 ม.4-6/4 วิเคราะห์ข้อปฏิบัติทางสายกลาง ในพระพุทธศาสนาหรือแนวคิดของศาสนาที่ตนนับถือ ตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5175,7 +5175,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/5",
-    "midwayIndicator": "ส 1.1 ม.4-6/5 วิเคราะห์การพัฒนาศรัทธาและปัญญา ที่ถูกต้องในพระพุทธศาสนา หรือแนวคิดของศาสนา ที่ตนนับถือตามที่กําหนด หลักธรรมสําคัญในการอยู่ร่วมกัน",
+    "midwayIndicator": "ส 1.1 ม.4-6/5 วิเคราะห์การพัฒนาศรัทธาและปัญญา ที่ถูกต้องในพระพุทธศาสนา หรือแนวคิดของศาสนา ที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5189,7 +5189,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/6",
-    "midwayIndicator": "ส 1.1 ม.4-6/6 วิเคราะห์ลักษณะประชาธิปไตย ในพระพุทธศาสนา หรือแนวคิด ของศาสนาที่ตนนับถือ ชักชวน ส่งเสริม สนับสนุนให้บุคคลอื่น ตามที่กําหนด เห็นความสําคัญของการทําความดีต่อกัน",
+    "midwayIndicator": "ส 1.1 ม.4-6/6 วิเคราะห์ลักษณะประชาธิ ปไตย ในพระพุทธศาสนา หรือแนวคิด ของศาสนาที่ตนนับถือ ตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5203,7 +5203,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/7",
-    "midwayIndicator": "ส 1.1 ม.4-6/7 วิเคราะห์หลักการของพระพุทธศาสนากับ หลักวิทยาศาสตร์ หรือแนวคิดของศาสนาที่ตนนับถือ ตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.4-6/7 วิเคราะห์หลักการของพระพุทธศาสนากับ หลักวิทยาศาสตร์ หรือแนวคิดของศาสนาที่ตนนับถือ ตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5217,7 +5217,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/8",
-    "midwayIndicator": "ส 1.1 ม.4-6/8 วิเคราะห์การฝึกฝนและพัฒนาตนเอง การพึ่งตนเอง และการมุ่งอิสรภาพในพระพุทธศาสนา หรือแนวคิดของศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.4-6/8 วิเคราะห์การฝึกฝนและพัฒนาตนเอง การพึ่งตนเอง และการมุ่งอิสรภาพในพระพุทธศาสนา หรือแนวคิดของศาสนาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5231,7 +5231,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/9",
-    "midwayIndicator": "ส 1.1 ม.4-6/9 วิเคราะห์พระพุทธศาสนาว่าเป็นศาสตร์ แห่งการศึกษา ซึ่งเน้นความสัมพันธ์ของเหตุปัจจัยกับวิธีการ แก้ปัญหาหรือแนวคิดของศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.4-6/9 วิเคราะห์พระพุทธศาสนาว่าเป็นศาสตร์ แห่งการศึกษา ซึ่งเน้นความสัมพันธ์ของเหตุปัจจัยกับวิธีการ แก้ปัญหาหรือแนวคิดของ ศาสนาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5245,7 +5245,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.4-6/1",
-    "midwayIndicator": "ส 1.2 ม.4-6/1 ปฏิบัติตนเป็นศาสนิกชนที่ดีต่อสาวก สมาชิกในครอบครัวและคนรอบข้าง แนวทางในการธํารงรักษาศาสนา",
+    "midwayIndicator": "ส 1.2 ม.4-6/1 ปฏิบัติตนเป็นศาสนิกชนที่ดีต่อสาวก สมาชิกในครอบครัวและคนรอบข้าง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5259,7 +5259,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.4-6/2",
-    "midwayIndicator": "ส 1.2 ม.4-6/2 ปฏิบัติตนถูกต้องตามศาสนพิธี พิธีกรรม ตามหลักศาสนาที่ตนนับถือ พัฒนาชาติ และโลก",
+    "midwayIndicator": "ส 1.2 ม.4-6/2 ปฏิบัติตนถูกต้องตามศาสนพิธี พิธีกรรม ตามหลักศาสนาที่ตนนับถือ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5287,7 +5287,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.4-6/4",
-    "midwayIndicator": "ส 1.2 ม.4-6/4 วิเคราะห์หลักธรรม คติธรรมที่เกี่ยวเนื่อง กับวันสําคัญทางศาสนา และเทศกาลที่สําคัญ ของศาสนา ที่ตนนับถือ และปฏิบัติตนได้ถูกต้อง",
+    "midwayIndicator": "ส 1.2 ม.4-6/4 วิเคราะห์หลักธรรม คติธรรมที่เกี่ยวเนื่อง กับวันสำคัญทางศาสนา และเทศกาลที่สำคัญ ของศาสนา ที่ตนนับถือ และปฏิบัติตนได้ถูกต้อง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5302,7 +5302,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.4-6/5",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.2 ม.4-6/5 สัมมนาและเสนอแนะ",
+    "exitIndicator": "ส 1.2 ม.4-6/5 สัมมนาและเสนอแนะ แนวทางในการธำรงรักษาศาสนา ที่ตนนับถือ อันส่งผลถึงการพัฒนาตน พัฒนาชาติ และโลก",
     "learningAreaNote": null
   },
   {
@@ -5315,7 +5315,7 @@
     "standardCode": "ส 2.1",
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.4-6/1",
-    "midwayIndicator": "ส 2.1 ม.4-6/1 วิเคราะห์และปฏิบัติตนตามกฎหมาย ที่เกี่ยวข้องกับตนเอง ครอบครัว ชุมชน ประเทศชาติและสังคมโลก มีส่วนสนับสนุนให้ผู้อื่นประพฤติ",
+    "midwayIndicator": "ส 2.1 ม.4-6/1 วิเคราะห์และปฏิบัติตนตามกฎหมาย ที่เกี่ยวข้องกับตนเอง ครอบครัว ชุมชน ประเทศชาติและสังคมโลก",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5329,7 +5329,7 @@
     "standardCode": "ส 2.1",
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.4-6/2",
-    "midwayIndicator": "ส 2.1 ม.4-6/2 วิเคราะห์ความสําคัญของโครงสร้างทางสังคม การขัดเกลาทางสังคม และการเปลี่ยนแปลงทางสังคม ประเทศชาติ และสังคมโลก",
+    "midwayIndicator": "ส 2.1 ม.4-6/2 วิเคราะห์ความสำคัญของโครงสร้างทางสังคม การขัดเกลาทางสังคม และการเปลี่ยนแปลงทางสังคม",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5344,7 +5344,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.4-6/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.1 ม.4-6/3 ปฏิบัติตนและ",
+    "exitIndicator": "ส 2.1 ม.4-6/3 ปฏิบัติตนและ มีส่วนสนับสนุนให้ผู้อื่นประพฤติ ปฏิบัติเพื่อเป็นพลเมืองดีของ ประเทศชาติ และสังคมโลก",
     "learningAreaNote": null
   },
   {
@@ -5357,7 +5357,7 @@
     "standardCode": "ส 2.1",
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.4-6/4",
-    "midwayIndicator": "ส 2.1 ม.4-6/4 ประเมินสถานการณ์สิทธิมนุษยชนในประเทศไทย และเสนอแนวทางพัฒนา ความจําเป็นที่จะต้องมีการปรับปรุง เปลี่ยนแปลงและอนุรักษ์วัฒนธรรม ไทยและเลือกรับวัฒนธรรมสากล",
+    "midwayIndicator": "ส 2.1 ม.4-6/4 ประเมินสถานการณ์สิทธิมนุษยชนในประเทศไทย และเสนอแนวทางพัฒนา",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5372,7 +5372,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.4-6/5",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.1 ม.4-6/5 วิเคราะห์",
+    "exitIndicator": "ส 2.1 ม.4-6/5 วิเคราะห์ ความจำเป็นที่จะต้องมีการปรับปรุง เปลี่ยนแปลงและอนุรักษ์วัฒนธรรม ไทยและเลือกรับวัฒนธรรมสากล",
     "learningAreaNote": null
   },
   {
@@ -5385,7 +5385,7 @@
     "standardCode": "ส 2.2",
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ม.4-6/1",
-    "midwayIndicator": "ส 2.2 ม.4-6/1 วิเคราะห์ปัญหาการเมืองที่สําคัญในประเทศ จากแหล่งข้อมูลต่าง ๆ พร้อมทั้งเสนอแนวทางแก้ไข ความสําคัญ และความจําเป็นที่ต้อง",
+    "midwayIndicator": "ส 2.2 ม.4-6/1 วิเคราะห์ปัญหาการเมืองที่สำคัญในประเทศ จากแหล่งข้อมูลต่าง ๆ พร้อมทั้งเสนอแนวทางแก้ไข",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5399,7 +5399,7 @@
     "standardCode": "ส 2.2",
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ม.4-6/2",
-    "midwayIndicator": "ส 2.2 ม.4-6/2 เสนอแนวทางทางการเมืองการปกครอง ที่นําไปสู่ความเข้าใจ และการประสานประโยชน์ร่วมกัน ระบอบประชาธิปไตยอันมี ระหว่างประเทศ พระมหากษัตริย์ทรงเป็นประมุข และมีส่วนร่วมในการตรวจสอบ การใช้อํานาจรัฐ",
+    "midwayIndicator": "ส 2.2 ม.4-6/2 เสนอแนวทางทางการเมืองการปกครอง ที่นำไปสู่ ความเข้าใจ และการประสานประโยชน์ร่วมกัน ระหว่างประเทศ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5414,7 +5414,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ม.4-6/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.2 ม.4-6/3 วิเคราะห์",
+    "exitIndicator": "ส 2.2 ม.4-6/3 วิเคราะห์ ความสำคัญ และความจำเป็นที่ต้อง ธำรงรักษาไว้ซึ่งการปกครองตาม ระบอบประชาธิปไตยอันมี พระมหากษัตริย์ทรงเป็นประมุข",
     "learningAreaNote": null
   },
   {
@@ -5428,7 +5428,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ม.4-6/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.2 ม.4-6/4 เสนอแนวทาง",
+    "exitIndicator": "ส 2.2 ม.4-6/4 เสนอแนวทาง และมีส่วนร่วมในการตรวจสอบ การใช้อำนาจรัฐ",
     "learningAreaNote": null
   },
   {
@@ -5442,7 +5442,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ม.4-6/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.1 ม.4-6/1 อภิปราย การกําหนดราคาและค่าจ้าง ในระบบเศรษฐกิจ",
+    "exitIndicator": "ส 3.1 ม.4-6/1 อภิปราย การกำหนดราคาและค่าจ้าง ในระบบเศรษฐกิจ",
     "learningAreaNote": null
   },
   {
@@ -5455,7 +5455,7 @@
     "standardCode": "ส 3.1",
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ม.4-6/2",
-    "midwayIndicator": "ส 3.1 ม.4-6/2 ตระหนักถึงความสําคัญของปรัชญา ของเศรษฐกิจพอเพียงที่มีต่อเศรษฐกิจสังคมของประเทศ ทางเศรษฐกิจในชุมชนและเสนอ",
+    "midwayIndicator": "ส 3.1 ม.4-6/2 ตระหนักถึงความสำคัญของปรัชญา ของเศรษฐกิจพอเพียงที่มีต่อเศรษฐกิจสังคมของประเทศ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5469,7 +5469,7 @@
     "standardCode": "ส 3.1",
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ม.4-6/3",
-    "midwayIndicator": "ส 3.1 ม.4-6/3 ตระหนักถึงความสําคัญของระบบสหกรณ์ ในการพัฒนาเศรษฐกิจในระดับชุมชนและประเทศ",
+    "midwayIndicator": "ส 3.1 ม.4-6/3 ตระหนักถึงความสำคัญของระบบสหกรณ์ ในการพัฒนาเศรษฐกิจในระดับชุมชนและประเทศ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5484,7 +5484,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ม.4-6/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.1 ม.4-6/4 วิเคราะห์ปัญหา",
+    "exitIndicator": "ส 3.1 ม.4-6/4 วิเคราะห์ปัญหา ทางเศรษฐกิจในชุมชนและเสนอ แนวทางแก้ไข",
     "learningAreaNote": null
   },
   {
@@ -5498,7 +5498,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.2 ม.4-6/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.2 ม.4-6/1 อธิบายบทบาท",
+    "exitIndicator": "ส 3.2 ม.4-6/1 อธิบายบทบาท ของรัฐบาลเกี่ยวกับนโยบายการเงิน การคลังในการพัฒนาเศรษฐกิจ ของประเทศ",
     "learningAreaNote": null
   },
   {
@@ -5512,7 +5512,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.2 ม.4-6/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.2 ม.4-6/2 วิเคราะห์ ผลกระทบของการเปิดเสรี",
+    "exitIndicator": "ส 3.2 ม.4-6/2 วิเคราะห์ ผลกระทบของการเปิดเสรี ทางเศรษฐกิจในยุคโลกาภิวัตน์ ที่มีผลต่อสังคมไทย",
     "learningAreaNote": null
   },
   {
@@ -5525,7 +5525,7 @@
     "standardCode": "ส 3.2",
     "standardDescription": "",
     "indicatorCode": "ส 3.2 ม.4-6/3",
-    "midwayIndicator": "ส 3.2 ม.4-6/3 วิเคราะห์ผลดี ผลเสียของความร่วมมือ ทางเศรษฐกิจระหว่างประเทศในรูปแบบต่าง ๆ ผลกระทบของการเปิดเสรี ทางเศรษฐกิจในยุคโลกาภิวัตน์ ที่มีผลต่อสังคมไทย",
+    "midwayIndicator": "ส 3.2 ม.4-6/3 วิเคราะห์ผลดี ผลเสียของความร่วมมือ ทางเศรษฐกิจระหว่างประเทศในรูปแบบต่าง ๆ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5539,7 +5539,7 @@
     "standardCode": "ส 4.1",
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ม.4-6/1",
-    "midwayIndicator": "ส 4.1 ม.4-6/1 ตระหนักถึงความสําคัญของเวลาและ ยุคสมัยทางประวัติศาสตร์ที่แสดงถึงการเปลี่ยนแปลง ทางประวัติศาสตร์โดยใช้วิธีการ ของมนุษยชาติ ทางประวัติศาสตร์อย่างเป็นระบบ ตระหนักถึงความสําคัญของเวลาและ ยุคสมัยทางประวัติศาสตร์ที่แสดงถึงการเปลี่ยนแปลงของ ทางประวัติศาสตร์โดยใช้วิธีการ มนุษยชาติ ทางประวัติศาสตร์อย่างเป็นระบบ",
+    "midwayIndicator": "ส 4.1 ม.4-6/1 ตระหนักถึงความสำคัญของเวลาและ ยุคสมัยทางประวัติศาสตร์ที่แสดงถึงการเปลี่ยนแปลง ของมนุษยชาติ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5554,7 +5554,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ม.4-6/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.1 ม.4-6/2 สร้างองค์ความรู้ใหม่ สร้างองค์ความรู้ใหม่",
+    "exitIndicator": "ส 4.1 ม.4-6/2 สร้างองค์ความรู้ใหม่ ทางประวัติศาสตร์โดยใช้วิธีการ ทางประวัติศาสตร์อย่างเป็นระบบ",
     "learningAreaNote": null
   },
   {
@@ -5567,7 +5567,7 @@
     "standardCode": "ส 4.2",
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ม.4-6/1",
-    "midwayIndicator": "ส 4.2 ม.4-6/1 วิเคราะห์อิทธิพลของอารยธรรรมโบราณ และการติดต่อระหว่างโลกตะวันออกกับโลกตะวันตก สําคัญต่าง ๆ ที่ส่งผลต่อการเปลี่ยนแปลง ที่มีผลต่อพัฒนาการและการเปลี่ยนแปลงของโลก ทางสังคม เศรษฐกิจและการเมือง",
+    "midwayIndicator": "ส 4.2 ม.4-6/1 วิเคราะห์อิทธิพลของอารยธรรรมโบราณ และการติดต่อระหว่างโลกตะวันออกกับโลกตะวันตก ที่มีผลต่อพัฒนาการและการเปลี่ยนแปลงของโลก",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5582,7 +5582,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ม.4-6/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.2 ม.4-6/2 วิเคราะห์เหตุการณ์",
+    "exitIndicator": "ส 4.2 ม.4-6/2 วิเคราะห์เหตุการณ์ สำคัญต่าง ๆ ที่ส่งผลต่อก าร เปลี่ยนแปลง ทางสังคม เศรษฐกิจและการเมือง เข้าสู่โลกสมัยปัจจุบัน",
     "learningAreaNote": null
   },
   {
@@ -5595,7 +5595,7 @@
     "standardCode": "ส 4.2",
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ม.4-6/3",
-    "midwayIndicator": "ส 4.2 ม.4-6/3 วิเคราะห์ผลกระทบของการขยายอิทธิพล ของประเทศในยุโรปไปยังทวีปอเมริกา แอฟริกาและเอเชีย ของโลกในคริสต์ศตวรรษที่",
+    "midwayIndicator": "ส 4.2 ม.4-6/3 วิเคราะห์ผลกระทบของการขยายอิทธิพล ของประเทศในยุโรปไปยังทวีปอเมริกา แอฟริกาและเอเชีย",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5610,7 +5610,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ม.4-6/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.2 ม.4-6/4 วิเคราะห์สถานการณ์",
+    "exitIndicator": "ส 4.2 ม.4-6/4 วิเคราะห์สถานการณ์ ของโลกในคริสต์ศตวรรษที่ ๒๑",
     "learningAreaNote": null
   },
   {
@@ -5624,7 +5624,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.4-6/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.3 ม.4-6/1 วิเคราะห์ประเด็น",
+    "exitIndicator": "ส 4.3 ม.4-6/1 วิเคราะห์ประเด็น สำคัญของประวัติศาสตร์ไทย",
     "learningAreaNote": null
   },
   {
@@ -5637,7 +5637,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.4-6/2",
-    "midwayIndicator": "ส 4.3 ม.4-6/2 วิเคราะห์ความสําคัญของสถาบัน พระมหากษัตริย์ต่อชาติไทย สําคัญของประวัติศาสตร์ไทย",
+    "midwayIndicator": "ส 4.3 ม.4-6/2 วิเคราะห์ความสำคัญของสถาบัน พระมหากษัตริย์ต่อชาติไทย",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5651,7 +5651,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.4-6/3",
-    "midwayIndicator": "ส 4.3 ม.4-6/3 วิเคราะห์ปัจจัยที่ส่งเสริมการสร้างสรรค์ ภูมิปัญญาไทย และวัฒนธรรมไทย ซึ่งมีผลต่อสังคมไทย แนวทางและการมีส่วนร่วม ในยุคปัจจุบัน การอนุรักษ์ ภูมิปัญญาไทยและ",
+    "midwayIndicator": "ส 4.3 ม.4-6/3 วิเคราะห์ปัจจัยที่ส่งเสริมการสร้างสรรค์ ภูมิปัญญาไทย และวัฒนธรรมไทย ซึ่งมีผลต่อสังคมไทย ในยุคปัจจุบัน",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5665,7 +5665,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.4-6/4",
-    "midwayIndicator": "ส 4.3 ม.4-6/4 วิเคราะห์ผลงานของบุคคลสําคัญ ทั้งชาวไทยและต่างประเทศที่มีส่วนสร้างสรรค์วัฒนธรรมไทย และประวัติศาสตร์ไทย หมายเหตุ * วิธีการทางประวัติศาสตร์เป็นกระบวนการที่ใช้ในการจัดการเรียนรู้เพื่อให้ผู้เรียนเข้าถึงองค์ความรู้ ทางประวัติศาสตร์ ดังนั้น วิธีการทางประวัติศาสตร์จึงระบุไว้ในทุกกลุ่มตัวชี้วัดที่แสดงเนื้อหา ทางประวัติศาสตร์ที่ผู้เรียนควรศึกษา",
+    "midwayIndicator": "ส 4.3 ม.4-6/4 วิเคราะห์ผลงานของบุคคลสำคัญ ทั้งชาวไทยและต่างประเทศที่มีส่วนสร้างสรรค์วัฒนธรรมไทย และประวัติศาสตร์ไทย หมายเหตุ วิธีการทางประวัติศาสตร์เป็นกระบวนการที่ใช้ในการจัดการเรียนรู้เพื่อให้ผู้เรียนเข้าถึงองค์ความรู้ ทางประวัติศาสตร์ ดังนั้น วิธี การทางประวัติศาสตร์จึงระบุไว้ในทุกกลุ่มตัวชี้วัดที่แสดงเนื้อหา ทางประวัติศาสตร์ที่ผู้เรียนควรศึกษา",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5680,7 +5680,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.4-6/5",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.3 ม.4-6/5 วางแผนกําหนด แนวทางและการมีส่วนร่วม",
+    "exitIndicator": "ส 4.3 ม.4-6/5 วางแผนกำหนด แนวทางและการมีส่วนร่ วม การอนุรักษ์ ภูมิปัญญาไทยและ วัฒนธรรมไทย",
     "learningAreaNote": null
   },
   {
@@ -5693,7 +5693,7 @@
     "standardCode": "ส 5.1",
     "standardDescription": "",
     "indicatorCode": "ส 5.1 ม.4-6/1",
-    "midwayIndicator": "ส 5.1 ม.4-6/1 วิเคราะห์การเปลี่ยนแปลงทางกายภาพ 11 ในประเทศไทยและภูมิภาคต่าง ๆ ของโลก ซึ่งได้รับอิทธิพล ระหว่างสิ่งแวดล้อมทางกายภาพกับ จากปัจจัยทางภูมิศาสตร์ กิจกรรมของมนุษย์ในการสร้างสรรค์",
+    "midwayIndicator": "ส 5.1 ม.4-6/1 วิเคราะห์การเปลี่ยนแปลงทางกายภาพ ในประเทศไทยและภูมิภาคต่าง ๆ ของโลก ซึ่งได้รับอิทธิพล จากปัจจัยทางภูมิศาสตร์",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5707,7 +5707,7 @@
     "standardCode": "ส 5.1",
     "standardDescription": "",
     "indicatorCode": "ส 5.1 ม.4-6/2",
-    "midwayIndicator": "ส 5.1 ม.4-6/2 วิเคราะห์ลักษณะทางกายภาพซึ่งทําให้ เกิดปัญหาและภัยพิบัติทางธรรมชาติในประเทศไทยและ ทั้งในประเทศไทยและภูมิภาคต่าง ๆ ภูมิภาคต่าง ๆ ของโลก ของโลก และเห็นความสําคัญของ",
+    "midwayIndicator": "ส 5.1 ม.4-6/2 วิเคราะห์ลักษณะทางกายภาพซึ่งทำให้ เกิดปัญหาและภัยพิบัติทางธรรมชาติในประเทศไทยและ ภูมิภาคต่าง ๆ ของโลก",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5721,7 +5721,7 @@
     "standardCode": "ส 5.1",
     "standardDescription": "",
     "indicatorCode": "ส 5.1 ม.4-6/3",
-    "midwayIndicator": "ส 5.1 ม.4-6/3 ใช้แผนที่และเครื่องมือทางภูมิศาสตร์ ในการค้นหา วิเคราะห์ และสรุปข้อมูล ตามกระบวนการ ของมนุษย์ ทางภูมิศาสตร์ และนําภูมิสารสนเทศมาใช้ประโยชน์ ในชีวิตประจําวัน ใช้แผนที่และเครื่องมือทางภูมิศาสตร์ 12 ในการค้นหา วิเคราะห์ และสรุปข้อมูล ตามกระบวนการทาง และมีส่วนร่วมในการจัดการ ภูมิศาสตร์ และนําภูมิสารสนเทศมาใช้ประโยชน์ในชีวิตประจําวัน ทรัพยากรธรรมชาติ และสิ่งแวดล้อม",
+    "midwayIndicator": "ส 5.1 ม.4-6/3 ใช้แผนที่และเครื่องมือทางภูมิศาสตร์ ในการค้นหา วิเคราะห์ และสรุปข้อมูล ตามกระบวนการ ทางภูมิศาสตร์ และนำภูมิสารสนเทศมาใช้ประโยชน์ ในชีวิตประจำวัน",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5736,7 +5736,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ม.4-6/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ม.4-6/1 วิเคราะห์ปฏิสัมพันธ์",
+    "exitIndicator": "ส 5.2 ม.4-6/1 วิเคราะห์ปฏิสัมพันธ์ ระหว่างสิ่งแวดล้อมทางกายภาพกับ กิจกรรมของมนุษย์ในการสร้างสรรค์ วิถีการดำเนินชีวิตของท้องถิ่น ทั้งในประเทศไทยและภูมิภาคต่าง ๆ ของโลก และเห็นความสำคัญของ สิ่งแวดล้อมที่มีผลต่อการดำรงชีวิ ต ของมนุษย์",
     "learningAreaNote": null
   },
   {
@@ -5763,7 +5763,7 @@
     "standardCode": "ส 5.2",
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ม.4-6/3",
-    "midwayIndicator": "ส 5.2 ม.4-6/3 ระบุมาตรการป้องกันและแก้ไขปัญหา กฎหมายและนโยบายด้านทรัพยากรธรรมชาติ และ สิ่งแวดล้อม บทบาทขององค์การที่เกี่ยวข้อง และการประสาน ความร่วมมือทั้งในประเทศและระหว่างประเทศ",
+    "midwayIndicator": "ส 5.2 ม.4-6/3 ระบุ มาตรการป้องกันและแก้ไขปัญหา กฎหมายและนโยบายด้านทรัพยากรธรรมชาติ และ สิ่งแวดล้อม บทบาทขององค์การที่เกี่ยวข้อง และการประสาน ความร่วมมือทั้งในประเทศและระหว่างประเทศ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5778,7 +5778,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ม.4-6/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ม.4-6/4 วิเคราะห์แนวทาง และมีส่วนร่วมในการจัดการ",
+    "exitIndicator": "ส 5.2 ม.4-6/4 วิเคราะห์แนวทาง และมีส่วนร่วมในการจัดการ ทรัพยากรธรรมชาติ และสิ่งแวดล้อม เพื่อการพัฒนาที่ยั่งยืน",
     "learningAreaNote": null
   },
   {
@@ -5791,7 +5791,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/1",
-    "midwayIndicator": "ส 1.1 ม.4-6/1 วิเคราะห์สังคมชมพูทวีป และคติความเชื่อ 1 ทางศาสนาสมัยก่อนพระพุทธเจ้า หรือสังคมสมัย หลักธรรมในกรอบอริยสัจ 4 หรือ ของศาสดาที่ตนนับถือ หลักคําสอนของศาสนาที่ตนนับถือ",
+    "midwayIndicator": "ส 1.1 ม.4-6/1 วิเคราะห์สังคมชมพูทวีป และคติความเชื่อ ทางศาสนาสมัยก่อนพระพุทธเจ้า หรือสังคมสมัย ของศาสดาที่ตนนับถือ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5805,7 +5805,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/10",
-    "midwayIndicator": "ส 1.1 ม.4-6/10 วิเคราะห์พระพุทธศาสนาในการฝึกตน ไม่ให้ประมาท มุ่งประโยชน์และสันติภาพบุคคล สังคม และโลก หรือแนวคิดของศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.4-6/10 วิเคราะห์พระพุทธศาสนาในการฝึกตน ไม่ให้ประมาท มุ่งประโยชน์และสันติภาพบุคคล สังคม และโลก หรือแนวคิดของศาสนาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5819,7 +5819,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/11",
-    "midwayIndicator": "ส 1.1 ม.4-6/11 วิเคราะห์พระพุทธศาสนากับปรัชญาของ เศรษฐกิจพอเพียง และการพัฒนาประเทศแบบยั่งยืน หรือแนวคิดของศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.4-6/11 วิเคราะห์พระพุทธศาสนากับปรัชญาของ เศรษฐกิจพอเพียง และการพัฒนาประเทศแบบยั่งยืน หรือแนวคิดของศาสนาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5833,7 +5833,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/12",
-    "midwayIndicator": "ส 1.1 ม.4-6/12 วิเคราะห์ความสําคัญของพระพุทธศาสนา เกี่ยวกับการศึกษาที่สมบูรณ์ การเมืองและสันติภาพ หรือแนวคิดของศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.4-6/12 วิเคราะห์ความสำคัญของพระพุทธศาสนา เกี่ยวกับการศึกษาที่สมบูรณ์ การเมืองและสันติภาพ หรือแนวคิดของศาสนาที่ตนนับถื อตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5848,7 +5848,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/13",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ม.4-6/13 วิเคราะห์",
+    "exitIndicator": "ส 1.1 ม.4-6/13 วิเคราะห์ หลักธรรมในกรอบอริยสัจ ๔ หรือ หลักคำสอนของศาสนาที่ตนนับถือ",
     "learningAreaNote": null
   },
   {
@@ -5861,7 +5861,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/14",
-    "midwayIndicator": "ส 1.1 ม.4-6/14 วิเคราะห์ข้อคิดและแบบอย่าง การดําเนินชีวิตจากประวัติสาวก ชาดก เรื่องเล่า และศาสนิกชนตัวอย่างตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.4-6/14 วิเคราะห์ข้อคิดและแบบอย่าง การดำเนินชีวิตจากประวัติสาวก ชาดก เรื่องเล่า และศาสนิกชนตัวอย่างตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5875,7 +5875,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/15",
-    "midwayIndicator": "ส 1.1 ม.4-6/15 วิเคราะห์คุณค่าและความสําคัญ ของการสังคายนา พระไตรปิฎก หรือคัมภีร์ ของศาสนาที่ตนนับถือ และการเผยแผ่",
+    "midwayIndicator": "ส 1.1 ม.4-6/15 วิเคราะห์คุณค่าและความสำคัญ ของการสังคายนา พระไตรปิฎก หรือคัมภีร์ ของศาสนาที่ตนนับถือ และการเผยแผ่",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5890,7 +5890,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/16",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ม.4-6/16 เชื่อมั่นต่อ",
+    "exitIndicator": "ส 1.1 ม.4-6/16 เชื่อมั่นต่อ ผลของการทำความดี ความชั่ว สามารถวิเคราะห์สถานก ารณ์ ที่ต้องเผชิญและตัดสินใจเลือก ดำเนินการ หรือปฏิบัติตน ได้อย่างมีเหตุผลถูกต้องตามหลักธรรม จริยธรรม และกำหนดเป้าหมาย บทบาทการดำเนินชีวิตเพื่อ การอยู่ร่วมกันอย่างสันติสุข และ อยู่ร่วมกันเป็นชาติอย่างสมานฉันท์",
     "learningAreaNote": null
   },
   {
@@ -5917,7 +5917,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/18",
-    "midwayIndicator": "ส 1.1 ม.4-6/18 ตระหนักในคุณค่าและความสําคัญ ของค่านิยม จริยธรรมที่เป็นตัวกําหนดความเชื่อและ พฤติกรรมที่แตกต่างกันของศาสนิกชนศาสนาต่าง ๆ เพื่อขจัดความขัดแย้งและอยู่ร่วมกันในสังคมอย่างสันติสุข",
+    "midwayIndicator": "ส 1.1 ม.4-6/18 ตระหนักในคุณค่าและความสำคัญ ของค่านิยม จริยธรรมที่เป็นตัวกำหนดความเชื่อและ พฤติกรรมที่แตกต่างกันของศาสนิกชนศาสนาต่าง ๆ เพื่อขจัดความขัดแย้งและอยู่ร่วมกันในสังคมอย่างสันติสุข",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5931,7 +5931,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/19",
-    "midwayIndicator": "ส 1.1 ม.4-6/19 เห็นคุณค่า เชื่อมั่น และมุ่งมั่นพัฒนาชีวิต ด้วยการพัฒนาจิตและพัฒนาการเรียนรู้ด้วยวิธีคิดแบบ โยนิโสมนสิการหรือการพัฒนาจิตตามแนวทางของศาสนา ที่ตนนับถือ",
+    "midwayIndicator": "ส 1.1 ม.4-6/19 เห็นคุณค่า เชื่อมั่น และมุ่งมั่นพัฒนาชีวิต ด้วยการพัฒนาจิตและพัฒนาการเรียนรู้ด้วยวิธีคิดแบบ โยนิโสมนสิการ หรือการพัฒนาจิตตามแนวทางของศาสนา ที่ตนนับถือ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5945,7 +5945,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/2",
-    "midwayIndicator": "ส 1.1 ม.4-6/2 วิเคราะห์พระพุทธเจ้าในฐานะเป็นมนุษย์ ผู้ฝึกตนได้อย่างสูงสุดในการตรัสรู้ การก่อตั้ง วิธีการสอน ผลของการทําความดี ความชั่ว และการเผยแผ่พระพุทธศาสนา หรือวิเคราะห์ประวัติศาสดา สามารถวิเคราะห์สถานการณ์ ที่ตนนับถือตามที่กําหนด ที่ต้องเผชิญและตัดสินใจเลือก",
+    "midwayIndicator": "ส 1.1 ม.4-6/2 วิเคราะห์พระพุทธเจ้าในฐานะเป็นมนุษย์ ผู้ฝึกตนได้อย่างสูงสุดในการตรัสรู้ การก่อตั้ง วิธีการสอน และการเผยแผ่พระพุทธศาสนา หรือวิเคราะห์ประวัติศาสดา ที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -5974,7 +5974,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/21",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ม.4-6/21 วิเคราะห์",
+    "exitIndicator": "ส 1.1 ม.4-6/21 วิเคราะห์ หลักธรรมสำคัญในการอยู่ร่ วมกัน อย่างสันติสุขของศาสนาอื่น ๆ และ ชักชวน ส่งเสริม สนับสนุนให้บุคคลอื่น เห็นความสำคัญของการทำความดีต่อกัน",
     "learningAreaNote": null
   },
   {
@@ -6001,7 +6001,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/3",
-    "midwayIndicator": "ส 1.1 ม.4-6/3 วิเคราะห์พุทธประวัติด้านการบริหาร และการธํารงรักษาศาสนา หรือวิเคราะห์ประวัติศาสดา ได้อย่างมีเหตุผลถูกต้องตามหลักธรรม ที่ตนนับถือตามที่กําหนด จริยธรรม และกําหนดเป้าหมาย",
+    "midwayIndicator": "ส 1.1 ม.4-6/3 วิเคราะห์พุทธประวัติด้านการบริหาร และการธำรงรักษาศาสนา หรือวิเคราะห์ประวัติศาสดา ที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6015,7 +6015,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/4",
-    "midwayIndicator": "ส 1.1 ม.4-6/4 วิเคราะห์ข้อปฏิบัติทางสายกลาง ในพระพุทธศาสนาหรือแนวคิดของศาสนาที่ตนนับถือ บทบาทการดําเนินชีวิตเพื่อ ตามที่กําหนด การอยู่ร่วมกันอย่างสันติสุข และ",
+    "midwayIndicator": "ส 1.1 ม.4-6/4 วิเคราะห์ข้อปฏิบัติทางสายกลาง ในพระพุทธศาสนาหรือแนวคิดของศาสนาที่ตนนับถือ ตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6029,7 +6029,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/5",
-    "midwayIndicator": "ส 1.1 ม.4-6/5 วิเคราะห์การพัฒนาศรัทธาและปัญญา ที่ถูกต้องในพระพุทธศาสนา หรือแนวคิดของศาสนา ที่ตนนับถือตามที่กําหนด หลักธรรมสําคัญในการอยู่ร่วมกัน",
+    "midwayIndicator": "ส 1.1 ม.4-6/5 วิเคราะห์การพัฒนาศรัทธาและปัญญา ที่ถูกต้องในพระพุทธศาสนา หรือแนวคิดของศาสนา ที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6043,7 +6043,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/6",
-    "midwayIndicator": "ส 1.1 ม.4-6/6 วิเคราะห์ลักษณะประชาธิปไตย ในพระพุทธศาสนา หรือแนวคิด ของศาสนาที่ตนนับถือ ชักชวน ส่งเสริม สนับสนุนให้บุคคลอื่น ตามที่กําหนด เห็นความสําคัญของการทําความดีต่อกัน",
+    "midwayIndicator": "ส 1.1 ม.4-6/6 วิเคราะห์ลักษณะประชาธิ ปไตย ในพระพุทธศาสนา หรือแนวคิด ของศาสนาที่ตนนับถือ ตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6057,7 +6057,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/7",
-    "midwayIndicator": "ส 1.1 ม.4-6/7 วิเคราะห์หลักการของพระพุทธศาสนากับ หลักวิทยาศาสตร์ หรือแนวคิดของศาสนาที่ตนนับถือ ตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.4-6/7 วิเคราะห์หลักการของพระพุทธศาสนากับ หลักวิทยาศาสตร์ หรือแนวคิดของศาสนาที่ตนนับถือ ตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6071,7 +6071,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/8",
-    "midwayIndicator": "ส 1.1 ม.4-6/8 วิเคราะห์การฝึกฝนและพัฒนาตนเอง การพึ่งตนเอง และการมุ่งอิสรภาพในพระพุทธศาสนา หรือแนวคิดของศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.4-6/8 วิเคราะห์การฝึกฝนและพัฒนาตนเอง การพึ่งตนเอง และการมุ่งอิสรภาพในพระพุทธศาสนา หรือแนวคิดของศาสนาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6085,7 +6085,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/9",
-    "midwayIndicator": "ส 1.1 ม.4-6/9 วิเคราะห์พระพุทธศาสนาว่าเป็นศาสตร์ แห่งการศึกษา ซึ่งเน้นความสัมพันธ์ของเหตุปัจจัยกับวิธีการ แก้ปัญหาหรือแนวคิดของศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.4-6/9 วิเคราะห์พระพุทธศาสนาว่าเป็นศาสตร์ แห่งการศึกษา ซึ่งเน้นความสัมพันธ์ของเหตุปัจจัยกับวิธีการ แก้ปัญหาหรือแนวคิดของ ศาสนาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6099,7 +6099,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.4-6/1",
-    "midwayIndicator": "ส 1.2 ม.4-6/1 ปฏิบัติตนเป็นศาสนิกชนที่ดีต่อสาวก สมาชิกในครอบครัวและคนรอบข้าง แนวทางในการธํารงรักษาศาสนา",
+    "midwayIndicator": "ส 1.2 ม.4-6/1 ปฏิบัติตนเป็นศาสนิกชนที่ดีต่อสาวก สมาชิกในครอบครัวและคนรอบข้าง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6113,7 +6113,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.4-6/2",
-    "midwayIndicator": "ส 1.2 ม.4-6/2 ปฏิบัติตนถูกต้องตามศาสนพิธี พิธีกรรม ตามหลักศาสนาที่ตนนับถือ พัฒนาชาติ และโลก",
+    "midwayIndicator": "ส 1.2 ม.4-6/2 ปฏิบัติตนถูกต้องตามศาสนพิธี พิธีกรรม ตามหลักศาสนาที่ตนนับถือ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6141,7 +6141,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.4-6/4",
-    "midwayIndicator": "ส 1.2 ม.4-6/4 วิเคราะห์หลักธรรม คติธรรมที่เกี่ยวเนื่อง กับวันสําคัญทางศาสนา และเทศกาลที่สําคัญ ของศาสนา ที่ตนนับถือ และปฏิบัติตนได้ถูกต้อง",
+    "midwayIndicator": "ส 1.2 ม.4-6/4 วิเคราะห์หลักธรรม คติธรรมที่เกี่ยวเนื่อง กับวันสำคัญทางศาสนา และเทศกาลที่สำคัญ ของศาสนา ที่ตนนับถือ และปฏิบัติตนได้ถูกต้อง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6156,7 +6156,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.4-6/5",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.2 ม.4-6/5 สัมมนาและเสนอแนะ",
+    "exitIndicator": "ส 1.2 ม.4-6/5 สัมมนาและเสนอแนะ แนวทางในการธำรงรักษาศาสนา ที่ตนนับถือ อันส่งผลถึงการพัฒนาตน พัฒนาชาติ และโลก",
     "learningAreaNote": null
   },
   {
@@ -6169,7 +6169,7 @@
     "standardCode": "ส 2.1",
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.4-6/1",
-    "midwayIndicator": "ส 2.1 ม.4-6/1 วิเคราะห์และปฏิบัติตนตามกฎหมาย ที่เกี่ยวข้องกับตนเอง ครอบครัว ชุมชน ประเทศชาติและสังคมโลก มีส่วนสนับสนุนให้ผู้อื่นประพฤติ",
+    "midwayIndicator": "ส 2.1 ม.4-6/1 วิเคราะห์และปฏิบัติตนตามกฎหมาย ที่เกี่ยวข้องกับตนเอง ครอบครัว ชุมชน ประเทศชาติและสังคมโลก",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6183,7 +6183,7 @@
     "standardCode": "ส 2.1",
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.4-6/2",
-    "midwayIndicator": "ส 2.1 ม.4-6/2 วิเคราะห์ความสําคัญของโครงสร้างทางสังคม การขัดเกลาทางสังคม และการเปลี่ยนแปลงทางสังคม ประเทศชาติ และสังคมโลก",
+    "midwayIndicator": "ส 2.1 ม.4-6/2 วิเคราะห์ความสำคัญของโครงสร้างทางสังคม การขัดเกลาทางสังคม และการเปลี่ยนแปลงทางสังคม",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6198,7 +6198,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.4-6/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.1 ม.4-6/3 ปฏิบัติตนและ",
+    "exitIndicator": "ส 2.1 ม.4-6/3 ปฏิบัติตนและ มีส่วนสนับสนุนให้ผู้อื่นประพฤติ ปฏิบัติเพื่อเป็นพลเมืองดีของ ประเทศชาติ และสังคมโลก",
     "learningAreaNote": null
   },
   {
@@ -6211,7 +6211,7 @@
     "standardCode": "ส 2.1",
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.4-6/4",
-    "midwayIndicator": "ส 2.1 ม.4-6/4 ประเมินสถานการณ์สิทธิมนุษยชนในประเทศไทย และเสนอแนวทางพัฒนา ความจําเป็นที่จะต้องมีการปรับปรุง เปลี่ยนแปลงและอนุรักษ์วัฒนธรรม ไทยและเลือกรับวัฒนธรรมสากล",
+    "midwayIndicator": "ส 2.1 ม.4-6/4 ประเมินสถานการณ์สิทธิมนุษยชนในประเทศไทย และเสนอแนวทางพัฒนา",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6226,7 +6226,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.4-6/5",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.1 ม.4-6/5 วิเคราะห์",
+    "exitIndicator": "ส 2.1 ม.4-6/5 วิเคราะห์ ความจำเป็นที่จะต้องมีการปรับปรุง เปลี่ยนแปลงและอนุรักษ์วัฒนธรรม ไทยและเลือกรับวัฒนธรรมสากล",
     "learningAreaNote": null
   },
   {
@@ -6239,7 +6239,7 @@
     "standardCode": "ส 2.2",
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ม.4-6/1",
-    "midwayIndicator": "ส 2.2 ม.4-6/1 วิเคราะห์ปัญหาการเมืองที่สําคัญในประเทศ จากแหล่งข้อมูลต่าง ๆ พร้อมทั้งเสนอแนวทางแก้ไข ความสําคัญ และความจําเป็นที่ต้อง",
+    "midwayIndicator": "ส 2.2 ม.4-6/1 วิเคราะห์ปัญหาการเมืองที่สำคัญในประเทศ จากแหล่งข้อมูลต่าง ๆ พร้อมทั้งเสนอแนวทางแก้ไข",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6253,7 +6253,7 @@
     "standardCode": "ส 2.2",
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ม.4-6/2",
-    "midwayIndicator": "ส 2.2 ม.4-6/2 เสนอแนวทางทางการเมืองการปกครอง ที่นําไปสู่ความเข้าใจ และการประสานประโยชน์ร่วมกัน ระบอบประชาธิปไตยอันมี ระหว่างประเทศ พระมหากษัตริย์ทรงเป็นประมุข และมีส่วนร่วมในการตรวจสอบ การใช้อํานาจรัฐ",
+    "midwayIndicator": "ส 2.2 ม.4-6/2 เสนอแนวทางทางการเมืองการปกครอง ที่นำไปสู่ ความเข้าใจ และการประสานประโยชน์ร่วมกัน ระหว่างประเทศ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6268,7 +6268,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ม.4-6/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.2 ม.4-6/3 วิเคราะห์",
+    "exitIndicator": "ส 2.2 ม.4-6/3 วิเคราะห์ ความสำคัญ และความจำเป็นที่ต้อง ธำรงรักษาไว้ซึ่งการปกครองตาม ระบอบประชาธิปไตยอันมี พระมหากษัตริย์ทรงเป็นประมุข",
     "learningAreaNote": null
   },
   {
@@ -6282,7 +6282,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ม.4-6/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.2 ม.4-6/4 เสนอแนวทาง",
+    "exitIndicator": "ส 2.2 ม.4-6/4 เสนอแนวทาง และมีส่วนร่วมในการตรวจสอบ การใช้อำนาจรัฐ",
     "learningAreaNote": null
   },
   {
@@ -6296,7 +6296,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ม.4-6/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.1 ม.4-6/1 อภิปราย การกําหนดราคาและค่าจ้าง ในระบบเศรษฐกิจ",
+    "exitIndicator": "ส 3.1 ม.4-6/1 อภิปราย การกำหนดราคาและค่าจ้าง ในระบบเศรษฐกิจ",
     "learningAreaNote": null
   },
   {
@@ -6309,7 +6309,7 @@
     "standardCode": "ส 3.1",
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ม.4-6/2",
-    "midwayIndicator": "ส 3.1 ม.4-6/2 ตระหนักถึงความสําคัญของปรัชญา ของเศรษฐกิจพอเพียงที่มีต่อเศรษฐกิจสังคมของประเทศ ทางเศรษฐกิจในชุมชนและเสนอ",
+    "midwayIndicator": "ส 3.1 ม.4-6/2 ตระหนักถึงความสำคัญของปรัชญา ของเศรษฐกิจพอเพียงที่มีต่อเศรษฐกิจสังคมของประเทศ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6323,7 +6323,7 @@
     "standardCode": "ส 3.1",
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ม.4-6/3",
-    "midwayIndicator": "ส 3.1 ม.4-6/3 ตระหนักถึงความสําคัญของระบบสหกรณ์ ในการพัฒนาเศรษฐกิจในระดับชุมชนและประเทศ",
+    "midwayIndicator": "ส 3.1 ม.4-6/3 ตระหนักถึงความสำคัญของระบบสหกรณ์ ในการพัฒนาเศรษฐกิจในระดับชุมชนและประเทศ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6338,7 +6338,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ม.4-6/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.1 ม.4-6/4 วิเคราะห์ปัญหา",
+    "exitIndicator": "ส 3.1 ม.4-6/4 วิเคราะห์ปัญหา ทางเศรษฐกิจในชุมชนและเสนอ แนวทางแก้ไข",
     "learningAreaNote": null
   },
   {
@@ -6352,7 +6352,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.2 ม.4-6/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.2 ม.4-6/1 อธิบายบทบาท",
+    "exitIndicator": "ส 3.2 ม.4-6/1 อธิบายบทบาท ของรัฐบาลเกี่ยวกับนโยบายการเงิน การคลังในการพัฒนาเศรษฐกิจ ของประเทศ",
     "learningAreaNote": null
   },
   {
@@ -6366,7 +6366,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.2 ม.4-6/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.2 ม.4-6/2 วิเคราะห์ ผลกระทบของการเปิดเสรี",
+    "exitIndicator": "ส 3.2 ม.4-6/2 วิเคราะห์ ผลกระทบของการเปิดเสรี ทางเศรษฐกิจในยุคโลกาภิวัตน์ ที่มีผลต่อสังคมไทย",
     "learningAreaNote": null
   },
   {
@@ -6379,7 +6379,7 @@
     "standardCode": "ส 3.2",
     "standardDescription": "",
     "indicatorCode": "ส 3.2 ม.4-6/3",
-    "midwayIndicator": "ส 3.2 ม.4-6/3 วิเคราะห์ผลดี ผลเสียของความร่วมมือ ทางเศรษฐกิจระหว่างประเทศในรูปแบบต่าง ๆ ผลกระทบของการเปิดเสรี ทางเศรษฐกิจในยุคโลกาภิวัตน์ ที่มีผลต่อสังคมไทย",
+    "midwayIndicator": "ส 3.2 ม.4-6/3 วิเคราะห์ผลดี ผลเสียของความร่วมมือ ทางเศรษฐกิจระหว่างประเทศในรูปแบบต่าง ๆ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6393,7 +6393,7 @@
     "standardCode": "ส 4.1",
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ม.4-6/1",
-    "midwayIndicator": "ส 4.1 ม.4-6/1 ตระหนักถึงความสําคัญของเวลาและ ยุคสมัยทางประวัติศาสตร์ที่แสดงถึงการเปลี่ยนแปลง ทางประวัติศาสตร์โดยใช้วิธีการ ของมนุษยชาติ ทางประวัติศาสตร์อย่างเป็นระบบ ตระหนักถึงความสําคัญของเวลาและ ยุคสมัยทางประวัติศาสตร์ที่แสดงถึงการเปลี่ยนแปลงของ ทางประวัติศาสตร์โดยใช้วิธีการ มนุษยชาติ ทางประวัติศาสตร์อย่างเป็นระบบ",
+    "midwayIndicator": "ส 4.1 ม.4-6/1 ตระหนักถึงความสำคัญของเวลาและ ยุคสมัยทางประวัติศาสตร์ที่แสดงถึงการเปลี่ยนแปลง ของมนุษยชาติ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6408,7 +6408,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ม.4-6/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.1 ม.4-6/2 สร้างองค์ความรู้ใหม่ สร้างองค์ความรู้ใหม่",
+    "exitIndicator": "ส 4.1 ม.4-6/2 สร้างองค์ความรู้ใหม่ ทางประวัติศาสตร์โดยใช้วิธีการ ทางประวัติศาสตร์อย่างเป็นระบบ",
     "learningAreaNote": null
   },
   {
@@ -6421,7 +6421,7 @@
     "standardCode": "ส 4.2",
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ม.4-6/1",
-    "midwayIndicator": "ส 4.2 ม.4-6/1 วิเคราะห์อิทธิพลของอารยธรรรมโบราณ และการติดต่อระหว่างโลกตะวันออกกับโลกตะวันตก สําคัญต่าง ๆ ที่ส่งผลต่อการเปลี่ยนแปลง ที่มีผลต่อพัฒนาการและการเปลี่ยนแปลงของโลก ทางสังคม เศรษฐกิจและการเมือง",
+    "midwayIndicator": "ส 4.2 ม.4-6/1 วิเคราะห์อิทธิพลของอารยธรรรมโบราณ และการติดต่อระหว่างโลกตะวันออกกับโลกตะวันตก ที่มีผลต่อพัฒนาการและการเปลี่ยนแปลงของโลก",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6436,7 +6436,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ม.4-6/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.2 ม.4-6/2 วิเคราะห์เหตุการณ์",
+    "exitIndicator": "ส 4.2 ม.4-6/2 วิเคราะห์เหตุการณ์ สำคัญต่าง ๆ ที่ส่งผลต่อก าร เปลี่ยนแปลง ทางสังคม เศรษฐกิจและการเมือง เข้าสู่โลกสมัยปัจจุบัน",
     "learningAreaNote": null
   },
   {
@@ -6449,7 +6449,7 @@
     "standardCode": "ส 4.2",
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ม.4-6/3",
-    "midwayIndicator": "ส 4.2 ม.4-6/3 วิเคราะห์ผลกระทบของการขยายอิทธิพล ของประเทศในยุโรปไปยังทวีปอเมริกา แอฟริกาและเอเชีย ของโลกในคริสต์ศตวรรษที่",
+    "midwayIndicator": "ส 4.2 ม.4-6/3 วิเคราะห์ผลกระทบของการขยายอิทธิพล ของประเทศในยุโรปไปยังทวีปอเมริกา แอฟริกาและเอเชีย",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6464,7 +6464,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ม.4-6/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.2 ม.4-6/4 วิเคราะห์สถานการณ์",
+    "exitIndicator": "ส 4.2 ม.4-6/4 วิเคราะห์สถานการณ์ ของโลกในคริสต์ศตวรรษที่ ๒๑",
     "learningAreaNote": null
   },
   {
@@ -6478,7 +6478,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.4-6/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.3 ม.4-6/1 วิเคราะห์ประเด็น",
+    "exitIndicator": "ส 4.3 ม.4-6/1 วิเคราะห์ประเด็น สำคัญของประวัติศาสตร์ไทย",
     "learningAreaNote": null
   },
   {
@@ -6491,7 +6491,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.4-6/2",
-    "midwayIndicator": "ส 4.3 ม.4-6/2 วิเคราะห์ความสําคัญของสถาบัน พระมหากษัตริย์ต่อชาติไทย สําคัญของประวัติศาสตร์ไทย",
+    "midwayIndicator": "ส 4.3 ม.4-6/2 วิเคราะห์ความสำคัญของสถาบัน พระมหากษัตริย์ต่อชาติไทย",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6505,7 +6505,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.4-6/3",
-    "midwayIndicator": "ส 4.3 ม.4-6/3 วิเคราะห์ปัจจัยที่ส่งเสริมการสร้างสรรค์ ภูมิปัญญาไทย และวัฒนธรรมไทย ซึ่งมีผลต่อสังคมไทย แนวทางและการมีส่วนร่วม ในยุคปัจจุบัน การอนุรักษ์ ภูมิปัญญาไทยและ",
+    "midwayIndicator": "ส 4.3 ม.4-6/3 วิเคราะห์ปัจจัยที่ส่งเสริมการสร้างสรรค์ ภูมิปัญญาไทย และวัฒนธรรมไทย ซึ่งมีผลต่อสังคมไทย ในยุคปัจจุบัน",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6519,7 +6519,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.4-6/4",
-    "midwayIndicator": "ส 4.3 ม.4-6/4 วิเคราะห์ผลงานของบุคคลสําคัญ ทั้งชาวไทยและต่างประเทศที่มีส่วนสร้างสรรค์วัฒนธรรมไทย และประวัติศาสตร์ไทย หมายเหตุ * วิธีการทางประวัติศาสตร์เป็นกระบวนการที่ใช้ในการจัดการเรียนรู้เพื่อให้ผู้เรียนเข้าถึงองค์ความรู้ ทางประวัติศาสตร์ ดังนั้น วิธีการทางประวัติศาสตร์จึงระบุไว้ในทุกกลุ่มตัวชี้วัดที่แสดงเนื้อหา ทางประวัติศาสตร์ที่ผู้เรียนควรศึกษา",
+    "midwayIndicator": "ส 4.3 ม.4-6/4 วิเคราะห์ผลงานของบุคคลสำคัญ ทั้งชาวไทยและต่างประเทศที่มีส่วนสร้างสรรค์วัฒนธรรมไทย และประวัติศาสตร์ไทย หมายเหตุ วิธีการทางประวัติศาสตร์เป็นกระบวนการที่ใช้ในการจัดการเรียนรู้เพื่อให้ผู้เรียนเข้าถึงองค์ความรู้ ทางประวัติศาสตร์ ดังนั้น วิธี การทางประวัติศาสตร์จึงระบุไว้ในทุกกลุ่มตัวชี้วัดที่แสดงเนื้อหา ทางประวัติศาสตร์ที่ผู้เรียนควรศึกษา",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6534,7 +6534,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.4-6/5",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.3 ม.4-6/5 วางแผนกําหนด แนวทางและการมีส่วนร่วม",
+    "exitIndicator": "ส 4.3 ม.4-6/5 วางแผนกำหนด แนวทางและการมีส่วนร่ วม การอนุรักษ์ ภูมิปัญญาไทยและ วัฒนธรรมไทย",
     "learningAreaNote": null
   },
   {
@@ -6547,7 +6547,7 @@
     "standardCode": "ส 5.1",
     "standardDescription": "",
     "indicatorCode": "ส 5.1 ม.4-6/1",
-    "midwayIndicator": "ส 5.1 ม.4-6/1 วิเคราะห์การเปลี่ยนแปลงทางกายภาพ 11 ในประเทศไทยและภูมิภาคต่าง ๆ ของโลก ซึ่งได้รับอิทธิพล ระหว่างสิ่งแวดล้อมทางกายภาพกับ จากปัจจัยทางภูมิศาสตร์ กิจกรรมของมนุษย์ในการสร้างสรรค์",
+    "midwayIndicator": "ส 5.1 ม.4-6/1 วิเคราะห์การเปลี่ยนแปลงทางกายภาพ ในประเทศไทยและภูมิภาคต่าง ๆ ของโลก ซึ่งได้รับอิทธิพล จากปัจจัยทางภูมิศาสตร์",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6561,7 +6561,7 @@
     "standardCode": "ส 5.1",
     "standardDescription": "",
     "indicatorCode": "ส 5.1 ม.4-6/2",
-    "midwayIndicator": "ส 5.1 ม.4-6/2 วิเคราะห์ลักษณะทางกายภาพซึ่งทําให้ เกิดปัญหาและภัยพิบัติทางธรรมชาติในประเทศไทยและ ทั้งในประเทศไทยและภูมิภาคต่าง ๆ ภูมิภาคต่าง ๆ ของโลก ของโลก และเห็นความสําคัญของ",
+    "midwayIndicator": "ส 5.1 ม.4-6/2 วิเคราะห์ลักษณะทางกายภาพซึ่งทำให้ เกิดปัญหาและภัยพิบัติทางธรรมชาติในประเทศไทยและ ภูมิภาคต่าง ๆ ของโลก",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6575,7 +6575,7 @@
     "standardCode": "ส 5.1",
     "standardDescription": "",
     "indicatorCode": "ส 5.1 ม.4-6/3",
-    "midwayIndicator": "ส 5.1 ม.4-6/3 ใช้แผนที่และเครื่องมือทางภูมิศาสตร์ ในการค้นหา วิเคราะห์ และสรุปข้อมูล ตามกระบวนการ ของมนุษย์ ทางภูมิศาสตร์ และนําภูมิสารสนเทศมาใช้ประโยชน์ ในชีวิตประจําวัน ใช้แผนที่และเครื่องมือทางภูมิศาสตร์ 12 ในการค้นหา วิเคราะห์ และสรุปข้อมูล ตามกระบวนการทาง และมีส่วนร่วมในการจัดการ ภูมิศาสตร์ และนําภูมิสารสนเทศมาใช้ประโยชน์ในชีวิตประจําวัน ทรัพยากรธรรมชาติ และสิ่งแวดล้อม",
+    "midwayIndicator": "ส 5.1 ม.4-6/3 ใช้แผนที่และเครื่องมือทางภูมิศาสตร์ ในการค้นหา วิเคราะห์ และสรุปข้อมูล ตามกระบวนการ ทางภูมิศาสตร์ และนำภูมิสารสนเทศมาใช้ประโยชน์ ในชีวิตประจำวัน",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6590,7 +6590,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ม.4-6/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ม.4-6/1 วิเคราะห์ปฏิสัมพันธ์",
+    "exitIndicator": "ส 5.2 ม.4-6/1 วิเคราะห์ปฏิสัมพันธ์ ระหว่างสิ่งแวดล้อมทางกายภาพกับ กิจกรรมของมนุษย์ในการสร้างสรรค์ วิถีการดำเนินชีวิตของท้องถิ่น ทั้งในประเทศไทยและภูมิภาคต่าง ๆ ของโลก และเห็นความสำคัญของ สิ่งแวดล้อมที่มีผลต่อการดำรงชีวิ ต ของมนุษย์",
     "learningAreaNote": null
   },
   {
@@ -6617,7 +6617,7 @@
     "standardCode": "ส 5.2",
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ม.4-6/3",
-    "midwayIndicator": "ส 5.2 ม.4-6/3 ระบุมาตรการป้องกันและแก้ไขปัญหา กฎหมายและนโยบายด้านทรัพยากรธรรมชาติ และ สิ่งแวดล้อม บทบาทขององค์การที่เกี่ยวข้อง และการประสาน ความร่วมมือทั้งในประเทศและระหว่างประเทศ",
+    "midwayIndicator": "ส 5.2 ม.4-6/3 ระบุ มาตรการป้องกันและแก้ไขปัญหา กฎหมายและนโยบายด้านทรัพยากรธรรมชาติ และ สิ่งแวดล้อม บทบาทขององค์การที่เกี่ยวข้อง และการประสาน ความร่วมมือทั้งในประเทศและระหว่างประเทศ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6632,7 +6632,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ม.4-6/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ม.4-6/4 วิเคราะห์แนวทาง และมีส่วนร่วมในการจัดการ",
+    "exitIndicator": "ส 5.2 ม.4-6/4 วิเคราะห์แนวทาง และมีส่วนร่วมในการจัดการ ทรัพยากรธรรมชาติ และสิ่งแวดล้อม เพื่อการพัฒนาที่ยั่งยืน",
     "learningAreaNote": null
   },
   {
@@ -6645,7 +6645,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/1",
-    "midwayIndicator": "ส 1.1 ม.4-6/1 วิเคราะห์สังคมชมพูทวีป และคติความเชื่อ 1 ทางศาสนาสมัยก่อนพระพุทธเจ้า หรือสังคมสมัย หลักธรรมในกรอบอริยสัจ 4 หรือ ของศาสดาที่ตนนับถือ หลักคําสอนของศาสนาที่ตนนับถือ",
+    "midwayIndicator": "ส 1.1 ม.4-6/1 วิเคราะห์สังคมชมพูทวีป และคติความเชื่อ ทางศาสนาสมัยก่อนพระพุทธเจ้า หรือสังคมสมัย ของศาสดาที่ตนนับถือ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6659,7 +6659,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/10",
-    "midwayIndicator": "ส 1.1 ม.4-6/10 วิเคราะห์พระพุทธศาสนาในการฝึกตน ไม่ให้ประมาท มุ่งประโยชน์และสันติภาพบุคคล สังคม และโลก หรือแนวคิดของศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.4-6/10 วิเคราะห์พระพุทธศาสนาในการฝึกตน ไม่ให้ประมาท มุ่งประโยชน์และสันติภาพบุคคล สังคม และโลก หรือแนวคิดของศาสนาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6673,7 +6673,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/11",
-    "midwayIndicator": "ส 1.1 ม.4-6/11 วิเคราะห์พระพุทธศาสนากับปรัชญาของ เศรษฐกิจพอเพียง และการพัฒนาประเทศแบบยั่งยืน หรือแนวคิดของศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.4-6/11 วิเคราะห์พระพุทธศาสนากับปรัชญาของ เศรษฐกิจพอเพียง และการพัฒนาประเทศแบบยั่งยืน หรือแนวคิดของศาสนาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6687,7 +6687,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/12",
-    "midwayIndicator": "ส 1.1 ม.4-6/12 วิเคราะห์ความสําคัญของพระพุทธศาสนา เกี่ยวกับการศึกษาที่สมบูรณ์ การเมืองและสันติภาพ หรือแนวคิดของศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.4-6/12 วิเคราะห์ความสำคัญของพระพุทธศาสนา เกี่ยวกับการศึกษาที่สมบูรณ์ การเมืองและสันติภาพ หรือแนวคิดของศาสนาที่ตนนับถื อตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6702,7 +6702,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/13",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ม.4-6/13 วิเคราะห์",
+    "exitIndicator": "ส 1.1 ม.4-6/13 วิเคราะห์ หลักธรรมในกรอบอริยสัจ ๔ หรือ หลักคำสอนของศาสนาที่ตนนับถือ",
     "learningAreaNote": null
   },
   {
@@ -6715,7 +6715,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/14",
-    "midwayIndicator": "ส 1.1 ม.4-6/14 วิเคราะห์ข้อคิดและแบบอย่าง การดําเนินชีวิตจากประวัติสาวก ชาดก เรื่องเล่า และศาสนิกชนตัวอย่างตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.4-6/14 วิเคราะห์ข้อคิดและแบบอย่าง การดำเนินชีวิตจากประวัติสาวก ชาดก เรื่องเล่า และศาสนิกชนตัวอย่างตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6729,7 +6729,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/15",
-    "midwayIndicator": "ส 1.1 ม.4-6/15 วิเคราะห์คุณค่าและความสําคัญ ของการสังคายนา พระไตรปิฎก หรือคัมภีร์ ของศาสนาที่ตนนับถือ และการเผยแผ่",
+    "midwayIndicator": "ส 1.1 ม.4-6/15 วิเคราะห์คุณค่าและความสำคัญ ของการสังคายนา พระไตรปิฎก หรือคัมภีร์ ของศาสนาที่ตนนับถือ และการเผยแผ่",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6744,7 +6744,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/16",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ม.4-6/16 เชื่อมั่นต่อ",
+    "exitIndicator": "ส 1.1 ม.4-6/16 เชื่อมั่นต่อ ผลของการทำความดี ความชั่ว สามารถวิเคราะห์สถานก ารณ์ ที่ต้องเผชิญและตัดสินใจเลือก ดำเนินการ หรือปฏิบัติตน ได้อย่างมีเหตุผลถูกต้องตามหลักธรรม จริยธรรม และกำหนดเป้าหมาย บทบาทการดำเนินชีวิตเพื่อ การอยู่ร่วมกันอย่างสันติสุข และ อยู่ร่วมกันเป็นชาติอย่างสมานฉันท์",
     "learningAreaNote": null
   },
   {
@@ -6771,7 +6771,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/18",
-    "midwayIndicator": "ส 1.1 ม.4-6/18 ตระหนักในคุณค่าและความสําคัญ ของค่านิยม จริยธรรมที่เป็นตัวกําหนดความเชื่อและ พฤติกรรมที่แตกต่างกันของศาสนิกชนศาสนาต่าง ๆ เพื่อขจัดความขัดแย้งและอยู่ร่วมกันในสังคมอย่างสันติสุข",
+    "midwayIndicator": "ส 1.1 ม.4-6/18 ตระหนักในคุณค่าและความสำคัญ ของค่านิยม จริยธรรมที่เป็นตัวกำหนดความเชื่อและ พฤติกรรมที่แตกต่างกันของศาสนิกชนศาสนาต่าง ๆ เพื่อขจัดความขัดแย้งและอยู่ร่วมกันในสังคมอย่างสันติสุข",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6785,7 +6785,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/19",
-    "midwayIndicator": "ส 1.1 ม.4-6/19 เห็นคุณค่า เชื่อมั่น และมุ่งมั่นพัฒนาชีวิต ด้วยการพัฒนาจิตและพัฒนาการเรียนรู้ด้วยวิธีคิดแบบ โยนิโสมนสิการหรือการพัฒนาจิตตามแนวทางของศาสนา ที่ตนนับถือ",
+    "midwayIndicator": "ส 1.1 ม.4-6/19 เห็นคุณค่า เชื่อมั่น และมุ่งมั่นพัฒนาชีวิต ด้วยการพัฒนาจิตและพัฒนาการเรียนรู้ด้วยวิธีคิดแบบ โยนิโสมนสิการ หรือการพัฒนาจิตตามแนวทางของศาสนา ที่ตนนับถือ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6799,7 +6799,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/2",
-    "midwayIndicator": "ส 1.1 ม.4-6/2 วิเคราะห์พระพุทธเจ้าในฐานะเป็นมนุษย์ ผู้ฝึกตนได้อย่างสูงสุดในการตรัสรู้ การก่อตั้ง วิธีการสอน ผลของการทําความดี ความชั่ว และการเผยแผ่พระพุทธศาสนา หรือวิเคราะห์ประวัติศาสดา สามารถวิเคราะห์สถานการณ์ ที่ตนนับถือตามที่กําหนด ที่ต้องเผชิญและตัดสินใจเลือก",
+    "midwayIndicator": "ส 1.1 ม.4-6/2 วิเคราะห์พระพุทธเจ้าในฐานะเป็นมนุษย์ ผู้ฝึกตนได้อย่างสูงสุดในการตรัสรู้ การก่อตั้ง วิธีการสอน และการเผยแผ่พระพุทธศาสนา หรือวิเคราะห์ประวัติศาสดา ที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6828,7 +6828,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/21",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.1 ม.4-6/21 วิเคราะห์",
+    "exitIndicator": "ส 1.1 ม.4-6/21 วิเคราะห์ หลักธรรมสำคัญในการอยู่ร่ วมกัน อย่างสันติสุขของศาสนาอื่น ๆ และ ชักชวน ส่งเสริม สนับสนุนให้บุคคลอื่น เห็นความสำคัญของการทำความดีต่อกัน",
     "learningAreaNote": null
   },
   {
@@ -6855,7 +6855,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/3",
-    "midwayIndicator": "ส 1.1 ม.4-6/3 วิเคราะห์พุทธประวัติด้านการบริหาร และการธํารงรักษาศาสนา หรือวิเคราะห์ประวัติศาสดา ได้อย่างมีเหตุผลถูกต้องตามหลักธรรม ที่ตนนับถือตามที่กําหนด จริยธรรม และกําหนดเป้าหมาย",
+    "midwayIndicator": "ส 1.1 ม.4-6/3 วิเคราะห์พุทธประวัติด้านการบริหาร และการธำรงรักษาศาสนา หรือวิเคราะห์ประวัติศาสดา ที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6869,7 +6869,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/4",
-    "midwayIndicator": "ส 1.1 ม.4-6/4 วิเคราะห์ข้อปฏิบัติทางสายกลาง ในพระพุทธศาสนาหรือแนวคิดของศาสนาที่ตนนับถือ บทบาทการดําเนินชีวิตเพื่อ ตามที่กําหนด การอยู่ร่วมกันอย่างสันติสุข และ",
+    "midwayIndicator": "ส 1.1 ม.4-6/4 วิเคราะห์ข้อปฏิบัติทางสายกลาง ในพระพุทธศาสนาหรือแนวคิดของศาสนาที่ตนนับถือ ตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6883,7 +6883,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/5",
-    "midwayIndicator": "ส 1.1 ม.4-6/5 วิเคราะห์การพัฒนาศรัทธาและปัญญา ที่ถูกต้องในพระพุทธศาสนา หรือแนวคิดของศาสนา ที่ตนนับถือตามที่กําหนด หลักธรรมสําคัญในการอยู่ร่วมกัน",
+    "midwayIndicator": "ส 1.1 ม.4-6/5 วิเคราะห์การพัฒนาศรัทธาและปัญญา ที่ถูกต้องในพระพุทธศาสนา หรือแนวคิดของศาสนา ที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6897,7 +6897,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/6",
-    "midwayIndicator": "ส 1.1 ม.4-6/6 วิเคราะห์ลักษณะประชาธิปไตย ในพระพุทธศาสนา หรือแนวคิด ของศาสนาที่ตนนับถือ ชักชวน ส่งเสริม สนับสนุนให้บุคคลอื่น ตามที่กําหนด เห็นความสําคัญของการทําความดีต่อกัน",
+    "midwayIndicator": "ส 1.1 ม.4-6/6 วิเคราะห์ลักษณะประชาธิ ปไตย ในพระพุทธศาสนา หรือแนวคิด ของศาสนาที่ตนนับถือ ตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6911,7 +6911,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/7",
-    "midwayIndicator": "ส 1.1 ม.4-6/7 วิเคราะห์หลักการของพระพุทธศาสนากับ หลักวิทยาศาสตร์ หรือแนวคิดของศาสนาที่ตนนับถือ ตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.4-6/7 วิเคราะห์หลักการของพระพุทธศาสนากับ หลักวิทยาศาสตร์ หรือแนวคิดของศาสนาที่ตนนับถือ ตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6925,7 +6925,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/8",
-    "midwayIndicator": "ส 1.1 ม.4-6/8 วิเคราะห์การฝึกฝนและพัฒนาตนเอง การพึ่งตนเอง และการมุ่งอิสรภาพในพระพุทธศาสนา หรือแนวคิดของศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.4-6/8 วิเคราะห์การฝึกฝนและพัฒนาตนเอง การพึ่งตนเอง และการมุ่งอิสรภาพในพระพุทธศาสนา หรือแนวคิดของศาสนาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6939,7 +6939,7 @@
     "standardCode": "ส 1.1",
     "standardDescription": "",
     "indicatorCode": "ส 1.1 ม.4-6/9",
-    "midwayIndicator": "ส 1.1 ม.4-6/9 วิเคราะห์พระพุทธศาสนาว่าเป็นศาสตร์ แห่งการศึกษา ซึ่งเน้นความสัมพันธ์ของเหตุปัจจัยกับวิธีการ แก้ปัญหาหรือแนวคิดของศาสนาที่ตนนับถือตามที่กําหนด",
+    "midwayIndicator": "ส 1.1 ม.4-6/9 วิเคราะห์พระพุทธศาสนาว่าเป็นศาสตร์ แห่งการศึกษา ซึ่งเน้นความสัมพันธ์ของเหตุปัจจัยกับวิธีการ แก้ปัญหาหรือแนวคิดของ ศาสนาที่ตนนับถือตามที่กำหนด",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6953,7 +6953,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.4-6/1",
-    "midwayIndicator": "ส 1.2 ม.4-6/1 ปฏิบัติตนเป็นศาสนิกชนที่ดีต่อสาวก สมาชิกในครอบครัวและคนรอบข้าง แนวทางในการธํารงรักษาศาสนา",
+    "midwayIndicator": "ส 1.2 ม.4-6/1 ปฏิบัติตนเป็นศาสนิกชนที่ดีต่อสาวก สมาชิกในครอบครัวและคนรอบข้าง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6967,7 +6967,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.4-6/2",
-    "midwayIndicator": "ส 1.2 ม.4-6/2 ปฏิบัติตนถูกต้องตามศาสนพิธี พิธีกรรม ตามหลักศาสนาที่ตนนับถือ พัฒนาชาติ และโลก",
+    "midwayIndicator": "ส 1.2 ม.4-6/2 ปฏิบัติตนถูกต้องตามศาสนพิธี พิธีกรรม ตามหลักศาสนาที่ตนนับถือ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -6995,7 +6995,7 @@
     "standardCode": "ส 1.2",
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.4-6/4",
-    "midwayIndicator": "ส 1.2 ม.4-6/4 วิเคราะห์หลักธรรม คติธรรมที่เกี่ยวเนื่อง กับวันสําคัญทางศาสนา และเทศกาลที่สําคัญ ของศาสนา ที่ตนนับถือ และปฏิบัติตนได้ถูกต้อง",
+    "midwayIndicator": "ส 1.2 ม.4-6/4 วิเคราะห์หลักธรรม คติธรรมที่เกี่ยวเนื่อง กับวันสำคัญทางศาสนา และเทศกาลที่สำคัญ ของศาสนา ที่ตนนับถือ และปฏิบัติตนได้ถูกต้อง",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -7010,7 +7010,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 1.2 ม.4-6/5",
     "midwayIndicator": null,
-    "exitIndicator": "ส 1.2 ม.4-6/5 สัมมนาและเสนอแนะ",
+    "exitIndicator": "ส 1.2 ม.4-6/5 สัมมนาและเสนอแนะ แนวทางในการธำรงรักษาศาสนา ที่ตนนับถือ อันส่งผลถึงการพัฒนาตน พัฒนาชาติ และโลก",
     "learningAreaNote": null
   },
   {
@@ -7023,7 +7023,7 @@
     "standardCode": "ส 2.1",
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.4-6/1",
-    "midwayIndicator": "ส 2.1 ม.4-6/1 วิเคราะห์และปฏิบัติตนตามกฎหมาย ที่เกี่ยวข้องกับตนเอง ครอบครัว ชุมชน ประเทศชาติและสังคมโลก มีส่วนสนับสนุนให้ผู้อื่นประพฤติ",
+    "midwayIndicator": "ส 2.1 ม.4-6/1 วิเคราะห์และปฏิบัติตนตามกฎหมาย ที่เกี่ยวข้องกับตนเอง ครอบครัว ชุมชน ประเทศชาติและสังคมโลก",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -7037,7 +7037,7 @@
     "standardCode": "ส 2.1",
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.4-6/2",
-    "midwayIndicator": "ส 2.1 ม.4-6/2 วิเคราะห์ความสําคัญของโครงสร้างทางสังคม การขัดเกลาทางสังคม และการเปลี่ยนแปลงทางสังคม ประเทศชาติ และสังคมโลก",
+    "midwayIndicator": "ส 2.1 ม.4-6/2 วิเคราะห์ความสำคัญของโครงสร้างทางสังคม การขัดเกลาทางสังคม และการเปลี่ยนแปลงทางสังคม",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -7052,7 +7052,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.4-6/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.1 ม.4-6/3 ปฏิบัติตนและ",
+    "exitIndicator": "ส 2.1 ม.4-6/3 ปฏิบัติตนและ มีส่วนสนับสนุนให้ผู้อื่นประพฤติ ปฏิบัติเพื่อเป็นพลเมืองดีของ ประเทศชาติ และสังคมโลก",
     "learningAreaNote": null
   },
   {
@@ -7065,7 +7065,7 @@
     "standardCode": "ส 2.1",
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.4-6/4",
-    "midwayIndicator": "ส 2.1 ม.4-6/4 ประเมินสถานการณ์สิทธิมนุษยชนในประเทศไทย และเสนอแนวทางพัฒนา ความจําเป็นที่จะต้องมีการปรับปรุง เปลี่ยนแปลงและอนุรักษ์วัฒนธรรม ไทยและเลือกรับวัฒนธรรมสากล",
+    "midwayIndicator": "ส 2.1 ม.4-6/4 ประเมินสถานการณ์สิทธิมนุษยชนในประเทศไทย และเสนอแนวทางพัฒนา",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -7080,7 +7080,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.1 ม.4-6/5",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.1 ม.4-6/5 วิเคราะห์",
+    "exitIndicator": "ส 2.1 ม.4-6/5 วิเคราะห์ ความจำเป็นที่จะต้องมีการปรับปรุง เปลี่ยนแปลงและอนุรักษ์วัฒนธรรม ไทยและเลือกรับวัฒนธรรมสากล",
     "learningAreaNote": null
   },
   {
@@ -7093,7 +7093,7 @@
     "standardCode": "ส 2.2",
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ม.4-6/1",
-    "midwayIndicator": "ส 2.2 ม.4-6/1 วิเคราะห์ปัญหาการเมืองที่สําคัญในประเทศ จากแหล่งข้อมูลต่าง ๆ พร้อมทั้งเสนอแนวทางแก้ไข ความสําคัญ และความจําเป็นที่ต้อง",
+    "midwayIndicator": "ส 2.2 ม.4-6/1 วิเคราะห์ปัญหาการเมืองที่สำคัญในประเทศ จากแหล่งข้อมูลต่าง ๆ พร้อมทั้งเสนอแนวทางแก้ไข",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -7107,7 +7107,7 @@
     "standardCode": "ส 2.2",
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ม.4-6/2",
-    "midwayIndicator": "ส 2.2 ม.4-6/2 เสนอแนวทางทางการเมืองการปกครอง ที่นําไปสู่ความเข้าใจ และการประสานประโยชน์ร่วมกัน ระบอบประชาธิปไตยอันมี ระหว่างประเทศ พระมหากษัตริย์ทรงเป็นประมุข และมีส่วนร่วมในการตรวจสอบ การใช้อํานาจรัฐ",
+    "midwayIndicator": "ส 2.2 ม.4-6/2 เสนอแนวทางทางการเมืองการปกครอง ที่นำไปสู่ ความเข้าใจ และการประสานประโยชน์ร่วมกัน ระหว่างประเทศ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -7122,7 +7122,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ม.4-6/3",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.2 ม.4-6/3 วิเคราะห์",
+    "exitIndicator": "ส 2.2 ม.4-6/3 วิเคราะห์ ความสำคัญ และความจำเป็นที่ต้อง ธำรงรักษาไว้ซึ่งการปกครองตาม ระบอบประชาธิปไตยอันมี พระมหากษัตริย์ทรงเป็นประมุข",
     "learningAreaNote": null
   },
   {
@@ -7136,7 +7136,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 2.2 ม.4-6/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 2.2 ม.4-6/4 เสนอแนวทาง",
+    "exitIndicator": "ส 2.2 ม.4-6/4 เสนอแนวทาง และมีส่วนร่วมในการตรวจสอบ การใช้อำนาจรัฐ",
     "learningAreaNote": null
   },
   {
@@ -7150,7 +7150,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ม.4-6/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.1 ม.4-6/1 อภิปราย การกําหนดราคาและค่าจ้าง ในระบบเศรษฐกิจ",
+    "exitIndicator": "ส 3.1 ม.4-6/1 อภิปราย การกำหนดราคาและค่าจ้าง ในระบบเศรษฐกิจ",
     "learningAreaNote": null
   },
   {
@@ -7163,7 +7163,7 @@
     "standardCode": "ส 3.1",
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ม.4-6/2",
-    "midwayIndicator": "ส 3.1 ม.4-6/2 ตระหนักถึงความสําคัญของปรัชญา ของเศรษฐกิจพอเพียงที่มีต่อเศรษฐกิจสังคมของประเทศ ทางเศรษฐกิจในชุมชนและเสนอ",
+    "midwayIndicator": "ส 3.1 ม.4-6/2 ตระหนักถึงความสำคัญของปรัชญา ของเศรษฐกิจพอเพียงที่มีต่อเศรษฐกิจสังคมของประเทศ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -7177,7 +7177,7 @@
     "standardCode": "ส 3.1",
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ม.4-6/3",
-    "midwayIndicator": "ส 3.1 ม.4-6/3 ตระหนักถึงความสําคัญของระบบสหกรณ์ ในการพัฒนาเศรษฐกิจในระดับชุมชนและประเทศ",
+    "midwayIndicator": "ส 3.1 ม.4-6/3 ตระหนักถึงความสำคัญของระบบสหกรณ์ ในการพัฒนาเศรษฐกิจในระดับชุมชนและประเทศ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -7192,7 +7192,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.1 ม.4-6/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.1 ม.4-6/4 วิเคราะห์ปัญหา",
+    "exitIndicator": "ส 3.1 ม.4-6/4 วิเคราะห์ปัญหา ทางเศรษฐกิจในชุมชนและเสนอ แนวทางแก้ไข",
     "learningAreaNote": null
   },
   {
@@ -7206,7 +7206,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.2 ม.4-6/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.2 ม.4-6/1 อธิบายบทบาท",
+    "exitIndicator": "ส 3.2 ม.4-6/1 อธิบายบทบาท ของรัฐบาลเกี่ยวกับนโยบายการเงิน การคลังในการพัฒนาเศรษฐกิจ ของประเทศ",
     "learningAreaNote": null
   },
   {
@@ -7220,7 +7220,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 3.2 ม.4-6/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 3.2 ม.4-6/2 วิเคราะห์ ผลกระทบของการเปิดเสรี",
+    "exitIndicator": "ส 3.2 ม.4-6/2 วิเคราะห์ ผลกระทบของการเปิดเสรี ทางเศรษฐกิจในยุคโลกาภิวัตน์ ที่มีผลต่อสังคมไทย",
     "learningAreaNote": null
   },
   {
@@ -7233,7 +7233,7 @@
     "standardCode": "ส 3.2",
     "standardDescription": "",
     "indicatorCode": "ส 3.2 ม.4-6/3",
-    "midwayIndicator": "ส 3.2 ม.4-6/3 วิเคราะห์ผลดี ผลเสียของความร่วมมือ ทางเศรษฐกิจระหว่างประเทศในรูปแบบต่าง ๆ ผลกระทบของการเปิดเสรี ทางเศรษฐกิจในยุคโลกาภิวัตน์ ที่มีผลต่อสังคมไทย",
+    "midwayIndicator": "ส 3.2 ม.4-6/3 วิเคราะห์ผลดี ผลเสียของความร่วมมือ ทางเศรษฐกิจระหว่างประเทศในรูปแบบต่าง ๆ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -7247,7 +7247,7 @@
     "standardCode": "ส 4.1",
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ม.4-6/1",
-    "midwayIndicator": "ส 4.1 ม.4-6/1 ตระหนักถึงความสําคัญของเวลาและ ยุคสมัยทางประวัติศาสตร์ที่แสดงถึงการเปลี่ยนแปลง ทางประวัติศาสตร์โดยใช้วิธีการ ของมนุษยชาติ ทางประวัติศาสตร์อย่างเป็นระบบ ตระหนักถึงความสําคัญของเวลาและ ยุคสมัยทางประวัติศาสตร์ที่แสดงถึงการเปลี่ยนแปลงของ ทางประวัติศาสตร์โดยใช้วิธีการ มนุษยชาติ ทางประวัติศาสตร์อย่างเป็นระบบ",
+    "midwayIndicator": "ส 4.1 ม.4-6/1 ตระหนักถึงความสำคัญของเวลาและ ยุคสมัยทางประวัติศาสตร์ที่แสดงถึงการเปลี่ยนแปลง ของมนุษยชาติ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -7262,7 +7262,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.1 ม.4-6/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.1 ม.4-6/2 สร้างองค์ความรู้ใหม่ สร้างองค์ความรู้ใหม่",
+    "exitIndicator": "ส 4.1 ม.4-6/2 สร้างองค์ความรู้ใหม่ ทางประวัติศาสตร์โดยใช้วิธีการ ทางประวัติศาสตร์อย่างเป็นระบบ",
     "learningAreaNote": null
   },
   {
@@ -7275,7 +7275,7 @@
     "standardCode": "ส 4.2",
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ม.4-6/1",
-    "midwayIndicator": "ส 4.2 ม.4-6/1 วิเคราะห์อิทธิพลของอารยธรรรมโบราณ และการติดต่อระหว่างโลกตะวันออกกับโลกตะวันตก สําคัญต่าง ๆ ที่ส่งผลต่อการเปลี่ยนแปลง ที่มีผลต่อพัฒนาการและการเปลี่ยนแปลงของโลก ทางสังคม เศรษฐกิจและการเมือง",
+    "midwayIndicator": "ส 4.2 ม.4-6/1 วิเคราะห์อิทธิพลของอารยธรรรมโบราณ และการติดต่อระหว่างโลกตะวันออกกับโลกตะวันตก ที่มีผลต่อพัฒนาการและการเปลี่ยนแปลงของโลก",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -7290,7 +7290,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ม.4-6/2",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.2 ม.4-6/2 วิเคราะห์เหตุการณ์",
+    "exitIndicator": "ส 4.2 ม.4-6/2 วิเคราะห์เหตุการณ์ สำคัญต่าง ๆ ที่ส่งผลต่อก าร เปลี่ยนแปลง ทางสังคม เศรษฐกิจและการเมือง เข้าสู่โลกสมัยปัจจุบัน",
     "learningAreaNote": null
   },
   {
@@ -7303,7 +7303,7 @@
     "standardCode": "ส 4.2",
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ม.4-6/3",
-    "midwayIndicator": "ส 4.2 ม.4-6/3 วิเคราะห์ผลกระทบของการขยายอิทธิพล ของประเทศในยุโรปไปยังทวีปอเมริกา แอฟริกาและเอเชีย ของโลกในคริสต์ศตวรรษที่",
+    "midwayIndicator": "ส 4.2 ม.4-6/3 วิเคราะห์ผลกระทบของการขยายอิทธิพล ของประเทศในยุโรปไปยังทวีปอเมริกา แอฟริกาและเอเชีย",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -7318,7 +7318,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.2 ม.4-6/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.2 ม.4-6/4 วิเคราะห์สถานการณ์",
+    "exitIndicator": "ส 4.2 ม.4-6/4 วิเคราะห์สถานการณ์ ของโลกในคริสต์ศตวรรษที่ ๒๑",
     "learningAreaNote": null
   },
   {
@@ -7332,7 +7332,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.4-6/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.3 ม.4-6/1 วิเคราะห์ประเด็น",
+    "exitIndicator": "ส 4.3 ม.4-6/1 วิเคราะห์ประเด็น สำคัญของประวัติศาสตร์ไทย",
     "learningAreaNote": null
   },
   {
@@ -7345,7 +7345,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.4-6/2",
-    "midwayIndicator": "ส 4.3 ม.4-6/2 วิเคราะห์ความสําคัญของสถาบัน พระมหากษัตริย์ต่อชาติไทย สําคัญของประวัติศาสตร์ไทย",
+    "midwayIndicator": "ส 4.3 ม.4-6/2 วิเคราะห์ความสำคัญของสถาบัน พระมหากษัตริย์ต่อชาติไทย",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -7359,7 +7359,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.4-6/3",
-    "midwayIndicator": "ส 4.3 ม.4-6/3 วิเคราะห์ปัจจัยที่ส่งเสริมการสร้างสรรค์ ภูมิปัญญาไทย และวัฒนธรรมไทย ซึ่งมีผลต่อสังคมไทย แนวทางและการมีส่วนร่วม ในยุคปัจจุบัน การอนุรักษ์ ภูมิปัญญาไทยและ",
+    "midwayIndicator": "ส 4.3 ม.4-6/3 วิเคราะห์ปัจจัยที่ส่งเสริมการสร้างสรรค์ ภูมิปัญญาไทย และวัฒนธรรมไทย ซึ่งมีผลต่อสังคมไทย ในยุคปัจจุบัน",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -7373,7 +7373,7 @@
     "standardCode": "ส 4.3",
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.4-6/4",
-    "midwayIndicator": "ส 4.3 ม.4-6/4 วิเคราะห์ผลงานของบุคคลสําคัญ ทั้งชาวไทยและต่างประเทศที่มีส่วนสร้างสรรค์วัฒนธรรมไทย และประวัติศาสตร์ไทย หมายเหตุ * วิธีการทางประวัติศาสตร์เป็นกระบวนการที่ใช้ในการจัดการเรียนรู้เพื่อให้ผู้เรียนเข้าถึงองค์ความรู้ ทางประวัติศาสตร์ ดังนั้น วิธีการทางประวัติศาสตร์จึงระบุไว้ในทุกกลุ่มตัวชี้วัดที่แสดงเนื้อหา ทางประวัติศาสตร์ที่ผู้เรียนควรศึกษา",
+    "midwayIndicator": "ส 4.3 ม.4-6/4 วิเคราะห์ผลงานของบุคคลสำคัญ ทั้งชาวไทยและต่างประเทศที่มีส่วนสร้างสรรค์วัฒนธรรมไทย และประวัติศาสตร์ไทย หมายเหตุ วิธีการทางประวัติศาสตร์เป็นกระบวนการที่ใช้ในการจัดการเรียนรู้เพื่อให้ผู้เรียนเข้าถึงองค์ความรู้ ทางประวัติศาสตร์ ดังนั้น วิธี การทางประวัติศาสตร์จึงระบุไว้ในทุกกลุ่มตัวชี้วัดที่แสดงเนื้อหา ทางประวัติศาสตร์ที่ผู้เรียนควรศึกษา",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -7388,7 +7388,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 4.3 ม.4-6/5",
     "midwayIndicator": null,
-    "exitIndicator": "ส 4.3 ม.4-6/5 วางแผนกําหนด แนวทางและการมีส่วนร่วม",
+    "exitIndicator": "ส 4.3 ม.4-6/5 วางแผนกำหนด แนวทางและการมีส่วนร่ วม การอนุรักษ์ ภูมิปัญญาไทยและ วัฒนธรรมไทย",
     "learningAreaNote": null
   },
   {
@@ -7401,7 +7401,7 @@
     "standardCode": "ส 5.1",
     "standardDescription": "",
     "indicatorCode": "ส 5.1 ม.4-6/1",
-    "midwayIndicator": "ส 5.1 ม.4-6/1 วิเคราะห์การเปลี่ยนแปลงทางกายภาพ 11 ในประเทศไทยและภูมิภาคต่าง ๆ ของโลก ซึ่งได้รับอิทธิพล ระหว่างสิ่งแวดล้อมทางกายภาพกับ จากปัจจัยทางภูมิศาสตร์ กิจกรรมของมนุษย์ในการสร้างสรรค์",
+    "midwayIndicator": "ส 5.1 ม.4-6/1 วิเคราะห์การเปลี่ยนแปลงทางกายภาพ ในประเทศไทยและภูมิภาคต่าง ๆ ของโลก ซึ่งได้รับอิทธิพล จากปัจจัยทางภูมิศาสตร์",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -7415,7 +7415,7 @@
     "standardCode": "ส 5.1",
     "standardDescription": "",
     "indicatorCode": "ส 5.1 ม.4-6/2",
-    "midwayIndicator": "ส 5.1 ม.4-6/2 วิเคราะห์ลักษณะทางกายภาพซึ่งทําให้ เกิดปัญหาและภัยพิบัติทางธรรมชาติในประเทศไทยและ ทั้งในประเทศไทยและภูมิภาคต่าง ๆ ภูมิภาคต่าง ๆ ของโลก ของโลก และเห็นความสําคัญของ",
+    "midwayIndicator": "ส 5.1 ม.4-6/2 วิเคราะห์ลักษณะทางกายภาพซึ่งทำให้ เกิดปัญหาและภัยพิบัติทางธรรมชาติในประเทศไทยและ ภูมิภาคต่าง ๆ ของโลก",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -7429,7 +7429,7 @@
     "standardCode": "ส 5.1",
     "standardDescription": "",
     "indicatorCode": "ส 5.1 ม.4-6/3",
-    "midwayIndicator": "ส 5.1 ม.4-6/3 ใช้แผนที่และเครื่องมือทางภูมิศาสตร์ ในการค้นหา วิเคราะห์ และสรุปข้อมูล ตามกระบวนการ ของมนุษย์ ทางภูมิศาสตร์ และนําภูมิสารสนเทศมาใช้ประโยชน์ ในชีวิตประจําวัน ใช้แผนที่และเครื่องมือทางภูมิศาสตร์ 12 ในการค้นหา วิเคราะห์ และสรุปข้อมูล ตามกระบวนการทาง และมีส่วนร่วมในการจัดการ ภูมิศาสตร์ และนําภูมิสารสนเทศมาใช้ประโยชน์ในชีวิตประจําวัน ทรัพยากรธรรมชาติ และสิ่งแวดล้อม",
+    "midwayIndicator": "ส 5.1 ม.4-6/3 ใช้แผนที่และเครื่องมือทางภูมิศาสตร์ ในการค้นหา วิเคราะห์ และสรุปข้อมูล ตามกระบวนการ ทางภูมิศาสตร์ และนำภูมิสารสนเทศมาใช้ประโยชน์ ในชีวิตประจำวัน",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -7444,7 +7444,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ม.4-6/1",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ม.4-6/1 วิเคราะห์ปฏิสัมพันธ์",
+    "exitIndicator": "ส 5.2 ม.4-6/1 วิเคราะห์ปฏิสัมพันธ์ ระหว่างสิ่งแวดล้อมทางกายภาพกับ กิจกรรมของมนุษย์ในการสร้างสรรค์ วิถีการดำเนินชีวิตของท้องถิ่น ทั้งในประเทศไทยและภูมิภาคต่าง ๆ ของโลก และเห็นความสำคัญของ สิ่งแวดล้อมที่มีผลต่อการดำรงชีวิ ต ของมนุษย์",
     "learningAreaNote": null
   },
   {
@@ -7471,7 +7471,7 @@
     "standardCode": "ส 5.2",
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ม.4-6/3",
-    "midwayIndicator": "ส 5.2 ม.4-6/3 ระบุมาตรการป้องกันและแก้ไขปัญหา กฎหมายและนโยบายด้านทรัพยากรธรรมชาติ และ สิ่งแวดล้อม บทบาทขององค์การที่เกี่ยวข้อง และการประสาน ความร่วมมือทั้งในประเทศและระหว่างประเทศ",
+    "midwayIndicator": "ส 5.2 ม.4-6/3 ระบุ มาตรการป้องกันและแก้ไขปัญหา กฎหมายและนโยบายด้านทรัพยากรธรรมชาติ และ สิ่งแวดล้อม บทบาทขององค์การที่เกี่ยวข้อง และการประสาน ความร่วมมือทั้งในประเทศและระหว่างประเทศ",
     "exitIndicator": null,
     "learningAreaNote": null
   },
@@ -7486,7 +7486,7 @@
     "standardDescription": "",
     "indicatorCode": "ส 5.2 ม.4-6/4",
     "midwayIndicator": null,
-    "exitIndicator": "ส 5.2 ม.4-6/4 วิเคราะห์แนวทาง และมีส่วนร่วมในการจัดการ",
+    "exitIndicator": "ส 5.2 ม.4-6/4 วิเคราะห์แนวทาง และมีส่วนร่วมในการจัดการ ทรัพยากรธรรมชาติ และสิ่งแวดล้อม เพื่อการพัฒนาที่ยั่งยืน",
     "learningAreaNote": null
   }
 ]
