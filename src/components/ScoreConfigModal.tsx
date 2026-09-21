@@ -391,7 +391,7 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
                     onChange={(e) => handleNumUnitsChange(parseInt(e.target.value))}
                     className="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm bg-white"
                   >
-                    {[1, 2, 3, 4, 5].map(n => (
+                    {Array.from({ length: 10 }, (_, index) => index + 1).map(n => (
                       <option key={n} value={n}>{n} หน่วย</option>
                     ))}
                   </select>

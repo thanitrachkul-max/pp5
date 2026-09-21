@@ -22,7 +22,9 @@ import {
   getAttendancePrintMonthRanges,
   getAttributePrintRanges,
   getPap5PrintPageSpecs,
+  getScoreDetailPrintRanges,
   getScoreSummaryPrintRanges,
+  type ScoreDetailPrintRange,
   type ScoreSummaryPrintRange,
   type StudentEvaluationPrintRange,
 } from "../utils/pap5PrintLayout";
@@ -95,7 +97,7 @@ function AttendanceSummaryOriginalPrintPage({ data, pageNumber }: { data: AppDat
   );
 }
 
-function ScoreOriginalPrintPage({ data, pageNumber, offset = 0, term }: { data: AppData; pageNumber?: number; offset?: number; term?: 1 | 2 }) {
+function ScoreOriginalPrintPage({ data, pageNumber, offset = 0, term, unitRange }: { data: AppData; pageNumber?: number; offset?: number; term?: 1 | 2; unitRange?: ScoreDetailPrintRange }) {
   return (
     <section className={isPrimaryGrade(data.generalInfo.gradeLevel) ? "print-page landscape primary-score-print-page" : "print-page landscape score-print-page original-tab-print-page"}>
       <PrintPageNumber pageNumber={pageNumber} />
@@ -105,6 +107,7 @@ function ScoreOriginalPrintPage({ data, pageNumber, offset = 0, term }: { data: 
         generalInfo={data.generalInfo}
         scoreConfig={data.scoreConfig}
         printMode
+        printUnitRange={unitRange}
         onChange={noop}
         onConfigChange={noop}
         onClearScoresAndConfig={noop}
@@ -123,7 +126,7 @@ function ScoreSummaryOriginalPrintPage({
   pageNumber?: number;
 }) {
   return (
-    <section className="print-page landscape summary-print-page score-summary-print-page">
+    <section className={`print-page landscape summary-print-page score-summary-print-page ${range.endUnitIndex - range.startUnitIndex > 3 ? "score-summary-print-page-wide" : ""}`}>
       <PrintPageNumber pageNumber={pageNumber} />
       <Pap5ScoreSummaryPrintPage data={data} range={range} />
     </section>
@@ -228,6 +231,7 @@ export function PrintAllPap5Document({
   approvalStatus = null,
 }: PrintAllPap5DocumentProps) {
   const attendanceRanges = getAttendancePrintMonthRanges(data.generalInfo);
+  const scoreDetailRanges = isPrimaryGrade(data.generalInfo.gradeLevel) ? [] : getScoreDetailPrintRanges(data);
   const scoreSummaryRanges = isPrimaryGrade(data.generalInfo.gradeLevel) ? [] : getScoreSummaryPrintRanges(data);
   const attributeOneToFourRanges = getAttributePrintRanges(data, "1-4");
   const attributeFiveToEightRanges = getAttributePrintRanges(data, "5-8");
@@ -252,7 +256,11 @@ export function PrintAllPap5Document({
       <AttendanceSummaryOriginalPrintPage data={data} pageNumber={nextPageNumber++} />
       {isPrimaryGrade(data.generalInfo.gradeLevel) ? getPrimaryScorePrintRanges(data).map(range => (
         <React.Fragment key={range.id}><ScoreOriginalPrintPage data={{ ...data, students: data.students.slice(range.studentStartIndex, range.studentEndIndex) }} offset={range.studentStartIndex} term={range.term} pageNumber={nextPageNumber++} /></React.Fragment>
-      )) : <ScoreOriginalPrintPage data={data} pageNumber={nextPageNumber++} />}
+      )) : scoreDetailRanges.map((range) => (
+        <React.Fragment key={range.id}>
+          <ScoreOriginalPrintPage data={data} unitRange={range} pageNumber={nextPageNumber++} />
+        </React.Fragment>
+      ))}
       {scoreSummaryRanges.map((range) => (
         <React.Fragment key={range.id}>
           <ScoreSummaryOriginalPrintPage data={data} range={range} pageNumber={nextPageNumber++} />
@@ -305,6 +313,7 @@ export function Pap5SingleOriginalPrintPage({
 }) {
   const attendanceRanges = getAttendancePrintMonthRanges(data.generalInfo);
   const primaryScoreRange = getPrimaryScorePrintRanges(data).find(range => range.id === pageId);
+  const scoreDetailRange = getScoreDetailPrintRanges(data).find(range => range.id === pageId);
   const attendancePage = attendanceRanges.find((range) => range.id === pageId);
   const scoreSummaryRange = getScoreSummaryPrintRanges(data).find((range) => range.id === pageId);
   const attributeOneToFourRange = getAttributePrintRanges(data, "1-4").find((range) => range.id === pageId);
@@ -326,8 +335,8 @@ export function Pap5SingleOriginalPrintPage({
       <AttendanceSummaryOriginalPrintPage data={data} pageNumber={pageNumber} />
     ) : primaryScoreRange ? (
       <ScoreOriginalPrintPage data={{ ...data, students: data.students.slice(primaryScoreRange.studentStartIndex, primaryScoreRange.studentEndIndex) }} offset={primaryScoreRange.studentStartIndex} term={primaryScoreRange.term} pageNumber={pageNumber} />
-    ) : pageId === "scores" ? (
-      <ScoreOriginalPrintPage data={data} pageNumber={pageNumber} />
+    ) : scoreDetailRange ? (
+      <ScoreOriginalPrintPage data={data} unitRange={scoreDetailRange} pageNumber={pageNumber} />
     ) : scoreSummaryRange ? (
       <ScoreSummaryOriginalPrintPage data={data} range={scoreSummaryRange} pageNumber={pageNumber} />
     ) : attributeOneToFourRange ? (

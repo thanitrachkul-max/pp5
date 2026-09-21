@@ -45,6 +45,15 @@ export interface ScoreSummaryPrintRange {
   totalSummaryPages: number;
 }
 
+export interface ScoreDetailPrintRange {
+  id: string;
+  label: string;
+  startUnitIndex: number;
+  endUnitIndex: number;
+  pageNumber: number;
+  totalPages: number;
+}
+
 export interface StudentEvaluationPrintRange {
   id: string;
   label: string;
@@ -95,7 +104,10 @@ const SEMESTER_TWO_PRINT_MONTH_RANGES: AttendancePrintMonthRange[] = [
   { id: "attendance-3", label: "เวลาเรียน กุมภาพันธ์ - มีนาคม", months: [2, 3], fillToWeeks: 9 },
 ];
 
-const SCORE_SUMMARY_UNITS_PER_PAGE = 3;
+const SCORE_DETAIL_UNITS_PER_PAGE = 3;
+const SCORE_SUMMARY_SINGLE_PAGE_UNIT_LIMIT = 8;
+const SCORE_SUMMARY_FIRST_PAGE_UNITS_WHEN_SPLIT = 5;
+const SCORE_SUMMARY_FOLLOWING_PAGE_UNITS = 3;
 const EVALUATION_STUDENTS_PER_PAGE = 12;
 const SCORE_SUMMARY_STUDENTS_PER_PAGE = EVALUATION_STUDENTS_PER_PAGE;
 
@@ -224,12 +236,58 @@ export function getAttendancePrintMonthRanges(
     : SEMESTER_ONE_PRINT_MONTH_RANGES;
 }
 
+export function getScoreDetailPrintRanges(data: AppData): ScoreDetailPrintRange[] {
+  if (isPrimaryGrade(data.generalInfo.gradeLevel)) return [];
+  const units = data.scoreConfig?.units ?? [];
+  const totalPages = Math.max(1, Math.ceil(Math.max(1, units.length) / SCORE_DETAIL_UNITS_PER_PAGE));
+
+  return Array.from({ length: totalPages }, (_, pageIndex) => {
+    const pageNumber = pageIndex + 1;
+    const startUnitIndex = pageIndex * SCORE_DETAIL_UNITS_PER_PAGE;
+    const endUnitIndex = Math.min(units.length, startUnitIndex + SCORE_DETAIL_UNITS_PER_PAGE);
+
+    return {
+      id: pageIndex === 0 ? "scores" : `scores-${pageNumber}`,
+      label: totalPages === 1 ? "คะแนนตามตัวชี้วัด" : `คะแนนตามตัวชี้วัด ${pageNumber}/${totalPages}`,
+      startUnitIndex,
+      endUnitIndex,
+      pageNumber,
+      totalPages,
+    };
+  });
+}
+
+function getScoreSummaryUnitRanges(unitCount: number) {
+  if (unitCount <= SCORE_SUMMARY_SINGLE_PAGE_UNIT_LIMIT) {
+    return [{ startUnitIndex: 0, endUnitIndex: unitCount }];
+  }
+
+  const ranges = [{
+    startUnitIndex: 0,
+    endUnitIndex: SCORE_SUMMARY_FIRST_PAGE_UNITS_WHEN_SPLIT,
+  }];
+
+  for (
+    let startUnitIndex = SCORE_SUMMARY_FIRST_PAGE_UNITS_WHEN_SPLIT;
+    startUnitIndex < unitCount;
+    startUnitIndex += SCORE_SUMMARY_FOLLOWING_PAGE_UNITS
+  ) {
+    ranges.push({
+      startUnitIndex,
+      endUnitIndex: Math.min(unitCount, startUnitIndex + SCORE_SUMMARY_FOLLOWING_PAGE_UNITS),
+    });
+  }
+
+  return ranges;
+}
+
 export function getScoreSummaryPrintRanges(data: AppData): ScoreSummaryPrintRange[] {
   if (isPrimaryGrade(data.generalInfo.gradeLevel)) return [];
   const units = data.scoreConfig?.units ?? [];
   if (units.length === 0) return [];
 
-  const totalUnitPages = Math.ceil(units.length / SCORE_SUMMARY_UNITS_PER_PAGE);
+  const unitRanges = getScoreSummaryUnitRanges(units.length);
+  const totalUnitPages = unitRanges.length;
   const totalStudentPages = Math.max(
     1,
     Math.ceil(data.students.length / SCORE_SUMMARY_STUDENTS_PER_PAGE),
@@ -238,8 +296,7 @@ export function getScoreSummaryPrintRanges(data: AppData): ScoreSummaryPrintRang
   const ranges: ScoreSummaryPrintRange[] = [];
 
   for (let unitPageIndex = 0; unitPageIndex < totalUnitPages; unitPageIndex += 1) {
-    const startUnitIndex = unitPageIndex * SCORE_SUMMARY_UNITS_PER_PAGE;
-    const endUnitIndex = Math.min(units.length, startUnitIndex + SCORE_SUMMARY_UNITS_PER_PAGE);
+    const { startUnitIndex, endUnitIndex } = unitRanges[unitPageIndex];
 
     for (let studentPageIndex = 0; studentPageIndex < totalStudentPages; studentPageIndex += 1) {
       const summaryPageNumber = ranges.length + 1;
@@ -342,6 +399,11 @@ export function getPap5PrintPageSpecs(data: AppData): Pap5PrintPageSpec[] {
     orientation: "landscape" as const,
     label: range.label,
   }));
+  const scoreDetailSpecs = getScoreDetailPrintRanges(data).map((range) => ({
+    id: range.id,
+    orientation: "landscape" as const,
+    label: range.label,
+  }));
   const attributeOneToFourSpecs = getAttributePrintRanges(data, "1-4").map((range) => ({
     id: range.id,
     orientation: "landscape" as const,
@@ -364,7 +426,7 @@ export function getPap5PrintPageSpecs(data: AppData): Pap5PrintPageSpec[] {
     { id: "attendance-summary", orientation: "landscape", label: "สรุปเวลาเรียน" },
     ...(isPrimaryGrade(data.generalInfo.gradeLevel)
       ? getPrimaryScorePrintRanges(data).map(range => ({ id: range.id, orientation: 'landscape' as const, label: range.label }))
-      : [{ id: 'scores', orientation: 'landscape' as const, label: 'คะแนนตามตัวชี้วัด' }]),
+      : scoreDetailSpecs),
     ...scoreSummarySpecs,
     ...attributeOneToFourSpecs,
     ...attributeFiveToEightSpecs,

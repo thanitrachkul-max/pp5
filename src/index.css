@@ -1243,6 +1243,50 @@ main table:not(.excel-table) tbody td {
   min-height: 7.2mm;
 }
 
+.pap5-score-summary-table-wide {
+  width: 100%;
+  font-size: 10px;
+}
+
+.pap5-score-summary-table-wide th,
+.pap5-score-summary-table-wide td {
+  padding-right: 2px;
+  padding-left: 2px;
+}
+
+.pap5-score-summary-table-wide .col-no {
+  width: 7mm;
+}
+
+.pap5-score-summary-table-wide .col-code {
+  width: 15mm;
+}
+
+.pap5-score-summary-table-wide .col-citizen {
+  width: 22mm;
+}
+
+.pap5-score-summary-table-wide .col-name {
+  width: 36mm;
+}
+
+.pap5-score-summary-table-wide .item-col {
+  width: 16mm;
+}
+
+.pap5-score-summary-table-wide .unit-summary-col {
+  width: 11.5mm;
+}
+
+.pap5-score-summary-table-wide .final-summary-col,
+.pap5-score-summary-table-wide .grade-col {
+  width: 10mm;
+}
+
+.pap5-score-summary-table-wide .result-col {
+  width: 14mm;
+}
+
 .attribute-print-heading,
 .analytical-print-heading {
   display: flex;
@@ -1486,6 +1530,10 @@ main table:not(.excel-table) tbody td {
     align-items: flex-start !important;
   }
 
+  .score-summary-print-page-wide {
+    padding: 12mm 10mm !important;
+  }
+
   .attribute-print-page.original-tab-print-page,
   .analytical-print-page.original-tab-print-page {
     padding: 12mm 22mm !important;
@@ -1564,6 +1612,10 @@ main table:not(.excel-table) tbody td {
     justify-content: flex-start !important;
   }
 
+  .pap5-original-print-document .score-print-page .excel-scroll-area {
+    justify-content: center !important;
+  }
+
   .pap5-original-print-document .original-tab-print-page .excel-scroll-content {
     display: inline-block !important;
     width: auto !important;
@@ -1577,6 +1629,10 @@ main table:not(.excel-table) tbody td {
   .pap5-original-print-document .attendance-print-page .excel-scroll-content,
   .pap5-original-print-document .score-print-page .excel-scroll-content {
     margin: 0 !important;
+  }
+
+  .pap5-original-print-document .score-print-page .excel-scroll-content {
+    margin: 0 auto !important;
   }
 
   .pap5-original-print-document .original-tab-print-page table {
@@ -1710,6 +1766,12 @@ main table:not(.excel-table) tbody td {
     line-height: 1.18 !important;
     overflow: hidden !important;
     white-space: nowrap !important;
+  }
+
+  .pap5-original-print-document .score-summary-print-page-wide .pap5-score-summary-table tbody tr.score-summary-student-row > td {
+    padding-right: 2px !important;
+    padding-left: 2px !important;
+    font-size: 10px !important;
   }
 
   .pap5-original-print-document .score-summary-print-page .score-summary-full-row th,

@@ -245,7 +245,7 @@ export function Pap5ScoreSummaryPrintPage({
       </div>
 
       <div className="pap5-summary-table-wrap">
-        <table className="excel-table pap5-summary-table pap5-score-summary-table">
+        <table className={`excel-table pap5-summary-table pap5-score-summary-table ${units.length > 3 ? "pap5-score-summary-table-wide" : ""}`}>
           <thead>
             <tr>
               <th rowSpan={5} className="col-no">เลขที่</th>

@@ -11,6 +11,10 @@ interface Props {
   generalInfo: AppData['generalInfo'];
   scoreConfig?: AppData['scoreConfig'];
   printMode?: boolean;
+  printUnitRange?: {
+    startUnitIndex: number;
+    endUnitIndex: number;
+  };
   readOnly?: boolean;
   onChange: (data: AppData['scores']) => void;
   onConfigChange: (config?: ScoreConfig) => void;
@@ -51,7 +55,7 @@ const getUnitDisplayName = (unit: ScoreUnit, index: number) => {
   return trimmedName ? `${index + 1}. ${trimmedName}` : '';
 };
 
-export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, scoreConfig, printMode = false, readOnly = false, onChange, onConfigChange, onClearScoresAndConfig }) => {
+export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, scoreConfig, printMode = false, printUnitRange, readOnly = false, onChange, onConfigChange, onClearScoresAndConfig }) => {
   const [showConfigModal, setShowConfigModal] = useState(!printMode && !readOnly && !scoreConfig?.units.length);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showAutoFillModal, setShowAutoFillModal] = useState(false);
@@ -174,7 +178,11 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
     indicators: Array.from({ length: MIN_INDICATOR_SLOTS_PER_UNIT }).map(() => ({ code: '', fullScore: 0, passingScore: 0 }))
   }));
 
-  const units = scoreConfig?.units || defaultUnits;
+  const configuredUnits = scoreConfig?.units || defaultUnits;
+  const unitStartIndex = printUnitRange?.startUnitIndex ?? 0;
+  const units = printUnitRange
+    ? configuredUnits.slice(printUnitRange.startUnitIndex, printUnitRange.endUnitIndex)
+    : configuredUnits;
   const hasConfiguredIndicators = Boolean(
     scoreConfig?.units.some((unit) =>
       unit.indicators.some(
@@ -201,7 +209,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
   const calculateStudentTotal = (studentId: string) => {
     const score = data[studentId] || {};
     let total = 0;
-    units.forEach((u, uIdx) => {
+    configuredUnits.forEach((u, uIdx) => {
       u.indicators.forEach((ind, iIdx) => {
         total += score[`u${uIdx}_i${iIdx}`] || 0;
       });
@@ -212,8 +220,9 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
   const calculateStudentUnitTotal = (studentId: string, uIdx: number) => {
     const score = data[studentId] || {};
     let total = 0;
-    units[uIdx].indicators.forEach((ind, iIdx) => {
-      total += score[`u${uIdx}_i${iIdx}`] || 0;
+    const globalUnitIndex = unitStartIndex + uIdx;
+    units[uIdx].indicators.forEach((_ind, iIdx) => {
+      total += score[`u${globalUnitIndex}_i${iIdx}`] || 0;
     });
     return total;
   };
@@ -303,7 +312,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                 <th className="bg-orange-excel whitespace-normal px-2" style={SCORE_LABEL_COLUMN_STYLE}>หน่วยการเรียนรู้ที่</th>
                 {units.map((u, i) => (
                   <React.Fragment key={`unit-${i}`}>
-                    <th colSpan={getIndicatorSlotCount(u)} className="bg-orange-excel whitespace-normal break-words px-2">{getUnitDisplayName(u, i)}</th>
+                    <th colSpan={getIndicatorSlotCount(u)} className="bg-orange-excel whitespace-normal break-words px-2">{getUnitDisplayName(u, unitStartIndex + i)}</th>
                     {showUnitTotalColumns && (
                       <th rowSpan={2} className="bg-orange-excel" style={SCORE_NARROW_COLUMN_STYLE}><span className="writing-vertical inline-block">รวม</span></th>
                     )}
@@ -414,7 +423,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                           <td key={`cell-${uIdx}-${iIdx}`} className="score-entry-cell score-unit-score-column" style={SCORE_INDICATOR_COLUMN_STYLE}>
                             {u.indicators[iIdx] ? (
                               printMode ? (
-                                <span className="score-print-cell-value">{score[`u${uIdx}_i${iIdx}`] ?? ''}</span>
+                                <span className="score-print-cell-value">{score[`u${unitStartIndex + uIdx}_i${iIdx}`] ?? ''}</span>
                               ) : (
                                 <input
                                   type="number"
