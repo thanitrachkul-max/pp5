@@ -2,6 +2,42 @@
 -- roster. Changes are stored in the central enrollment tables so the admin
 -- student screen receives the same data immediately.
 
+create or replace function public.teacher_can_manage_assigned_roster(
+  p_teaching_assignment_id uuid
+)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select auth.uid() is not null
+    and public.current_school_id() is not null
+    and exists (
+      select 1
+      from public.teaching_assignments target
+      join public.classrooms c on c.id = target.classroom_id
+      join public.semesters sem on sem.id = target.semester_id
+      where target.id = p_teaching_assignment_id
+        and target.status = 'active'
+        and c.school_id = public.current_school_id()
+        and (
+          public.current_role_is_admin()
+          or exists (
+            select 1
+            from public.teaching_assignments actor
+            where actor.teacher_id = auth.uid()
+              and actor.status = 'active'
+              and actor.classroom_id = target.classroom_id
+              and actor.semester_id = target.semester_id
+          )
+        )
+    );
+$$;
+
+revoke all on function public.teacher_can_manage_assigned_roster(uuid) from public;
+grant execute on function public.teacher_can_manage_assigned_roster(uuid) to authenticated;
+
 create or replace function public.teacher_add_assigned_student(
   p_teaching_assignment_id uuid,
   p_student_code text,
@@ -29,6 +65,14 @@ begin
     raise exception 'ไม่พบสิทธิ์ผู้ใช้งานสำหรับเพิ่มนักเรียน';
   end if;
 
+  -- The audit trigger uses this value to attach the change to the exact
+  -- gradebook assignment, including a delegated/shared gradebook.
+  perform set_config(
+    'app.student_roster_assignment_id',
+    p_teaching_assignment_id::text,
+    true
+  );
+
   if nullif(trim(coalesce(p_student_code, '')), '') is null
     or nullif(trim(coalesce(p_first_name, '')), '') is null then
     raise exception 'กรุณากรอกรหัสนักเรียนและชื่อนักเรียน';
@@ -44,19 +88,7 @@ begin
   join public.classrooms c on c.id = target.classroom_id
   join public.semesters sem on sem.id = target.semester_id
   where target.id = p_teaching_assignment_id
-    and target.status = 'active'
-    and c.school_id = v_school_id
-    and (
-      v_is_admin
-      or exists (
-        select 1
-        from public.teaching_assignments actor
-        where actor.teacher_id = auth.uid()
-          and actor.status = 'active'
-          and actor.classroom_id = target.classroom_id
-          and actor.semester_id = target.semester_id
-      )
-    )
+    and public.teacher_can_manage_assigned_roster(target.id)
   limit 1;
 
   if v_classroom_id is null then
@@ -174,25 +206,19 @@ begin
     raise exception 'ไม่พบสิทธิ์ผู้ใช้งานสำหรับลบนักเรียน';
   end if;
 
+  perform set_config(
+    'app.student_roster_assignment_id',
+    p_teaching_assignment_id::text,
+    true
+  );
+
   select c.id, sem.academic_year_id
     into v_classroom_id, v_academic_year_id
   from public.teaching_assignments target
   join public.classrooms c on c.id = target.classroom_id
   join public.semesters sem on sem.id = target.semester_id
   where target.id = p_teaching_assignment_id
-    and target.status = 'active'
-    and c.school_id = v_school_id
-    and (
-      v_is_admin
-      or exists (
-        select 1
-        from public.teaching_assignments actor
-        where actor.teacher_id = auth.uid()
-          and actor.status = 'active'
-          and actor.classroom_id = target.classroom_id
-          and actor.semester_id = target.semester_id
-      )
-    )
+    and public.teacher_can_manage_assigned_roster(target.id)
   limit 1;
 
   if v_classroom_id is null then
