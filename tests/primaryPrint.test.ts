@@ -13,8 +13,11 @@ test('primary scores print as two term pages followed by annual summary, seconda
   const first=renderToStaticMarkup(React.createElement(PrimaryScorePrintPage,{data,term:1}));
   assert.ok(first.includes('ภาคเรียนที่ 1'));
   assert.ok(!first.includes('ภาคเรียนที่ 2'));
+  assert.ok(first.includes('หน่วยที่ 1 หน่วยทดสอบ'));
   const summary=renderToStaticMarkup(React.createElement(PrimaryScorePrintPage,{data}));
   assert.ok(summary.includes('<td>85</td><td>4</td>'));
+  assert.equal(summary.match(/หน่วยที่ 1/g)?.length,2);
+  assert.ok(!summary.includes('หน่วยที่ 1 หน่วยทดสอบ'));
   const secondary={...data,generalInfo:{...data.generalInfo,gradeLevel:'ม.1/1'}};
   assert.equal(getPrimaryScorePrintRanges(secondary).length,0);
   assert.ok(getPap5PrintPageSpecs(secondary).some(p=>p.id==='scores'));
