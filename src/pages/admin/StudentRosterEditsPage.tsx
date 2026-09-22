@@ -353,7 +353,21 @@ export const StudentRosterEditsPage: React.FC<StudentRosterEditsPageProps> = ({
       setActivities(activityItems);
       setYearLabel(targetYearLabel);
     } catch (err) {
-      console.warn('Unable to load student roster edits.', err);
+      const databaseError = err as {
+        code?: unknown;
+        message?: unknown;
+        details?: unknown;
+        hint?: unknown;
+      };
+      console.warn(
+        'Unable to load student roster edits:',
+        JSON.stringify({
+          code: databaseError?.code,
+          message: databaseError?.message,
+          details: databaseError?.details,
+          hint: databaseError?.hint,
+        }),
+      );
       setReports([]);
       setActivities([]);
       setError('โหลดข้อมูลการแก้ไขรายชื่อนักเรียนไม่สำเร็จ กรุณารีเฟรชหน้าเว็บแล้วลองใหม่');
