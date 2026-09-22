@@ -2,6 +2,7 @@ import type { CurriculumIndicatorRecord } from '../types';
 import { THAI_STANDARD_DESCRIPTIONS } from './standards';
 import { thaiLanguageP1 } from './p1';
 import rawParsed from './thaiLanguageData.json';
+import rawSecondaryParsed from './thaiSecondaryData.json';
 
 type RawRow = {
   id: string;
@@ -43,6 +44,8 @@ const parsedOtherGrades = (rawParsed as RawRow[])
   .filter((row) => row.gradeLevel !== 'ป.1')
   .map(mapRawRow);
 
+const parsedSecondaryGrades = (rawSecondaryParsed as RawRow[]).map(mapRawRow);
+
 function normalizeRecord(row: CurriculumIndicatorRecord): CurriculumIndicatorRecord {
   return {
     ...row,
@@ -56,6 +59,7 @@ function normalizeRecord(row: CurriculumIndicatorRecord): CurriculumIndicatorRec
 export const thaiLanguageCurriculum: CurriculumIndicatorRecord[] = [
   ...thaiLanguageP1.map(normalizeRecord),
   ...parsedOtherGrades,
+  ...parsedSecondaryGrades,
 ];
 
 export { thaiLanguageP1 } from './p1';

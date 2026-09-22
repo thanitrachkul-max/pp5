@@ -51,12 +51,29 @@ export function healthStrandFromStandard(standardCode: string): { strandNo: numb
   return { strandNo: major, strandName: `สาระที่ ${major}` };
 }
 
-const INDICATOR_CODE_RE = /([ก-ฮ]+\s*\d+\.\d+\s*(?:ป|ม)\.\d+\/\d+)/;
+const THAI_DIGITS = (str: string): string => str.replace(/[๐-๙]/g, digit => String('๐๑๒๓๔๕๖๗๘๙'.indexOf(digit)));
+const INDICATOR_CODE_RE = /([ก-ฮ]+\s*\.?\s*\d+\.\d+\s*(?:ป|ม)\.\d+(?:-\d+)?\/\d+)/;
+const INDICATOR_CODE_GLOBAL_RE = /([ก-ฮ]+\s*\.?\s*\d+\.\d+\s*(?:ป|ม)\.\d+(?:-\d+)?\/\d+)/g;
+
+function normalizeIndicatorCode(value: string): string {
+  return THAI_DIGITS(value)
+    .replace(/^([ก-ฮ])\s*\.\s*/, '$1 ')
+    .replace(/\s*\.\s*/g, '.')
+    .replace(/\s*-\s*/g, '-')
+    .replace(/\s*\/\s*/g, '/')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 export function extractIndicatorCode(value: string | null | undefined): string | null {
   if (!value) return null;
   const match = value.match(INDICATOR_CODE_RE);
-  return match ? match[1].replace(/\s+/g, ' ').trim() : null;
+  return match ? normalizeIndicatorCode(match[1]) : null;
+}
+
+export function extractIndicatorCodes(value: string | null | undefined): string[] {
+  if (!value) return [];
+  return Array.from(value.matchAll(INDICATOR_CODE_GLOBAL_RE), (match) => normalizeIndicatorCode(match[1]));
 }
 
 export function dedupeIndicatorRecords(rows: CurriculumIndicatorRecord[]): CurriculumIndicatorRecord[] {

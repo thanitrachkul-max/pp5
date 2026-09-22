@@ -11,7 +11,7 @@ import {
   canonicalCurriculumSubjectName,
   type CurriculumIndicatorRecord,
 } from '../data/curriculum';
-import { extractIndicatorCode } from '../data/curriculum/utils';
+import { extractIndicatorCodes } from '../data/curriculum/utils';
 import { standardsData } from '../data/standards';
 import {
   applyCurriculumStoreToBase,
@@ -144,14 +144,22 @@ function buildStandardsFromCurriculumRows(rows: CurriculumIndicatorRecord[]): St
     };
 
     for (const value of [row.midwayIndicator, row.exitIndicator]) {
-      const indicator = indicatorFromCurriculumText(value, row.standardCode, standard.indicators.length + 1);
-      if (!indicator) continue;
-      if (!standard.indicators.some((item) => item.code === indicator.code)) {
-        standard.indicators.push(indicator);
+      const indicators = indicatorsFromCurriculumText(value, row.standardCode, standard.indicators.length + 1);
+      for (const indicator of indicators) {
+        const targetStandard = standardCodeFromIndicator(indicator.code) ?? row.standardCode;
+        const target = standardMap.get(targetStandard) ?? {
+          code: targetStandard,
+          description: standardDescriptionFor(targetStandard, row.standardDescription),
+          indicators: [],
+        };
+        if (!target.indicators.some((item) => item.code === indicator.code)) {
+          target.indicators.push(indicator);
+        }
+        standardMap.set(targetStandard, target);
       }
     }
 
-    if (standard.indicators.length > 0) {
+    if (standard.indicators.length > 0 && !standardMap.has(standard.code)) {
       standardMap.set(row.standardCode, standard);
     }
   }
@@ -159,24 +167,41 @@ function buildStandardsFromCurriculumRows(rows: CurriculumIndicatorRecord[]): St
   return Array.from(standardMap.values()).sort((a, b) => a.code.localeCompare(b.code, 'th'));
 }
 
-function indicatorFromCurriculumText(
+function indicatorsFromCurriculumText(
   value: string | null | undefined,
   standardCode: string,
   fallbackIndex: number,
-): Standard['indicators'][number] | null {
+): Standard['indicators'] {
   const text = value?.trim();
-  if (!text || text === '-') return null;
+  if (!text || text === '-') return [];
 
-  const extractedCode = extractIndicatorCode(text);
-  const code = extractedCode ?? `${standardCode} #${fallbackIndex}`;
-  const description = extractedCode
-    ? text.replace(extractedCode, '').trim()
-    : text;
+  const codes = extractIndicatorCodes(text);
+  if (codes.length === 0) {
+    return [{ code: `${standardCode} #${fallbackIndex}`, description: text }];
+  }
 
-  return {
-    code,
-    description,
+  return codes.map((code, index) => {
+    const start = text.indexOf(code);
+    const next = index + 1 < codes.length ? text.indexOf(codes[index + 1], start + code.length) : text.length;
+    const description = text.slice(start + code.length, next).replace(/^\s*[/:,-]?\s*/, '').trim();
+    return { code, description: description || text.replace(code, '').trim() };
+  });
+}
+
+function standardCodeFromIndicator(code: string): string | null {
+  const match = code.match(/^(ท\s*\d+\.\d+)/);
+  return match ? match[1].replace(/\s+/g, ' ').trim() : null;
+}
+
+function standardDescriptionFor(code: string, fallback: string): string {
+  const descriptions: Record<string, string> = {
+    'ท 1.1': 'ใช้กระบวนการอ่านสร้างความรู้และความคิดเพื่อนำไปใช้ตัดสินใจ แก้ปัญหาในการดำเนินชีวิต และมีนิสัยรักการอ่าน',
+    'ท 2.1': 'ใช้กระบวนการเขียนสื่อสาร เขียนเรียงความ ย่อความ และเขียนเรื่องราวในรูปแบบต่าง ๆ เขียนรายงานข้อมูลสารสนเทศและรายงานการศึกษาค้นคว้าอย่างมีประสิทธิภาพ',
+    'ท 3.1': 'สามารถเลือกฟังและดูอย่างมีวิจารณญาณ และพูดแสดงความรู้ ความคิด และความรู้สึก ในโอกาสต่าง ๆ อย่างมีวิจารณญาณและสร้างสรรค์',
+    'ท 4.1': 'เข้าใจธรรมชาติของภาษาและหลักภาษาไทย การเปลี่ยนแปลงของภาษาและพลังของภาษา ภูมิปัญญาทางภาษา และรักษาภาษาไทยไว้เป็นสมบัติของชาติ',
+    'ท 5.1': 'เข้าใจและแสดงความคิดเห็น วิจารณ์วรรณคดีและวรรณกรรมไทยอย่างเห็นคุณค่า และนำมาประยุกต์ใช้ในชีวิตจริง',
   };
+  return descriptions[code] ?? fallback;
 }
 
 function normalizeText(value: string | null | undefined): string {
