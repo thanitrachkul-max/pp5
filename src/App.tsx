@@ -398,7 +398,6 @@ function ConfiguredApp() {
               setGradebookSession(null);
               setActiveView(gradebookReturnView);
             }}
-            onSettings={openAdminView}
             onSyncStatusChange={setSyncStatus}
           />
         </Suspense>

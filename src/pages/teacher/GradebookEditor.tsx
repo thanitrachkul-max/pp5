@@ -12,10 +12,8 @@ import {
   Calendar,
   CheckCircle2,
   FileText,
-  LayoutDashboard,
   Loader2,
   Printer,
-  UserRound,
   Users,
 } from "lucide-react";
 import { GeneralInfoForm } from "../../components/GeneralInfoForm";
@@ -29,7 +27,6 @@ import { Instructions1Form } from "../../components/Instructions1Form";
 import { Instructions2Form } from "../../components/Instructions2Form";
 import { FolderTabs } from "../../components/FolderTabs";
 import { ModalPortal } from "../../components/ModalPortal";
-import { isAdmin } from "../../lib/auth";
 import { appDataToRow } from "../../lib/gradebookAdapter";
 import { applyPap5OfficialDisplayDefaults } from "../../lib/pap5Officials";
 import {
@@ -111,7 +108,6 @@ interface GradebookEditorProps {
   session: GradebookSession;
   currentUser: AppUser;
   onBack: () => void;
-  onSettings: () => void;
   onSyncStatusChange?: (status: "idle" | "saving" | "saved" | "error") => void;
 }
 
@@ -125,7 +121,6 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
   session,
   currentUser,
   onBack,
-  onSettings,
   onSyncStatusChange,
 }) => {
   const [data, setData] = useState<AppData>(session.data);
@@ -518,7 +513,6 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
     }
   };
   const handleBack = () => leaveAfterSave(onBack);
-  const handleSettings = () => leaveAfterSave(onSettings);
 
   const handleTabChange = useCallback(
     (nextTab: string) => {
@@ -828,24 +822,6 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 </div>
               )}
 
-              <div className="flex h-10 min-w-0 items-center rounded-lg border border-slate-200 bg-white pl-1 pr-2 shadow-sm">
-                <div className="mr-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-slate-900 text-white">
-                  <UserRound className="h-4 w-4" />
-                </div>
-                <span className="mr-2 hidden max-w-[180px] truncate text-sm font-semibold text-slate-700 sm:inline">
-                  {currentUser.name}
-                </span>
-                {isAdmin(currentUser) && (
-                  <button
-                    type="button"
-                    onClick={() => void handleSettings()}
-                    className="mr-1 flex h-8 w-8 items-center justify-center rounded-md text-slate-400 transition hover:bg-blue-50 hover:text-blue-600"
-                    title="เปิดหน้า Admin"
-                  >
-                    <LayoutDashboard className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
             </div>
           </div>
         </div>
