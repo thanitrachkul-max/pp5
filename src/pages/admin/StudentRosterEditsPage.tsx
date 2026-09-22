@@ -81,6 +81,16 @@ interface RosterActivity {
   createdAt: string;
 }
 
+const QUERY_ID_CHUNK_SIZE = 50;
+
+function chunkIds(ids: string[]): string[][] {
+  const chunks: string[][] = [];
+  for (let index = 0; index < ids.length; index += QUERY_ID_CHUNK_SIZE) {
+    chunks.push(ids.slice(index, index + QUERY_ID_CHUNK_SIZE));
+  }
+  return chunks;
+}
+
 function normalizeStudents(value: unknown): RosterStudent[] {
   if (!Array.isArray(value)) return [];
 
@@ -270,14 +280,19 @@ export const StudentRosterEditsPage: React.FC<StudentRosterEditsPageProps> = ({
 
       let gradebookRows: unknown[] = [];
       if (assignmentIds.length > 0) {
-        const { data, error: gradebookError } = await supabase
-          .from('gradebooks')
-          .select('id, teaching_assignment_id, teacher_id, students, updated_at, created_at')
-          .in('teaching_assignment_id', assignmentIds)
-          .order('updated_at', { ascending: false });
-
-        if (gradebookError) throw gradebookError;
-        gradebookRows = data ?? [];
+        const gradebookResults = await Promise.all(
+          chunkIds(assignmentIds).map((ids) =>
+            supabase
+              .from('gradebooks')
+              .select('id, teaching_assignment_id, teacher_id, students, updated_at, created_at')
+              .in('teaching_assignment_id', ids)
+              .order('updated_at', { ascending: false }),
+          ),
+        );
+        for (const result of gradebookResults) {
+          if (result.error) throw result.error;
+          gradebookRows.push(...(result.data ?? []));
+        }
       }
 
       const assignmentById = new Map(assignments.map((assignment) => [assignment.id, assignment]));
@@ -305,28 +320,46 @@ export const StudentRosterEditsPage: React.FC<StudentRosterEditsPageProps> = ({
 
       let auditRows: RosterAuditRow[] = [];
       if (assignmentIds.length > 0) {
-        const { data, error: auditError } = await supabase
-          .from('student_roster_audit_logs')
-          .select('id, teaching_assignment_id, teacher_id, student_id, action, before_data, after_data, created_at')
-          .eq('school_id', currentUser.schoolId)
-          .in('teaching_assignment_id', assignmentIds)
-          .order('created_at', { ascending: false })
-          .limit(500);
-
-        if (auditError && !isMissingAuditTableError(auditError)) throw auditError;
-        auditRows = (data ?? []) as RosterAuditRow[];
+        const auditResults = await Promise.all(
+          chunkIds(assignmentIds).map((ids) =>
+            supabase
+              .from('student_roster_audit_logs')
+              .select('id, teaching_assignment_id, teacher_id, student_id, action, before_data, after_data, created_at')
+              .eq('school_id', currentUser.schoolId)
+              .in('teaching_assignment_id', ids)
+              .order('created_at', { ascending: false })
+              .limit(500),
+          ),
+        );
+        const combinedAuditRows: RosterAuditRow[] = [];
+        for (const result of auditResults) {
+          if (result.error) {
+            if (isMissingAuditTableError(result.error)) continue;
+            throw result.error;
+          }
+          combinedAuditRows.push(...((result.data ?? []) as RosterAuditRow[]));
+        }
+        auditRows = combinedAuditRows
+          .sort((left, right) => right.created_at.localeCompare(left.created_at))
+          .slice(0, 500);
       }
 
       const teacherIds = Array.from(new Set(auditRows.map((row) => row.teacher_id).filter(Boolean)));
       const teacherById = new Map<string, string>();
       if (teacherIds.length > 0) {
-        const { data: teachers, error: teacherError } = await supabase
-          .from('profiles')
-          .select('id, title, full_name')
-          .in('id', teacherIds);
-        if (teacherError) throw teacherError;
-        for (const teacher of teachers ?? []) {
-          teacherById.set(teacher.id, [teacher.title, teacher.full_name].filter(Boolean).join(' '));
+        const teacherResults = await Promise.all(
+          chunkIds(teacherIds).map((ids) =>
+            supabase
+              .from('profiles')
+              .select('id, title, full_name')
+              .in('id', ids),
+          ),
+        );
+        for (const result of teacherResults) {
+          if (result.error) throw result.error;
+          for (const teacher of result.data ?? []) {
+            teacherById.set(teacher.id, [teacher.title, teacher.full_name].filter(Boolean).join(' '));
+          }
         }
       }
 
