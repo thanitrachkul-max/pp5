@@ -17,6 +17,27 @@ export interface HomeroomSlotUpdate {
   teacherId: string | null;
 }
 
+type HomeroomTeacherProfile = {
+  title: string | null;
+  full_name: string;
+} | null | undefined;
+
+/** รายชื่อปัจจุบันจากห้องเรียนเป็นแหล่งข้อมูลหลัก ช่องว่างต้องคงเป็นช่องว่าง */
+export function currentHomeroomTeacherNames(classroom: {
+  homeroom_teacher_1?: HomeroomTeacherProfile;
+  homeroom_teacher_2?: HomeroomTeacherProfile;
+  homeroom_teacher_3?: HomeroomTeacherProfile;
+}): [string, string, string] {
+  const formatName = (profile: HomeroomTeacherProfile) =>
+    profile ? [profile.title, profile.full_name].filter(Boolean).join(' ') : '';
+
+  return [
+    formatName(classroom.homeroom_teacher_1),
+    formatName(classroom.homeroom_teacher_2),
+    formatName(classroom.homeroom_teacher_3),
+  ];
+}
+
 export function isHomeroomEligibleTeacher(
   profile: Pick<Profile, 'role' | 'is_active'>,
 ): boolean {

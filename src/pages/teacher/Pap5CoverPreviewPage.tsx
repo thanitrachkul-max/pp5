@@ -80,7 +80,7 @@ const sampleData: AppData = {
     teacherName3: "",
     homeroomTeacher1: "นายธนัท ธนพัฒน์ธัชกุล",
     homeroomTeacher2: "นาย ธนัท ธนพัฒน์ธัชกุล",
-    homeroomTeacher3: "นางธีราพร เจริญยิ่ง",
+    homeroomTeacher3: "",
     homeroomTeachers: "",
     headOfLearningArea: "นางสาว ประภาวดี ศรีทับ",
     headOfEvaluation: "นางสาว ประภาวดี ศรีทับ",

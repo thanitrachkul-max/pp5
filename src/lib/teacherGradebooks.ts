@@ -7,8 +7,8 @@ import {
   isGradebookFullyComplete,
   statsToGradebookStatus,
 } from "./gradebookStats";
-import { STUDENT_HOMEROOMS } from "../data/studentHomerooms";
 import { isSchemaCacheErrorFor } from "./dbErrors";
+import { currentHomeroomTeacherNames } from "./homeroomTeachers";
 import { isWithinEntryWindow } from "./thaiDate";
 import { mergePap5OfficialsIntoGeneralInfo } from "./pap5Officials";
 import { mergeRosterWithSavedState } from "./studentRoster";
@@ -515,7 +515,8 @@ export async function fetchTeacherAssignments(
     const subject = row.subjects!;
     const semester = row.semesters!;
     const year = semester.academic_years!;
-    const excelHomerooms = getExcelHomeroomNames(classroom);
+    const [homeroomTeacher1, homeroomTeacher2, homeroomTeacher3] =
+      currentHomeroomTeacherNames(classroom);
 
     const { count } = await supabase
       .from("student_enrollments")
@@ -568,9 +569,9 @@ export async function fetchTeacherAssignments(
       classroom_name: classroom.name,
       class_level_code: classroom.class_level_code,
       room_number: classroom.room_number,
-      homeroom_teacher_1_name: formatProfileName(classroom.homeroom_teacher_1) || excelHomerooms[0] || "",
-      homeroom_teacher_2_name: formatProfileName(classroom.homeroom_teacher_2) || excelHomerooms[1] || "",
-      homeroom_teacher_3_name: formatProfileName(classroom.homeroom_teacher_3) || excelHomerooms[2] || "",
+      homeroom_teacher_1_name: homeroomTeacher1,
+      homeroom_teacher_2_name: homeroomTeacher2,
+      homeroom_teacher_3_name: homeroomTeacher3,
       semester_number: semester.semester_number,
       academic_year_id: year.id,
       year_be: year.year_be,
@@ -651,18 +652,6 @@ export async function buildStudentRoster(
 function formatProfileName(profile: { title: string | null; full_name: string } | null): string {
   if (!profile) return "";
   return [profile.title, profile.full_name].filter(Boolean).join(" ");
-}
-
-function getExcelHomeroomNames(classroom: {
-  name: string;
-  class_level_code: string;
-  room_number: number;
-}): string[] {
-  return (
-    STUDENT_HOMEROOMS[classroom.name] ??
-    STUDENT_HOMEROOMS[`${classroom.class_level_code}/${classroom.room_number}`] ??
-    []
-  );
 }
 
 function buildHomeroomTeachersText(
