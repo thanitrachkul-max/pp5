@@ -639,6 +639,7 @@ async function buildStudentRoster(
         studentId: st.student_code,
         citizenId: st.citizen_id ?? undefined,
         name,
+        studentNumber: row.student_number,
       },
     ];
   });

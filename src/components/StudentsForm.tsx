@@ -104,6 +104,8 @@ interface Props {
   onChange: (data: AppData["students"]) => void;
   onAttendanceChange?: (attendance: AppData["attendance"]) => void;
   onPersistStudentEdit?: (student: Student, previousStudent?: Student) => Promise<void>;
+  onPersistStudentAdd?: (student: Student) => Promise<Student>;
+  onPersistStudentDelete?: (student: Student) => Promise<void>;
 }
 
 export const StudentsForm: React.FC<Props> = ({
@@ -118,6 +120,8 @@ export const StudentsForm: React.FC<Props> = ({
   onChange,
   onAttendanceChange,
   onPersistStudentEdit,
+  onPersistStudentAdd,
+  onPersistStudentDelete,
 }) => {
   const [editModalMode, setEditModalMode] = useState<
     "students" | "attendance" | null
@@ -308,18 +312,41 @@ export const StudentsForm: React.FC<Props> = ({
       isOpen: true,
       title: "ยืนยันการล้างรายชื่อนักเรียน",
       message:
-        "คุณต้องการลบรายชื่อนักเรียนทั้งหมดใช่หรือไม่? (การกระทำนี้ไม่สามารถย้อนกลับได้)",
+        "คุณต้องการลบรายชื่อนักเรียนทั้งหมดออกจากห้องเรียนใช่หรือไม่? หน้ารายชื่อนักเรียนของผู้ดูแลระบบจะอัปเดตทันที",
       confirmLabel: "ยืนยันการลบ",
       tone: "danger",
-      onConfirm: () => {
-        onChange([]);
-        if (onAttendanceChange) {
-          onAttendanceChange({
-            ...attendance,
-            records: {},
-          });
-        }
+      onConfirm: async () => {
         setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        setSavingStudentId("bulk-delete");
+        const removedIds = new Set<string>();
+        try {
+          for (const student of data) {
+            await onPersistStudentDelete?.(student);
+            removedIds.add(student.id);
+          }
+          onChange([]);
+          if (onAttendanceChange) {
+            onAttendanceChange({
+              ...attendance,
+              records: {},
+            });
+          }
+          setEditModalMode(null);
+        } catch (error) {
+          if (removedIds.size > 0) {
+            const remainingStudents = data.filter((student) => !removedIds.has(student.id));
+            const nextRecords = { ...(attendance?.records || {}) };
+            removedIds.forEach((id) => delete nextRecords[id]);
+            onChange(remainingStudents);
+            onAttendanceChange?.({ ...attendance, records: nextRecords });
+          }
+          showStudentPersistenceError(
+            error,
+            "ไม่สามารถลบรายชื่อนักเรียนทั้งหมดออกจากข้อมูลวิชาการได้",
+          );
+        } finally {
+          setSavingStudentId(null);
+        }
       },
     });
   };
@@ -352,6 +379,17 @@ export const StudentsForm: React.FC<Props> = ({
     saveAs(new Blob([buffer]), "student_template.xlsx");
   };
 
+  const showStudentPersistenceError = (error: unknown, fallback: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "บันทึกข้อมูลไม่สำเร็จ",
+      message: error instanceof Error ? error.message : fallback,
+      confirmLabel: "ปิด",
+      tone: "warning",
+      onConfirm: () => setConfirmDialog((prev) => ({ ...prev, isOpen: false })),
+    });
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (rosterLocked) return;
 
@@ -378,28 +416,63 @@ export const StudentsForm: React.FC<Props> = ({
           studentId,
           citizenId,
           name,
+          studentNumber: Number(row.getCell(1).value) || null,
         });
       }
     });
 
-    onChange([...data, ...newStudents]);
+    if (newStudents.length === 0) return;
+
+    setSavingStudentId("bulk-add");
+    const persistedStudents: Student[] = [];
+    try {
+      for (const student of newStudents) {
+        persistedStudents.push(
+          onPersistStudentAdd ? await onPersistStudentAdd(student) : student,
+        );
+      }
+      onChange([...data, ...persistedStudents]);
+    } catch (error) {
+      if (persistedStudents.length > 0) {
+        onChange([...data, ...persistedStudents]);
+      }
+      showStudentPersistenceError(
+        error,
+        "ไม่สามารถเพิ่มรายชื่อนักเรียนไปยังข้อมูลวิชาการได้",
+      );
+    } finally {
+      setSavingStudentId(null);
+      e.target.value = "";
+    }
   };
 
-  const handleAddSingleStudent = () => {
+  const handleAddSingleStudent = async () => {
     if (rosterLocked) return;
 
-    if (newStudent.name) {
-      const newId = Date.now().toString();
-      onChange([
-        ...data,
-        {
-          id: newId,
-          studentId: newStudent.studentId,
-          citizenId: newStudent.citizenId,
-          name: newStudent.name,
-        },
-      ]);
-      setNewStudent({ number: "", studentId: "", citizenId: "", name: "" });
+    if (newStudent.name && newStudent.studentId) {
+      const student: Student = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        studentId: newStudent.studentId,
+        citizenId: newStudent.citizenId,
+        name: newStudent.name,
+        studentNumber: Number(newStudent.number) || null,
+        targetPercentage: 100,
+      };
+      setSavingStudentId("single-add");
+      try {
+        const persistedStudent = onPersistStudentAdd
+          ? await onPersistStudentAdd(student)
+          : student;
+        onChange([...data, persistedStudent]);
+        setNewStudent({ number: "", studentId: "", citizenId: "", name: "" });
+      } catch (error) {
+        showStudentPersistenceError(
+          error,
+          "ไม่สามารถเพิ่มนักเรียนไปยังข้อมูลวิชาการได้",
+        );
+      } finally {
+        setSavingStudentId(null);
+      }
     }
   };
 
@@ -530,26 +603,54 @@ export const StudentsForm: React.FC<Props> = ({
     setEditModalMode(null);
   };
 
-  const deleteStudent = (studentId: string, studentIndex: number) => {
+  const deleteStudent = async (studentId: string, studentIndex: number) => {
     if (rosterLocked) return;
-    const targetId = data[studentIndex]?.id || studentId;
-    onChange(
-      data.filter((student, index) => {
-        if (index === studentIndex) return false;
-        return targetId ? student.id !== targetId : true;
-      }),
-    );
-    if (onAttendanceChange) {
-      const nextRecords = { ...(attendance?.records || {}) };
-      if (targetId) delete nextRecords[targetId];
-      onAttendanceChange({
-        ...attendance,
-        records: nextRecords,
-      });
+    const target = data[studentIndex];
+    const targetId = target?.id || studentId;
+    if (!target) return;
+
+    setSavingStudentId(targetId);
+    try {
+      await onPersistStudentDelete?.(target);
+      onChange(
+        data.filter((student, index) => {
+          if (index === studentIndex) return false;
+          return targetId ? student.id !== targetId : true;
+        }),
+      );
+      if (onAttendanceChange) {
+        const nextRecords = { ...(attendance?.records || {}) };
+        if (targetId) delete nextRecords[targetId];
+        onAttendanceChange({
+          ...attendance,
+          records: nextRecords,
+        });
+      }
+      if (editingStudentId === targetId) {
+        setEditingStudentId(null);
+      }
+    } catch (error) {
+      showStudentPersistenceError(
+        error,
+        "ไม่สามารถลบนักเรียนออกจากข้อมูลวิชาการได้",
+      );
+    } finally {
+      setSavingStudentId(null);
     }
-    if (editingStudentId === targetId) {
-      setEditingStudentId(null);
-    }
+  };
+
+  const requestDeleteStudent = (student: Student, studentIndex: number) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "ยืนยันลบนักเรียนออกจากห้องเรียน",
+      message: `ต้องการลบ "${student.name}" ออกจากรายชื่อห้องเรียนใช่หรือไม่?\n\nหน้ารายชื่อนักเรียนของผู้ดูแลระบบจะอัปเดตทันที`,
+      confirmLabel: "ยืนยันลบ",
+      tone: "danger",
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        await deleteStudent(student.id, studentIndex);
+      },
+    });
   };
 
   const handleGenerateAttendance = () => {
@@ -1340,7 +1441,7 @@ export const StudentsForm: React.FC<Props> = ({
                                   })
                                 }
                                 onKeyDown={(e) =>
-                                  e.key === "Enter" && handleAddSingleStudent()
+                                  e.key === "Enter" && void handleAddSingleStudent()
                                 }
                               />
                             </div>
@@ -1348,8 +1449,8 @@ export const StudentsForm: React.FC<Props> = ({
                           <div className="flex justify-center mt-2">
                             <button
                               type="button"
-                              onClick={handleAddSingleStudent}
-                              disabled={!newStudent.name}
+                              onClick={() => void handleAddSingleStudent()}
+                              disabled={!newStudent.name || !newStudent.studentId || Boolean(savingStudentId)}
                               className="flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <Plus size={18} /> เพิ่มนักเรียนใหม่
@@ -1534,7 +1635,8 @@ export const StudentsForm: React.FC<Props> = ({
                                       )}
                                       <button
                                         type="button"
-                                        onClick={() => deleteStudent(student.id, idx)}
+                                        onClick={() => requestDeleteStudent(student, idx)}
+                                        disabled={savingStudentId === student.id}
                                         className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-600 ring-1 ring-red-100 transition hover:bg-red-100"
                                         title="ลบ"
                                       >

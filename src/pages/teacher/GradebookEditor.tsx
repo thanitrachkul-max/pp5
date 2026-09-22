@@ -347,6 +347,63 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
     [currentUser.schoolId, session.readOnly],
   );
 
+  const handlePersistStudentAdd = useCallback(
+    async (student: Student): Promise<Student> => {
+      if (session.readOnly) return student;
+
+      const studentCode = student.studentId.trim();
+      const citizenId = student.citizenId?.trim() || null;
+      const { title, firstName, lastName } = splitStudentNameForAcademicRecord(student.name);
+      if (!studentCode || !firstName.trim()) {
+        throw new Error("กรุณากรอกรหัสนักเรียนและชื่อนักเรียนก่อนบันทึก");
+      }
+
+      const { data: studentId, error } = await supabase.rpc("teacher_add_assigned_student", {
+        p_teaching_assignment_id: session.teaching_assignment_id,
+        p_student_code: studentCode,
+        p_citizen_id: citizenId,
+        p_title: title,
+        p_first_name: firstName,
+        p_last_name: lastName,
+        p_student_number: student.studentNumber ?? null,
+      });
+
+      if (error) {
+        throw new Error(`ไม่สามารถเพิ่มนักเรียนในฐานข้อมูลกลางได้: ${getSupabaseErrorMessage(error)}`);
+      }
+      if (typeof studentId !== "string" || !UUID_PATTERN.test(studentId)) {
+        throw new Error("ระบบไม่ได้รับรหัสนักเรียนที่บันทึกจากฐานข้อมูลกลาง");
+      }
+
+      return {
+        ...student,
+        id: studentId,
+        studentId: studentCode,
+        citizenId: citizenId ?? undefined,
+        name: [title, firstName, lastName].filter(Boolean).join(" "),
+      };
+    },
+    [session.readOnly, session.teaching_assignment_id],
+  );
+
+  const handlePersistStudentDelete = useCallback(
+    async (student: Student): Promise<void> => {
+      if (session.readOnly) return;
+      if (!UUID_PATTERN.test(student.id)) {
+        throw new Error("ไม่พบรหัสนักเรียนในฐานข้อมูลกลาง กรุณาให้ผู้ดูแลระบบตรวจสอบข้อมูล");
+      }
+
+      const { error } = await supabase.rpc("teacher_remove_assigned_student", {
+        p_teaching_assignment_id: session.teaching_assignment_id,
+        p_student_id: student.id,
+      });
+      if (error) {
+        throw new Error(`ไม่สามารถลบนักเรียนออกจากห้องเรียนได้: ${getSupabaseErrorMessage(error)}`);
+      }
+    },
+    [session.readOnly, session.teaching_assignment_id],
+  );
+
   const flushPendingSave = useCallback(async () => {
     if (session.readOnly) return;
     if (saveTimer.current) {
@@ -745,12 +802,14 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 attendance={data.attendance}
                 readOnly={session.readOnly}
                 onChange={(students) =>
-                  !session.readOnly && handleUpdate({ ...data, students })
+                  !session.readOnly && handleUpdate({ ...latestData.current, students })
                 }
                 onAttendanceChange={(attendance) =>
-                  !session.readOnly && handleUpdate({ ...data, attendance })
+                  !session.readOnly && handleUpdate({ ...latestData.current, attendance })
                 }
                 onPersistStudentEdit={handlePersistStudentEdit}
+                onPersistStudentAdd={handlePersistStudentAdd}
+                onPersistStudentDelete={handlePersistStudentDelete}
               />
             )}
             {activeTab === "scores" && (data.primaryYear ? <PrimaryScoresForm data={data} readOnly={session.readOnly} onChange={handleUpdate} /> : (

@@ -16,9 +16,9 @@ export function normalizeRecord(row: CurriculumIndicatorRecord): CurriculumIndic
 
 export function mathStrandFromStandard(standardCode: string): { strandNo: number; strandName: string } {
   const major = Number(standardCode.replace(/[^\d.]/g, '').split('.')[0]);
-  if (major === 1) return { strandNo: 1, strandName: 'จำนวนและการดำเนินการ' };
+  if (major === 1) return { strandNo: 1, strandName: 'จำนวนและพีชคณิต' };
   if (major === 2) return { strandNo: 2, strandName: 'การวัดและเรขาคณิต' };
-  if (major === 3) return { strandNo: 3, strandName: 'ข้อมูลและสถิติ' };
+  if (major === 3) return { strandNo: 3, strandName: 'สถิติและความน่าจะเป็น' };
   return { strandNo: major, strandName: `สาระที่ ${major}` };
 }
 

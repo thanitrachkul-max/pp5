@@ -3,6 +3,7 @@ export interface Student {
   studentId: string;
   citizenId?: string;
   name: string;
+  studentNumber?: number | null;
   targetPercentage?: number;
 }
 

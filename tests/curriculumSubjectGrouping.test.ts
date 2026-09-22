@@ -81,3 +81,53 @@ test('curriculum indicator descriptions keep the complete canonical text', () =>
     assert.equal(row.midwayIndicator ?? row.exitIndicator, `${code} ${description}`);
   }
 });
+
+test('math curriculum contains every grade and all 120 indicators from the 2568 school curriculum', () => {
+  const expectedCountByGrade = new Map([
+    ['ป.1', 8],
+    ['ป.2', 12],
+    ['ป.3', 15],
+    ['ป.4', 19],
+    ['ป.5', 17],
+    ['ป.6', 20],
+    ['ม.1', 6],
+    ['ม.2', 8],
+    ['ม.3', 7],
+    ['ม.4', 3],
+    ['ม.5', 4],
+    ['ม.6', 1],
+  ]);
+
+  let total = 0;
+  for (const [gradeLevel, expectedCount] of expectedCountByGrade) {
+    const rows = getCurriculumRecords({ learningArea: 'คณิตศาสตร์', gradeLevel });
+    assert.equal(rows.length, expectedCount, `unexpected math indicator count for ${gradeLevel}`);
+    assert.ok(rows.every((row) => row.standardDescription.length > 0));
+    total += rows.length;
+  }
+  assert.equal(total, 120);
+
+  const primaryFive = getCurriculumRecords({ learningArea: 'คณิตศาสตร์', gradeLevel: 'ป.5' });
+  assert.ok(primaryFive.some((row) => row.midwayIndicator?.startsWith('ค 1.1 ป.5/1')));
+  assert.ok(primaryFive.some((row) => row.exitIndicator === 'ค 1.1 ป.5/2 แสดงวิธีหาคำตอบของโจทย์ปัญหาโดยใช้บัญญัติไตรยางศ์'));
+  assert.ok(primaryFive.some((row) => row.exitIndicator?.startsWith('ค 3.1 ป.5/2')));
+
+  const upperSecondary = ['ม.4', 'ม.5', 'ม.6']
+    .flatMap((gradeLevel) => getCurriculumRecords({ learningArea: 'คณิตศาสตร์', gradeLevel }));
+  const upperSecondaryText = upperSecondary
+    .flatMap((row) => [row.midwayIndicator, row.exitIndicator])
+    .filter(Boolean)
+    .join('\n');
+  for (const code of [
+    'ค 1.1 ม.4/1',
+    'ค 3.2 ม.4/1',
+    'ค 3.2 ม.4/2',
+    'ค 1.1 ม.5/1',
+    'ค 1.2 ม.5/1',
+    'ค 1.2 ม.5/2',
+    'ค 1.3 ม.5/1',
+    'ค 3.1 ม.6/1',
+  ]) {
+    assert.ok(upperSecondaryText.includes(code), `expected upper-secondary indicator ${code}`);
+  }
+});
