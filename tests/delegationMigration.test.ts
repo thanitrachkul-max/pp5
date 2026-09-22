@@ -42,8 +42,10 @@ insert into profiles values
  ('00000000-0000-0000-0000-000000000003',current_school_id(),'นาย','ผู้รับมอบหมาย',true,'teacher'),
  ('00000000-0000-0000-0000-000000000004','00000000-0000-0000-0000-000000000099','นาย','ต่างโรงเรียน',true,'teacher'),
  ('00000000-0000-0000-0000-000000000005',current_school_id(),'นาย','ปิดบัญชี',false,'teacher'),
- ('00000000-0000-0000-0000-000000000006',current_school_id(),'นางสาว','พัชรี ภูละคร',true,'executive');
+ ('00000000-0000-0000-0000-000000000006',current_school_id(),'นางสาว','พัชรี ภูละคร',true,'teacher');
 update classrooms set homeroom_teacher_id='00000000-0000-0000-0000-000000000003';
+insert into teaching_assignments(school_id,semester_id,teacher_id,subject_id,classroom_id,status)
+values (current_school_id(),'00000000-0000-0000-0000-000000000030','00000000-0000-0000-0000-000000000006','00000000-0000-0000-0000-000000000040','00000000-0000-0000-0000-000000000050','active');
 create or replace function auth.uid() returns uuid language sql as $$ select current_setting('test.uid',true)::uuid $$;
 create or replace function current_role_is_admin() returns boolean language sql as $$ select false $$;
 grant usage on schema public,auth to authenticated;
@@ -55,6 +57,7 @@ create policy ta_teacher_read on teaching_assignments for select using (teacher_
 `);
 await db.exec(readFileSync('supabase/migrations/0040_gradebook_delegations.sql','utf8'));
 await db.exec(readFileSync('supabase/migrations/0048_additional_subjects_and_delegation_candidates.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/0049_allow_co_teachers_as_delegation_candidates.sql','utf8'));
 const book = (await db.query<{id:string}>('select id from gradebooks where deleted_at is null')).rows[0].id;
 const setUser = async (id: number) => db.exec(`set test.uid='00000000-0000-0000-0000-${String(id).padStart(12,'0')}'`);
 await db.exec('set role authenticated');
@@ -65,17 +68,18 @@ await assert.rejects(db.query('select set_gradebook_delegation($1,$2)',[book,'00
 await setUser(2);
 const candidates=await db.query<{id:string;classrooms:string[]}>('select * from gradebook_delegation_teachers($1)',[book]);
 assert.deepEqual(new Set(candidates.rows.map(t=>t.id)),new Set([
+  '00000000-0000-0000-0000-000000000001',
   '00000000-0000-0000-0000-000000000003',
   '00000000-0000-0000-0000-000000000006',
 ]));
 assert.deepEqual(candidates.rows.find(t=>t.id.endsWith('3'))?.classrooms,['1/1']);
-for (const invalid of [1,2,4,5]) await assert.rejects(db.query('select set_gradebook_delegation($1,$2)',[book,`00000000-0000-0000-0000-${String(invalid).padStart(12,'0')}`]));
+for (const invalid of [2,4,5]) await assert.rejects(db.query('select set_gradebook_delegation($1,$2)',[book,`00000000-0000-0000-0000-${String(invalid).padStart(12,'0')}`]));
 await db.query('select set_gradebook_delegation($1,$2)',[book,'00000000-0000-0000-0000-000000000003']);
 await db.query('select set_gradebook_delegation($1,$2)',[book,'00000000-0000-0000-0000-000000000003']);
 assert.equal((await db.query('select * from list_gradebook_delegations()')).rows.length,1);
 await setUser(3);
 assert.equal((await db.query('select id from gradebooks')).rows.length,1);
-assert.equal((await db.query('select id from teaching_assignments')).rows.length,2);
+assert.equal((await db.query('select id from teaching_assignments')).rows.length,3);
 assert.equal((await db.query(`update gradebooks set scores='{"student":97}' returning id`)).rows.length,1);
 await assert.rejects(db.query('select gradebook_delegation_teachers($1)',[book]));
 await assert.rejects(db.query('select set_gradebook_delegation($1,$2,true)',[book,'00000000-0000-0000-0000-000000000003']));
