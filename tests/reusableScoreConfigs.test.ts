@@ -25,9 +25,10 @@ test('keeps only saved configs for the same subject, area, year and semester', (
   const rows = [
     { id: 'current', updated_at: '2026-09-22', general_info: generalInfo, score_config: config },
     { id: 'same', updated_at: '2026-09-21', general_info: { ...generalInfo, gradeLevel: 'ม.6/1' }, score_config: config },
-    { id: 'other-subject', updated_at: '2026-09-20', general_info: { ...generalInfo, subjectCode: 'ว33101' }, score_config: config },
-    { id: 'other-area', updated_at: '2026-09-19', general_info: { ...generalInfo, learningArea: 'คณิตศาสตร์' }, score_config: config },
+    { id: 'other-subject', updated_at: '2026-09-20', general_info: { ...generalInfo, subjectCode: 'ว33101' }, score_config: { ...config, subjectCode: 'ว33101' } },
+    { id: 'other-area', updated_at: '2026-09-19', general_info: { ...generalInfo, learningArea: 'คณิตศาสตร์' }, score_config: { ...config, learningArea: 'คณิตศาสตร์' } },
     { id: 'other-year', updated_at: '2026-09-18', general_info: { ...generalInfo, academicYear: '2568' }, score_config: config },
+    { id: 'legacy-info', updated_at: '2026-09-17', general_info: {}, score_config: config },
   ];
 
   const result = filterReusableScoreConfigs(rows, {
@@ -36,7 +37,7 @@ test('keeps only saved configs for the same subject, area, year and semester', (
     semesterFullScore: 100,
   });
 
-  assert.deepEqual(result.map(item => item.id), ['same']);
+  assert.deepEqual(result.map(item => item.id), ['same', 'legacy-info']);
   assert.equal(result[0].classroomName, 'ม.6/1');
   assert.equal(result[0].config.units.length, 1);
   assert.equal(result[0].config.units[0].name, 'การแก้ปัญหา');

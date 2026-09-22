@@ -14,6 +14,18 @@ interface GradebookConfigRow {
   updated_at: string;
   general_info: Partial<AppData["generalInfo"]> | null;
   score_config: ScoreConfig | null;
+  teaching_assignments?: {
+    subjects?: {
+      subject_code?: string | null;
+      subject_name?: string | null;
+      learning_area?: string | null;
+    } | null;
+    classrooms?: { name?: string | null } | null;
+    semesters?: {
+      semester_number?: number | null;
+      academic_years?: { year_be?: number | null } | null;
+    } | null;
+  } | null;
 }
 
 interface ReusableScoreConfigFilter {
@@ -28,6 +40,12 @@ const normalize = (value: unknown) =>
     .replace(/\s+/g, " ")
     .toLocaleLowerCase("th-TH");
 
+const normalizeSubjectKey = (value: unknown) =>
+  normalize(value).replace(/[\s._-]+/g, "");
+
+const firstRelation = <T>(value: T | T[] | null | undefined): T | undefined =>
+  Array.isArray(value) ? value[0] : value ?? undefined;
+
 const configHasContent = (config: ScoreConfig | null): config is ScoreConfig =>
   Boolean(
     config &&
@@ -40,14 +58,24 @@ const configHasContent = (config: ScoreConfig | null): config is ScoreConfig =>
 const isSameSubject = (
   sourceInfo: Partial<AppData["generalInfo"]>,
   targetInfo: AppData["generalInfo"],
+  sourceConfig: ScoreConfig,
 ) => {
-  if (normalize(sourceInfo.learningArea) !== normalize(targetInfo.learningArea)) return false;
+  const sourceLearningAreas = [sourceInfo.learningArea, sourceConfig.learningArea]
+    .map(normalize)
+    .filter(Boolean);
+  if (!sourceLearningAreas.includes(normalize(targetInfo.learningArea))) return false;
 
-  const sourceCode = normalize(sourceInfo.subjectCode);
-  const targetCode = normalize(targetInfo.subjectCode);
-  if (sourceCode && targetCode) return sourceCode === targetCode;
+  const targetCode = normalizeSubjectKey(targetInfo.subjectCode);
+  const sourceCodes = [sourceInfo.subjectCode, sourceConfig.subjectCode]
+    .map(normalizeSubjectKey)
+    .filter(Boolean);
+  if (sourceCodes.length > 0) return Boolean(targetCode && sourceCodes.includes(targetCode));
 
-  return normalize(sourceInfo.subjectName) === normalize(targetInfo.subjectName);
+  const targetName = normalizeSubjectKey(targetInfo.subjectName);
+  const sourceNames = [sourceInfo.subjectName, sourceConfig.subjectName]
+    .map(normalizeSubjectKey)
+    .filter(Boolean);
+  return Boolean(targetName && sourceNames.includes(targetName));
 };
 
 export function filterReusableScoreConfigs(
@@ -61,14 +89,16 @@ export function filterReusableScoreConfigs(
     const info = row.general_info ?? {};
     const config = row.score_config;
     const sourceFullScore = config?.semesterFullScore ?? 100;
+    const sourceYear = normalize(info.academicYear);
+    const sourceSemester = normalize(info.semester);
 
     if (
       row.id === filter.currentGradebookId ||
       !configHasContent(config) ||
       sourceFullScore !== filter.semesterFullScore ||
-      !isSameSubject(info, filter.generalInfo) ||
-      (targetYear && normalize(info.academicYear) !== targetYear) ||
-      (targetSemester && normalize(info.semester) !== targetSemester)
+      !isSameSubject(info, filter.generalInfo, config) ||
+      (targetYear && sourceYear && sourceYear !== targetYear) ||
+      (targetSemester && sourceSemester && sourceSemester !== targetSemester)
     ) {
       return [];
     }
@@ -88,15 +118,56 @@ export async function fetchReusableScoreConfigs(
   filter: ReusableScoreConfigFilter,
 ): Promise<ReusableScoreConfigSource[]> {
   const { supabase } = await import("./supabase");
-  const { data, error } = await supabase
+  const selectWithAssignment = `
+    id,
+    updated_at,
+    general_info,
+    score_config,
+    teaching_assignments:teaching_assignment_id(
+      subjects:subject_id(subject_code, subject_name, learning_area),
+      classrooms:classroom_id(name),
+      semesters:semester_id(semester_number, academic_years:academic_year_id(year_be))
+    )
+  `;
+  let result: any = await supabase
     .from("gradebooks")
-    .select("id, updated_at, general_info, score_config")
+    .select(selectWithAssignment)
     .neq("id", filter.currentGradebookId)
-    .not("score_config", "is", null)
     .is("deleted_at", null)
     .order("updated_at", { ascending: false })
-    .limit(100);
+    .limit(1000);
 
-  if (error) throw error;
-  return filterReusableScoreConfigs((data ?? []) as GradebookConfigRow[], filter);
+  // Older deployments may not have the relationship in PostgREST's schema
+  // cache. Fall back to the JSON fields so the picker remains compatible.
+  if (result.error) {
+    result = await supabase
+      .from("gradebooks")
+      .select("id, updated_at, general_info, score_config")
+      .neq("id", filter.currentGradebookId)
+      .is("deleted_at", null)
+      .order("updated_at", { ascending: false })
+      .limit(1000);
+  }
+
+  if (result.error) throw result.error;
+
+  const rows = ((result.data ?? []) as GradebookConfigRow[]).map((row) => {
+    const assignment = firstRelation(row.teaching_assignments);
+    const subject = firstRelation(assignment?.subjects);
+    const semester = firstRelation(assignment?.semesters);
+    const academicYear = firstRelation(semester?.academic_years);
+    const info = { ...(row.general_info ?? {}) };
+
+    // Prefer canonical subject/room/term values when legacy JSON is empty or stale.
+    if (subject?.subject_code) info.subjectCode = subject.subject_code;
+    if (subject?.subject_name) info.subjectName = subject.subject_name;
+    if (subject?.learning_area) info.learningArea = subject.learning_area;
+    if (assignment?.classrooms?.name) info.gradeLevel = assignment.classrooms.name;
+    if (semester?.semester_number != null) info.semester = String(semester.semester_number);
+    if (academicYear?.year_be != null) info.academicYear = String(academicYear.year_be);
+
+    return { ...row, general_info: info };
+  });
+
+  return filterReusableScoreConfigs(rows, filter);
 }
