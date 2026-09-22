@@ -363,6 +363,11 @@ export function Pap5CoverPreview({
     name: (["teacherName", "teacherName2", "teacherName3"] as const)[index],
     value,
   }));
+  const homeroomTeacherFields = ([
+    ["homeroomTeacher1", displayGeneralInfo.homeroomTeacher1],
+    ["homeroomTeacher2", displayGeneralInfo.homeroomTeacher2],
+    ["homeroomTeacher3", displayGeneralInfo.homeroomTeacher3],
+  ] as const).filter((field) => Boolean(field[1]?.trim()));
   const getPercent = (count: number) => {
     if (summary.totalStudents === 0) return "0";
     return Math.round((count / summary.totalStudents) * 100).toString();
@@ -536,34 +541,23 @@ export function Pap5CoverPreview({
           </div>
         </div>
 
-        <div className="flex justify-center items-center gap-1 mb-4">
-          <span>ครูประจำชั้น 1.</span>
-          <TextField
-            fit
-            name="homeroomTeacher1"
-            value={displayGeneralInfo.homeroomTeacher1}
-            widthClass="w-44"
-            editable={editable}
-            onChange={handleChange}
-          />
-          <span>2.</span>
-          <TextField
-            fit
-            name="homeroomTeacher2"
-            value={displayGeneralInfo.homeroomTeacher2}
-            widthClass="w-44"
-            editable={editable}
-            onChange={handleChange}
-          />
-          <span>3.</span>
-          <TextField
-            fit
-            name="homeroomTeacher3"
-            value={displayGeneralInfo.homeroomTeacher3 || ""}
-            widthClass="w-44"
-            editable={editable}
-            onChange={handleChange}
-          />
+        <div className="mb-4 flex items-center justify-center gap-2 text-center">
+          <span className="shrink-0">ครูประจำชั้น</span>
+          <div className="flex items-center justify-center gap-x-3">
+            {homeroomTeacherFields.map(([name, value], index) => (
+              <span key={name} className="inline-flex items-center justify-center gap-1">
+                <span>{index + 1}.</span>
+                <TextField
+                  fit
+                  name={name}
+                  value={value}
+                  widthClass={homeroomTeacherFields.length === 1 ? "w-72" : homeroomTeacherFields.length === 2 ? "w-56" : "w-44"}
+                  editable={editable}
+                  onChange={handleChange}
+                />
+              </span>
+            ))}
+          </div>
         </div>
 
         <table className="pap5-cover-summary excel-table mb-4 mx-auto w-[90%] [&_th]:text-[12px] [&_td]:text-[12px] [&_th]:p-1 [&_td]:p-1 [&_tr]:h-10">

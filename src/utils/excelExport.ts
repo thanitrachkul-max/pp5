@@ -246,21 +246,16 @@ export const exportToExcel = async (data: any) => {
   sheet1.getCell("F15").alignment = centerAlign;
   sheet1.getCell("F15").fill = fillYellow;
 
-  sheet1.mergeCells("C16:E16");
-  sheet1.getCell("C16").value = "ครูประจำชั้น 1.";
-  sheet1.getCell("C16").alignment = rightAlign;
+  const homeroomNames = [homeroomTeacher1, homeroomTeacher2, homeroomTeacher3]
+    .map((name) => name.trim())
+    .filter(Boolean);
+  const homeroomText = homeroomNames
+    .map((name, index) => `${index + 1}. ${name}`)
+    .join("   ");
+  sheet1.mergeCells("C16:P16");
+  sheet1.getCell("C16").value = homeroomText ? `ครูประจำชั้น ${homeroomText}` : "ครูประจำชั้น";
+  sheet1.getCell("C16").alignment = centerAlign;
   sheet1.getCell("C16").font = fontBold;
-  sheet1.mergeCells("F16:J16");
-  sheet1.getCell("F16").value = homeroomTeacher1;
-  sheet1.getCell("F16").alignment = centerAlign;
-  sheet1.getCell("K16").value = "2.";
-  sheet1.getCell("K16").alignment = rightAlign;
-  sheet1.getCell("K16").font = fontBold;
-  sheet1.mergeCells("L16:P16");
-  sheet1.getCell("L16").value = homeroomTeacher3
-    ? `${homeroomTeacher2}  3. ${homeroomTeacher3}`
-    : homeroomTeacher2;
-  sheet1.getCell("L16").alignment = leftAlign;
 
   // Summary Table on Cover
   const startRow = 18;

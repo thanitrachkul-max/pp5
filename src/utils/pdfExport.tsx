@@ -649,6 +649,18 @@ function CoverPage({
     ? teacherNames.map((name, index) => `${index + 1}. ${name}`).join("  ")
     : teacherNames[0] ?? "";
   const teacherFieldWidth = teacherNames.length >= 3 ? 92 : teacherNames.length === 2 ? 144 : 320;
+  const homeroomTeacherNames = [
+    generalInfo.homeroomTeacher1,
+    generalInfo.homeroomTeacher2,
+    generalInfo.homeroomTeacher3,
+  ]
+    .map((name) => name?.trim())
+    .filter((name): name is string => Boolean(name));
+  const homeroomFieldWidth = homeroomTeacherNames.length >= 3
+    ? 126
+    : homeroomTeacherNames.length === 2
+      ? 168
+      : 280;
 
   return (
     <Page size="A4" style={styles.portraitPage}>
@@ -691,9 +703,16 @@ function CoverPage({
         )}
       </View>
       <View style={[styles.coverInfoRow, { marginBottom: 10 }]}>
-        <InfoField label="ครูประจำชั้น 1." value={generalInfo.homeroomTeacher1} width={126} backgroundColor={COLORS.white} />
-        <InfoField label="2." value={generalInfo.homeroomTeacher2} width={126} backgroundColor={COLORS.white} />
-        <InfoField label="3." value={generalInfo.homeroomTeacher3} width={126} backgroundColor={COLORS.white} />
+        {homeroomTeacherNames.map((name, index) => (
+          <React.Fragment key={`${name}-${index}`}>
+            <InfoField
+              label={index === 0 ? "ครูประจำชั้น 1." : `${index + 1}.`}
+              value={name}
+              width={homeroomFieldWidth}
+              backgroundColor={COLORS.white}
+            />
+          </React.Fragment>
+        ))}
       </View>
 
       <View style={[styles.table, { width: PORTRAIT_CONTENT_WIDTH, marginTop: 3, borderColor: COLORS.coverBorder }]}>
