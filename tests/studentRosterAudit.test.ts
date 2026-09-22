@@ -55,7 +55,7 @@ test('student roster mutations create add, update and remove audit events', asyn
       );
       create table public.student_enrollments (
         id uuid primary key default gen_random_uuid(),
-        student_id uuid not null references public.students(id),
+        student_id uuid not null references public.students(id) on delete cascade,
         academic_year_id uuid not null,
         classroom_id uuid not null,
         class_level_code text not null,
@@ -75,7 +75,8 @@ test('student roster mutations create add, update and remove audit events', asyn
         id uuid primary key,
         teaching_assignment_id uuid not null,
         assignment_group_id uuid,
-        deleted_at timestamptz
+        deleted_at timestamptz,
+        students jsonb not null default '[]'::jsonb
       );
       create table public.gradebook_delegations (
         id uuid primary key default gen_random_uuid(),
@@ -124,8 +125,11 @@ test('student roster mutations create add, update and remove audit events', asyn
 
     await db.exec(readFileSync('supabase/migrations/0047_teacher_manage_assigned_student_roster.sql', 'utf8'));
     await db.exec(readFileSync('supabase/migrations/0050_student_roster_audit.sql', 'utf8'));
+    await db.exec(readFileSync('supabase/migrations/0051_preserve_student_delete_audit.sql', 'utf8'));
+    await db.exec('update public.teaching_assignments set status = \'pending\';');
     await db.exec(`
       grant usage on schema public, auth to authenticated;
+      grant select on public.gradebooks to authenticated;
       set role authenticated;
       set test.uid = '00000000-0000-0000-0000-000000000001';
     `);
@@ -143,6 +147,18 @@ test('student roster mutations create add, update and remove audit events', asyn
     `);
     const studentId = added.rows[0].student_id;
 
+    const addedSnapshot = await db.query<{ students: Array<{ id: string; studentId: string }> }>(
+      'select students from public.gradebooks where id = $1',
+      ['00000000-0000-0000-0000-000000000070'],
+    );
+    assert.deepEqual(addedSnapshot.rows[0].students, [{
+      id: studentId,
+      studentId: 'P5001',
+      citizenId: '1234567890123',
+      name: 'เด็กหญิง ทดสอบ ระบบ',
+      studentNumber: 7,
+    }]);
+
     await db.query(`
       select public.teacher_update_assigned_student(
         $1,
@@ -154,12 +170,22 @@ test('student roster mutations create add, update and remove audit events', asyn
         'ข้อมูล'
       )
     `, [studentId]);
+    const updatedSnapshot = await db.query<{ students: Array<{ studentId: string }> }>(
+      'select students from public.gradebooks where id = $1',
+      ['00000000-0000-0000-0000-000000000070'],
+    );
+    assert.equal(updatedSnapshot.rows[0].students[0].studentId, 'P5002');
     await db.query(`
       select public.teacher_remove_assigned_student(
         '00000000-0000-0000-0000-000000000050',
         $1
       )
     `, [studentId]);
+    const removedSnapshot = await db.query<{ students: unknown[] }>(
+      'select students from public.gradebooks where id = $1',
+      ['00000000-0000-0000-0000-000000000070'],
+    );
+    assert.deepEqual(removedSnapshot.rows[0].students, []);
 
     await db.exec('reset role');
     const audit = await db.query<{ action: string; before_data: unknown; after_data: unknown }>(`
@@ -174,6 +200,38 @@ test('student roster mutations create add, update and remove audit events', asyn
     assert.equal((audit.rows[1].after_data as { studentId: string }).studentId, 'P5002');
     assert.equal((audit.rows[2].before_data as { studentId: string }).studentId, 'P5002');
     assert.equal(audit.rows[2].after_data, null);
+
+    const deleted = await db.query<{ student_id: string }>(`
+      select public.teacher_add_assigned_student(
+        '00000000-0000-0000-0000-000000000050',
+        'P5003',
+        null,
+        'เด็กชาย',
+        'ลบถาวร',
+        'ทดสอบ',
+        8
+      ) as student_id
+    `);
+    await db.exec(`
+      delete from public.students
+      where id = '${deleted.rows[0].student_id}';
+    `);
+
+    const deleteAudit = await db.query<{
+      action: string;
+      student_id: string | null;
+      before_data: { studentId: string };
+      after_data: unknown;
+    }>(`
+      select action, student_id, before_data, after_data
+      from public.student_roster_audit_logs
+      order by created_at desc, id desc
+      limit 1
+    `);
+    assert.equal(deleteAudit.rows[0].action, 'remove');
+    assert.equal(deleteAudit.rows[0].student_id, null);
+    assert.equal(deleteAudit.rows[0].before_data.studentId, 'P5003');
+    assert.equal(deleteAudit.rows[0].after_data, null);
   } finally {
     await db.close();
   }

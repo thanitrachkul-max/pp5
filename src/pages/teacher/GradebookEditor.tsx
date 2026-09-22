@@ -40,6 +40,8 @@ import { createSaveQueue } from "../../lib/saveQueue";
 import { supabase } from "../../lib/supabase";
 import { downloadPap5Pdf } from "../../utils/pap5PdfPreview";
 import { openPap5PrintDialog } from "../../utils/pap5PrintDialog";
+import { buildStudentRoster } from "../../lib/teacherGradebooks";
+import { mergeRosterWithSavedState } from "../../lib/studentRoster";
 import type { GradebookSession } from "../../lib/teacherGradebooks";
 import type { AppData, AppUser, GradebookApprovalStatus, Student } from "../../types";
 
@@ -244,6 +246,80 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
     }, 1500);
   };
 
+  // Keep an already-open gradebook aligned when the admin or another teacher
+  // changes the shared classroom roster in another tab/subject.
+  useEffect(() => {
+    let cancelled = false;
+
+    const refreshRoster = async () => {
+      try {
+        const roster = await buildStudentRoster(
+          session.classroom_id,
+          session.academic_year_id,
+        );
+        if (cancelled) return;
+
+        const current = latestData.current;
+        const students = mergeRosterWithSavedState(roster, current.students);
+        if (JSON.stringify(students) === JSON.stringify(current.students)) return;
+
+        const nextData = { ...current, students };
+        latestData.current = nextData;
+        setData(nextData);
+        if (!session.readOnly) {
+          saveQueue.update(nextData);
+          onSyncStatusChange?.("saving");
+          void persist().then(
+            () => onSyncStatusChange?.("saved"),
+            () => onSyncStatusChange?.("error"),
+          );
+        }
+      } catch {
+        // Keep the current editor usable during a temporary realtime refresh
+        // failure; the next event or page load will retry the roster query.
+      }
+    };
+
+    let channel = supabase.channel(`gradebook-roster-${session.id}`);
+    channel = channel.on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "student_enrollments",
+        filter: `academic_year_id=eq.${session.academic_year_id}`,
+      },
+      () => void refreshRoster(),
+    );
+    if (currentUser.schoolId) {
+      channel = channel.on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "students",
+          filter: `school_id=eq.${currentUser.schoolId}`,
+        },
+        () => void refreshRoster(),
+      );
+    }
+    channel.subscribe();
+
+    return () => {
+      cancelled = true;
+      void supabase.removeChannel(channel);
+    };
+  }, [
+    currentUser.schoolId,
+    onSyncStatusChange,
+    persist,
+    saveQueue,
+    session.academic_year_id,
+    session.classroom_id,
+    session.id,
+    session.readOnly,
+  ]);
+
   const indicatorConfig = primaryCombinedConfig(data);
   const indicatorCodeSignature = JSON.stringify(configuredIndicatorCodes(indicatorConfig));
   const missingDetails = missingIndicatorCodes(indicatorConfig, data.indicators);
@@ -390,7 +466,21 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
     async (student: Student): Promise<void> => {
       if (session.readOnly) return;
       if (!UUID_PATTERN.test(student.id)) {
-        throw new Error("ไม่พบรหัสนักเรียนในฐานข้อมูลกลาง กรุณาให้ผู้ดูแลระบบตรวจสอบข้อมูล");
+        // An unsaved row only exists in this gradebook editor, so removing it
+        // does not require a central roster mutation.
+        return;
+      }
+
+      // A student can already have been permanently deleted from the admin
+      // screen while an older gradebook tab still contains its JSON snapshot.
+      // Treat that case as an idempotent success so the stale row can be
+      // removed locally instead of showing a misleading permission error.
+      const centralRoster = await buildStudentRoster(
+        session.classroom_id,
+        session.academic_year_id,
+      );
+      if (!centralRoster.some((currentStudent) => currentStudent.id === student.id)) {
+        return;
       }
 
       const { error } = await supabase.rpc("teacher_remove_assigned_student", {
@@ -401,7 +491,12 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
         throw new Error(`ไม่สามารถลบนักเรียนออกจากห้องเรียนได้: ${getSupabaseErrorMessage(error)}`);
       }
     },
-    [session.readOnly, session.teaching_assignment_id],
+    [
+      session.academic_year_id,
+      session.classroom_id,
+      session.readOnly,
+      session.teaching_assignment_id,
+    ],
   );
 
   const flushPendingSave = useCallback(async () => {
