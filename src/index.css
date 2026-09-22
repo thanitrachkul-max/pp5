@@ -45,17 +45,6 @@ html {
   text-rendering: optimizeLegibility;
 }
 
-/*
- * Match Chrome's 90% zoom for the interactive application.  `zoom` scales
- * fixed pixel dimensions, spacing, icons and typography together, unlike a
- * root font-size change.  Keep print/PDF layout at 100%.
- */
-@media screen {
-  body {
-    zoom: 0.9;
-  }
-}
-
 body {
   font-family: "Sarabun", "Inter", sans-serif;
   background-color: var(--color-surface);
