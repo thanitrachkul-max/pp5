@@ -38,6 +38,14 @@ test('keeps only saved configs for the same subject, area, year and semester', (
 
   assert.deepEqual(result.map(item => item.id), ['same']);
   assert.equal(result[0].classroomName, 'ม.6/1');
+  assert.equal(result[0].config.units.length, 1);
+  assert.equal(result[0].config.units[0].name, 'การแก้ปัญหา');
+  assert.equal(result[0].config.units[0].indicators.length, 1);
+  assert.deepEqual(result[0].config.units[0].indicators[0], {
+    code: 'ว 4.2 ม.6/1',
+    fullScore: 70,
+    passingScore: 35,
+  });
 });
 
 test('rejects empty and incompatible 50-point configs', () => {

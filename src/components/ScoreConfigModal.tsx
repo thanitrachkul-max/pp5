@@ -402,7 +402,7 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-slate-800">ดึงตัวชี้วัดจากวิชาที่บันทึกแล้ว</h3>
-                  <p className="text-sm text-slate-500">เลือกห้องเรียนต้นทาง ระบบจะคัดลอกหน่วยการเรียนรู้ คะแนน และตัวชี้วัดทั้งหมด</p>
+                  <p className="text-sm text-slate-500">เลือกห้องเรียนต้นทาง ระบบจะเติมข้อมูลในกรอบนี้ให้ครบทั้งจำนวนหน่วย ชื่อหน่วย จำนวนตัวชี้วัด คะแนน และรหัสตัวชี้วัด</p>
                 </div>
               </div>
 
@@ -448,7 +448,7 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
                   ยกเลิก
                 </button>
                 <button type="button" disabled={!selectedSourceId || importLoading} onClick={applyImportedConfig} className="btn btn-primary disabled:cursor-not-allowed disabled:opacity-50">
-                  ดึงข้อมูลที่เลือก
+                  เลือกและนำเข้าข้อมูลทั้งหมด
                 </button>
               </div>
             </div>
