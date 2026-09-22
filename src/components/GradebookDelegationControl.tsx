@@ -85,7 +85,7 @@ export function GradebookDelegationControl({ session, currentUserId, beforeChang
   const available = teachers.filter(t => !delegations.some(d => d.teacher_id === t.id));
   const filtered = available.filter(t => t.name.replace(/\s/g, '').includes(search.replace(/\s/g, '')) && (!classroom || t.classrooms.includes(classroom)));
   return <>
-    {canManage && <button ref={trigger} type="button" onClick={() => void show()} className={`btn !h-10 !px-3 ${hasDelegation ? "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100" : "border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"}`}><UserPlus className="h-4 w-4" />{hasDelegation ? "มอบหมายให้ครูคนอื่นแล้ว" : "มอบหมายครูคนอื่นบันทึกผล"}</button>}
+    {canManage && <button ref={trigger} type="button" onClick={() => void show()} className={`btn !h-10 !px-3 ${hasDelegation ? "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100" : "border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"}`}><UserPlus className="h-4 w-4" />{hasDelegation ? "มอบหมายให้ครูคนอื่นแล้ว" : "มอบครูคนอื่นบันทึก"}</button>}
     {received.length > 0 && <span className="max-w-sm text-xs font-semibold text-violet-700">มอบหมายโดย: {assigners}</span>}
     {!open && error && <span role="alert" className="text-xs text-red-600">โหลดการมอบหมายไม่สำเร็จ <button type="button" className="underline" onClick={() => void refresh().then(() => setError('')).catch(e => setError(getErrorMessage(e, error)))}>ลองใหม่</button></span>}
     {open && createPortal(<div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm">

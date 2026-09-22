@@ -14,7 +14,6 @@ import {
   FileText,
   LayoutDashboard,
   Loader2,
-  LogOut,
   Printer,
   UserRound,
   Users,
@@ -112,7 +111,6 @@ interface GradebookEditorProps {
   session: GradebookSession;
   currentUser: AppUser;
   onBack: () => void;
-  onLogout: () => void;
   onSettings: () => void;
   onSyncStatusChange?: (status: "idle" | "saving" | "saved" | "error") => void;
 }
@@ -127,7 +125,6 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
   session,
   currentUser,
   onBack,
-  onLogout,
   onSettings,
   onSyncStatusChange,
 }) => {
@@ -521,7 +518,6 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
     }
   };
   const handleBack = () => leaveAfterSave(onBack);
-  const handleLogout = () => leaveAfterSave(onLogout);
   const handleSettings = () => leaveAfterSave(onSettings);
 
   const handleTabChange = useCallback(
@@ -780,16 +776,16 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
             </div>
 
             <div className="flex flex-wrap items-center justify-start gap-2 xl:justify-end">
-              <GradebookDelegationControl session={session} currentUserId={currentUser.id} beforeChange={flushPendingSave} />
               <button
                 type="button"
                 onClick={() => void handleBack()}
                 className="flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-extrabold text-slate-700 shadow-[0_2px_6px_rgba(15,23,42,0.18)] ring-1 ring-slate-100 transition hover:bg-slate-50 hover:text-slate-950"
-                title="กลับตารางปี/ภาคเรียน"
+                title="ย้อนกลับ"
               >
                 <ArrowLeft className="h-[18px] w-[18px]" />
-                <span>กลับตารางปี/ภาคเรียน</span>
+                <span>ย้อนกลับ</span>
               </button>
+              <GradebookDelegationControl session={session} currentUserId={currentUser.id} beforeChange={flushPendingSave} />
 
               {session.readOnly ? (
                 <div className="flex h-10 shrink-0 items-center rounded-lg border border-amber-100 bg-amber-50 px-3 text-xs font-semibold text-amber-800 shadow-sm">
@@ -849,14 +845,6 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                     <LayoutDashboard className="h-4 w-4" />
                   </button>
                 )}
-                <button
-                  type="button"
-                  onClick={() => void handleLogout()}
-                  className="flex h-8 w-8 items-center justify-center rounded-md text-slate-400 transition hover:bg-red-50 hover:text-red-600"
-                  title="ออกจากระบบ"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
               </div>
             </div>
           </div>
