@@ -1786,9 +1786,9 @@ main table:not(.excel-table) tbody td {
     height: calc(7.8mm - 14px) !important;
     min-height: 0 !important;
     max-height: none !important;
-    /* 9.2px vertical padding makes the rendered row 30% taller while the
-       reciprocal transforms above keep the text at its original size. */
-    padding: 9.2px 5px !important;
+    /* 19.25px vertical padding makes the rendered row 50% taller than the
+       previous layout while the reciprocal transforms keep text unchanged. */
+    padding: 19.25px 5px !important;
     font-size: 11.5px !important;
     line-height: 1 !important;
     overflow: hidden !important;
