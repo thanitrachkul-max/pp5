@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Loader2, RefreshCw, Search, Users } from 'lucide-react';
+import { History, Loader2, RefreshCw, Search, Users } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { AppUser, Semester } from '../../types';
 
@@ -57,6 +57,30 @@ interface RosterReport {
   students: RosterStudent[];
 }
 
+interface RosterAuditRow {
+  id: string;
+  teaching_assignment_id: string;
+  teacher_id: string;
+  student_id: string;
+  action: 'add' | 'update' | 'remove';
+  before_data: unknown;
+  after_data: unknown;
+  created_at: string;
+}
+
+interface RosterActivity {
+  id: string;
+  teacherName: string;
+  studentName: string;
+  studentCode: string;
+  action: 'add' | 'update' | 'remove';
+  actionLabel: string;
+  detail: string;
+  subjectLabel: string;
+  classroomName: string;
+  createdAt: string;
+}
+
 function normalizeStudents(value: unknown): RosterStudent[] {
   if (!Array.isArray(value)) return [];
 
@@ -103,11 +127,71 @@ function formatDateTime(value: string | null): string {
   });
 }
 
+function snapshotRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' ? value as Record<string, unknown> : null;
+}
+
+function snapshotValue(snapshot: Record<string, unknown> | null, ...keys: string[]): string {
+  for (const key of keys) {
+    const value = snapshot?.[key];
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return '';
+}
+
+function snapshotName(snapshot: Record<string, unknown> | null): string {
+  const direct = snapshotValue(snapshot, 'name', 'fullName', 'full_name');
+  if (direct) return direct;
+  return [
+    snapshotValue(snapshot, 'title'),
+    snapshotValue(snapshot, 'firstName', 'first_name'),
+    snapshotValue(snapshot, 'lastName', 'last_name'),
+  ].filter(Boolean).join(' ');
+}
+
+function auditActionLabel(action: RosterActivity['action']): string {
+  if (action === 'add') return 'เพิ่มนักเรียน';
+  if (action === 'remove') return 'ลบนักเรียน';
+  return 'แก้ไขข้อมูลนักเรียน';
+}
+
+function auditDetail(row: RosterAuditRow): string {
+  const before = snapshotRecord(row.before_data);
+  const after = snapshotRecord(row.after_data);
+  if (row.action === 'add') {
+    return `เพิ่ม ${snapshotName(after) || 'นักเรียน'} เข้าห้องเรียน`;
+  }
+  if (row.action === 'remove') {
+    return `นำ ${snapshotName(before) || 'นักเรียน'} ออกจากห้องเรียน`;
+  }
+
+  const changes: string[] = [];
+  const beforeCode = snapshotValue(before, 'studentId', 'student_code');
+  const afterCode = snapshotValue(after, 'studentId', 'student_code');
+  const beforeName = snapshotName(before);
+  const afterName = snapshotName(after);
+  if (beforeCode !== afterCode) changes.push(`รหัส ${beforeCode || '-'} → ${afterCode || '-'}`);
+  if (beforeName !== afterName) changes.push(`ชื่อ ${beforeName || '-'} → ${afterName || '-'}`);
+  const beforeCitizen = snapshotValue(before, 'citizenId', 'citizen_id');
+  const afterCitizen = snapshotValue(after, 'citizenId', 'citizen_id');
+  if (beforeCitizen !== afterCitizen) changes.push('เลขประจำตัวประชาชน');
+  return changes.length > 0 ? changes.join(' · ') : 'แก้ไขข้อมูลนักเรียน';
+}
+
+function isMissingAuditTableError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const candidate = error as { code?: unknown; message?: unknown };
+  const code = typeof candidate.code === 'string' ? candidate.code : '';
+  const message = typeof candidate.message === 'string' ? candidate.message : '';
+  return code === 'PGRST205' || code === '42P01' || message.includes('student_roster_audit_logs');
+}
+
 export const StudentRosterEditsPage: React.FC<StudentRosterEditsPageProps> = ({
   currentUser,
   initialYearId,
 }) => {
   const [reports, setReports] = useState<RosterReport[]>([]);
+  const [activities, setActivities] = useState<RosterActivity[]>([]);
   const [yearLabel, setYearLabel] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -184,19 +268,17 @@ export const StudentRosterEditsPage: React.FC<StudentRosterEditsPageProps> = ({
       const assignments = (assignmentRows ?? []) as unknown as AssignmentRosterRow[];
       const assignmentIds = assignments.map((assignment) => assignment.id);
 
-      if (assignmentIds.length === 0) {
-        setReports([]);
-        setYearLabel(targetYearLabel);
-        return;
+      let gradebookRows: unknown[] = [];
+      if (assignmentIds.length > 0) {
+        const { data, error: gradebookError } = await supabase
+          .from('gradebooks')
+          .select('id, teaching_assignment_id, teacher_id, students, updated_at, created_at')
+          .in('teaching_assignment_id', assignmentIds)
+          .order('updated_at', { ascending: false });
+
+        if (gradebookError) throw gradebookError;
+        gradebookRows = data ?? [];
       }
-
-      const { data: gradebookRows, error: gradebookError } = await supabase
-        .from('gradebooks')
-        .select('id, teaching_assignment_id, teacher_id, students, updated_at, created_at')
-        .in('teaching_assignment_id', assignmentIds)
-        .order('updated_at', { ascending: false });
-
-      if (gradebookError) throw gradebookError;
 
       const assignmentById = new Map(assignments.map((assignment) => [assignment.id, assignment]));
       const mapped = ((gradebookRows ?? []) as GradebookRosterRow[])
@@ -220,10 +302,60 @@ export const StudentRosterEditsPage: React.FC<StudentRosterEditsPageProps> = ({
         });
 
       setReports(mapped);
+
+      let auditRows: RosterAuditRow[] = [];
+      if (assignmentIds.length > 0) {
+        const { data, error: auditError } = await supabase
+          .from('student_roster_audit_logs')
+          .select('id, teaching_assignment_id, teacher_id, student_id, action, before_data, after_data, created_at')
+          .eq('school_id', currentUser.schoolId)
+          .in('teaching_assignment_id', assignmentIds)
+          .order('created_at', { ascending: false })
+          .limit(500);
+
+        if (auditError && !isMissingAuditTableError(auditError)) throw auditError;
+        auditRows = (data ?? []) as RosterAuditRow[];
+      }
+
+      const teacherIds = Array.from(new Set(auditRows.map((row) => row.teacher_id).filter(Boolean)));
+      const teacherById = new Map<string, string>();
+      if (teacherIds.length > 0) {
+        const { data: teachers, error: teacherError } = await supabase
+          .from('profiles')
+          .select('id, title, full_name')
+          .in('id', teacherIds);
+        if (teacherError) throw teacherError;
+        for (const teacher of teachers ?? []) {
+          teacherById.set(teacher.id, [teacher.title, teacher.full_name].filter(Boolean).join(' '));
+        }
+      }
+
+      const activityItems = auditRows.flatMap((row): RosterActivity[] => {
+        const assignment = assignmentById.get(row.teaching_assignment_id);
+        if (!assignment) return [];
+        const before = snapshotRecord(row.before_data);
+        const after = snapshotRecord(row.after_data);
+        const snapshot = row.action === 'remove' ? before : after;
+        return [{
+          id: row.id,
+          teacherName: teacherById.get(row.teacher_id) || profileName(assignment.profiles),
+          studentName: snapshotName(snapshot) || 'ไม่ระบุชื่อ',
+          studentCode: snapshotValue(snapshot, 'studentId', 'student_code'),
+          action: row.action,
+          actionLabel: auditActionLabel(row.action),
+          detail: auditDetail(row),
+          subjectLabel: [assignment.subjects?.subject_code, assignment.subjects?.subject_name].filter(Boolean).join(' '),
+          classroomName: assignment.classrooms?.name ?? 'ไม่พบห้องเรียน',
+          createdAt: row.created_at,
+        }];
+      });
+
+      setActivities(activityItems);
       setYearLabel(targetYearLabel);
     } catch (err) {
       console.warn('Unable to load student roster edits.', err);
       setReports([]);
+      setActivities([]);
       setError('โหลดข้อมูลการแก้ไขรายชื่อนักเรียนไม่สำเร็จ กรุณารีเฟรชหน้าเว็บแล้วลองใหม่');
     } finally {
       setLoading(false);
@@ -233,6 +365,24 @@ export const StudentRosterEditsPage: React.FC<StudentRosterEditsPageProps> = ({
   useEffect(() => {
     void loadReports();
   }, [loadReports]);
+
+  useEffect(() => {
+    if (!currentUser.schoolId) return;
+    const channel = supabase
+      .channel('student-roster-audit-admin')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'student_roster_audit_logs',
+          filter: `school_id=eq.${currentUser.schoolId}`,
+        },
+        () => void loadReports(),
+      )
+      .subscribe();
+    return () => void supabase.removeChannel(channel);
+  }, [currentUser.schoolId, loadReports]);
 
   const visibleReports = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -308,48 +458,47 @@ export const StudentRosterEditsPage: React.FC<StudentRosterEditsPageProps> = ({
           <Loader2 className="mr-2 h-6 w-6 animate-spin" />
           กำลังโหลด...
         </div>
-      ) : visibleReports.length === 0 ? (
+      ) : activities.length === 0 && visibleReports.length === 0 ? (
         <div className="ui-card p-10 text-center text-sm text-slate-500">
           ยังไม่พบข้อมูลรายชื่อนักเรียนในสมุด ปพ.5
         </div>
       ) : (
-        <div className="space-y-4">
-          {visibleReports.map((report) => (
-            <section key={report.gradebookId} className="ui-card overflow-hidden">
-              <div className="flex flex-col gap-2 border-b border-slate-200 bg-slate-50 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="space-y-6">
+          {activities.length > 0 && (
+            <section className="ui-card overflow-hidden">
+              <div className="flex items-center gap-2 border-b border-slate-200 bg-slate-50 px-4 py-3">
+                <History className="h-5 w-5 text-blue-600" />
                 <div>
-                  <h5 className="text-base font-extrabold text-slate-900">
-                    {report.subjectCode} {report.subjectName}
-                  </h5>
-                  <p className="mt-1 text-sm text-slate-500">
-                    {report.classroomName} · ภาคเรียนที่ {report.semesterNumber ?? '—'} · ครูผู้สอน {report.teacherName}
-                  </p>
-                </div>
-                <div className="text-sm font-semibold text-slate-600">
-                  {report.students.length.toLocaleString('th-TH')} คน · แก้ไขล่าสุด {formatDateTime(report.updatedAt)}
+                  <h5 className="text-base font-extrabold text-slate-900">กิจกรรมการแก้ไขรายชื่อนักเรียน</h5>
+                  <p className="mt-0.5 text-xs text-slate-500">บันทึกการเพิ่ม แก้ไข และลบนักเรียนจากสมุด ปพ.5</p>
                 </div>
               </div>
-
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[760px] text-left text-sm">
+                <table className="w-full min-w-[980px] text-left text-sm">
                   <thead className="bg-slate-900 text-xs font-bold text-white">
                     <tr>
-                      <th className="w-16 px-4 py-3 text-center">ลำดับ</th>
-                      <th className="px-4 py-3">เลขประจำตัว</th>
-                      <th className="px-4 py-3">เลขประจำตัวประชาชน</th>
-                      <th className="px-4 py-3">ชื่อ-สกุล</th>
-                      <th className="w-36 px-4 py-3 text-center">เป้าหมายเวลาเรียน</th>
+                      <th className="w-40 px-4 py-3">วันเวลา</th>
+                      <th className="w-36 px-4 py-3">การดำเนินการ</th>
+                      <th className="px-4 py-3">รายละเอียด</th>
+                      <th className="w-44 px-4 py-3">ครูผู้ดำเนินการ</th>
+                      <th className="w-56 px-4 py-3">วิชา / ห้องเรียน</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {report.students.map((student, index) => (
-                      <tr key={`${report.gradebookId}-${student.id}-${index}`} className="border-b border-slate-100 last:border-b-0">
-                        <td className="px-4 py-3 text-center">{index + 1}</td>
-                        <td className="px-4 py-3 font-medium text-slate-800">{student.studentId || '—'}</td>
-                        <td className="px-4 py-3 text-slate-600">{student.citizenId || '—'}</td>
-                        <td className="px-4 py-3 text-slate-800">{student.name || '—'}</td>
-                        <td className="px-4 py-3 text-center text-slate-600">
-                          {student.targetPercentage == null ? '—' : `${student.targetPercentage}%`}
+                    {activities.map((activity) => (
+                      <tr key={activity.id} className="border-b border-slate-100 last:border-b-0">
+                        <td className="px-4 py-3 text-xs text-slate-500">{formatDateTime(activity.createdAt)}</td>
+                        <td className="px-4 py-3 font-bold text-slate-800">{activity.actionLabel}</td>
+                        <td className="px-4 py-3 text-slate-700">
+                          <div>{activity.detail}</div>
+                          <div className="mt-1 text-xs text-slate-400">
+                            {activity.studentCode ? `รหัส ${activity.studentCode} · ` : ''}{activity.studentName}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 font-medium text-slate-700">{activity.teacherName}</td>
+                        <td className="px-4 py-3 text-slate-600">
+                          <div>{activity.subjectLabel || 'ไม่พบรายวิชา'}</div>
+                          <div className="mt-1 text-xs text-slate-400">{activity.classroomName}</div>
                         </td>
                       </tr>
                     ))}
@@ -357,7 +506,59 @@ export const StudentRosterEditsPage: React.FC<StudentRosterEditsPageProps> = ({
                 </table>
               </div>
             </section>
-          ))}
+          )}
+
+          {visibleReports.length > 0 && (
+            <section>
+              <h5 className="mb-3 text-base font-extrabold text-slate-900">รายชื่อนักเรียนล่าสุดในสมุด ปพ.5</h5>
+              <div className="space-y-4">
+                {visibleReports.map((report) => (
+                  <section key={report.gradebookId} className="ui-card overflow-hidden">
+                    <div className="flex flex-col gap-2 border-b border-slate-200 bg-slate-50 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+                      <div>
+                        <h5 className="text-base font-extrabold text-slate-900">
+                          {report.subjectCode} {report.subjectName}
+                        </h5>
+                        <p className="mt-1 text-sm text-slate-500">
+                          {report.classroomName} · ภาคเรียนที่ {report.semesterNumber ?? '—'} · ครูผู้สอน {report.teacherName}
+                        </p>
+                      </div>
+                      <div className="text-sm font-semibold text-slate-600">
+                        {report.students.length.toLocaleString('th-TH')} คน · แก้ไขล่าสุด {formatDateTime(report.updatedAt)}
+                      </div>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[760px] text-left text-sm">
+                        <thead className="bg-slate-900 text-xs font-bold text-white">
+                          <tr>
+                            <th className="w-16 px-4 py-3 text-center">ลำดับ</th>
+                            <th className="px-4 py-3">เลขประจำตัว</th>
+                            <th className="px-4 py-3">เลขประจำตัวประชาชน</th>
+                            <th className="px-4 py-3">ชื่อ-สกุล</th>
+                            <th className="w-36 px-4 py-3 text-center">เป้าหมายเวลาเรียน</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {report.students.map((student, index) => (
+                            <tr key={`${report.gradebookId}-${student.id}-${index}`} className="border-b border-slate-100 last:border-b-0">
+                              <td className="px-4 py-3 text-center">{index + 1}</td>
+                              <td className="px-4 py-3 font-medium text-slate-800">{student.studentId || '—'}</td>
+                              <td className="px-4 py-3 text-slate-600">{student.citizenId || '—'}</td>
+                              <td className="px-4 py-3 text-slate-800">{student.name || '—'}</td>
+                              <td className="px-4 py-3 text-center text-slate-600">
+                                {student.targetPercentage == null ? '—' : `${student.targetPercentage}%`}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       )}
     </div>
