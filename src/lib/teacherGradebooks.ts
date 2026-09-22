@@ -11,6 +11,7 @@ import { STUDENT_HOMEROOMS } from "../data/studentHomerooms";
 import { isSchemaCacheErrorFor } from "./dbErrors";
 import { isWithinEntryWindow } from "./thaiDate";
 import { mergePap5OfficialsIntoGeneralInfo } from "./pap5Officials";
+import { mergeRosterWithSavedState } from "./studentRoster";
 import type { AppData, AppUser, GradebookApprovalStatus, Student } from "../types";
 
 const DEFAULT_AGENCY_NAME = "สำนักบริหารงานการศึกษาพิเศษ";
@@ -205,6 +206,8 @@ export interface TeacherAssignmentView {
 export interface GradebookSession {
   id: string;
   teaching_assignment_id: string;
+  classroom_id: string;
+  academic_year_id: string;
   gradebook_status: "not_started" | "in_progress" | "completed";
   approval_status: GradebookApprovalStatus | null;
   approval_reason: string | null;
@@ -601,7 +604,7 @@ export function groupAssignmentsByYear(
   return map;
 }
 
-async function buildStudentRoster(
+export async function buildStudentRoster(
   classroomId: string,
   academicYearId: string,
 ): Promise<Student[]> {
@@ -642,39 +645,6 @@ async function buildStudentRoster(
         studentNumber: row.student_number,
       },
     ];
-  });
-}
-
-function mergeRosterWithSavedState(
-  roster: Student[],
-  savedStudents: Student[],
-  hasSavedRoster = true,
-): Student[] {
-  if (hasSavedRoster) {
-    const rosterByStudentId = new Map(roster.map((student) => [student.id, student]));
-
-    return savedStudents.map((savedStudent) => {
-      const latestStudent = rosterByStudentId.get(savedStudent.id);
-      if (!latestStudent) return savedStudent;
-
-      return {
-        ...savedStudent,
-        studentId: latestStudent.studentId,
-        citizenId: latestStudent.citizenId,
-        name: latestStudent.name,
-      };
-    });
-  }
-
-  const targetByStudentId = new Map(
-    savedStudents.map((student) => [student.id, student.targetPercentage]),
-  );
-
-  return roster.map((student) => {
-    const targetPercentage = targetByStudentId.get(student.id);
-    return targetPercentage === undefined
-      ? student
-      : { ...student, targetPercentage };
   });
 }
 
@@ -934,7 +904,6 @@ export async function loadGradebookSession(
   );
   const savedGeneralInfo =
     (data.general_info as Partial<AppData["generalInfo"]> | null) ?? {};
-  const hasSavedRoster = Array.isArray(data.students);
   const hasCurrentHomeroomTeachers = Boolean(
     assignment.homeroom_teacher_1_name ||
       assignment.homeroom_teacher_2_name ||
@@ -999,6 +968,8 @@ export async function loadGradebookSession(
   return {
     id: data.id,
     teaching_assignment_id: data.teaching_assignment_id,
+    classroom_id: assignment.classroom_id,
+    academic_year_id: assignment.academic_year_id,
     gradebook_status:
       data.status === "completed"
         ? "completed"
@@ -1018,7 +989,7 @@ export async function loadGradebookSession(
     data: {
       ...appData,
       generalInfo: mergedGeneralInfo,
-      students: mergeRosterWithSavedState(roster, appData.students, hasSavedRoster),
+      students: mergeRosterWithSavedState(roster, appData.students),
     },
   };
 }
