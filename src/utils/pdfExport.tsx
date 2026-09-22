@@ -339,6 +339,9 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     lineHeight: 1.04,
   },
+  teacherSignatureName: {
+    marginTop: 2,
+  },
   signatureRow: {
     flexDirection: "row",
     justifyContent: "center",
@@ -794,7 +797,7 @@ function TeacherSignaturePair({ names }: { names: string[] }) {
             <Text style={[styles.signatureText, styles.teacherSignaturePrefix]}>ลงชื่อ</Text>
             <View style={styles.teacherSignatureLine} />
           </View>
-          <Text wrap={false} style={styles.teacherSignatureCaption}>
+          <Text wrap={false} style={[styles.teacherSignatureCaption, styles.teacherSignatureName]}>
             ( {name} )
           </Text>
           <Text style={styles.teacherSignatureCaption}>ครูผู้สอน คนที่ {index + 1}</Text>

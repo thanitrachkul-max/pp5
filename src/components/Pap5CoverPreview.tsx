@@ -712,7 +712,7 @@ function TeacherSignatures({ names }: { names: [string, string] | string[] }) {
             <div className="shrink-0 pr-1 text-right">ลงชื่อ</div>
             <div className="min-w-0 flex-1 border-b border-dotted border-slate-500" />
           </div>
-          <div className="text-center text-[13px] leading-tight">( {name} )</div>
+          <div className="mt-0.5 text-center text-[13px] leading-tight">( {name} )</div>
           <div className="pl-12 text-center text-[13px] leading-tight">
             ครูผู้สอน
           </div>
