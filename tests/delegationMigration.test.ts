@@ -41,7 +41,8 @@ alter table classrooms add homeroom_teacher_id uuid, add homeroom_teacher_2_id u
 insert into profiles values
  ('00000000-0000-0000-0000-000000000003',current_school_id(),'นาย','ผู้รับมอบหมาย',true,'teacher'),
  ('00000000-0000-0000-0000-000000000004','00000000-0000-0000-0000-000000000099','นาย','ต่างโรงเรียน',true,'teacher'),
- ('00000000-0000-0000-0000-000000000005',current_school_id(),'นาย','ปิดบัญชี',false,'teacher');
+ ('00000000-0000-0000-0000-000000000005',current_school_id(),'นาย','ปิดบัญชี',false,'teacher'),
+ ('00000000-0000-0000-0000-000000000006',current_school_id(),'นางสาว','พัชรี ภูละคร',true,'executive');
 update classrooms set homeroom_teacher_id='00000000-0000-0000-0000-000000000003';
 create or replace function auth.uid() returns uuid language sql as $$ select current_setting('test.uid',true)::uuid $$;
 create or replace function current_role_is_admin() returns boolean language sql as $$ select false $$;
@@ -53,6 +54,7 @@ alter table teaching_assignments enable row level security;
 create policy ta_teacher_read on teaching_assignments for select using (teacher_id=auth.uid());
 `);
 await db.exec(readFileSync('supabase/migrations/0040_gradebook_delegations.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/0048_additional_subjects_and_delegation_candidates.sql','utf8'));
 const book = (await db.query<{id:string}>('select id from gradebooks where deleted_at is null')).rows[0].id;
 const setUser = async (id: number) => db.exec(`set test.uid='00000000-0000-0000-0000-${String(id).padStart(12,'0')}'`);
 await db.exec('set role authenticated');
@@ -62,8 +64,11 @@ await assert.rejects(db.query('select set_gradebook_delegation($1,$2)',[book,'00
 // Either original co-teacher can delegate the same shared book.
 await setUser(2);
 const candidates=await db.query<{id:string;classrooms:string[]}>('select * from gradebook_delegation_teachers($1)',[book]);
-assert.deepEqual(candidates.rows.map(t=>t.id),['00000000-0000-0000-0000-000000000003']);
-assert.deepEqual(candidates.rows[0].classrooms,['1/1']);
+assert.deepEqual(new Set(candidates.rows.map(t=>t.id)),new Set([
+  '00000000-0000-0000-0000-000000000003',
+  '00000000-0000-0000-0000-000000000006',
+]));
+assert.deepEqual(candidates.rows.find(t=>t.id.endsWith('3'))?.classrooms,['1/1']);
 for (const invalid of [1,2,4,5]) await assert.rejects(db.query('select set_gradebook_delegation($1,$2)',[book,`00000000-0000-0000-0000-${String(invalid).padStart(12,'0')}`]));
 await db.query('select set_gradebook_delegation($1,$2)',[book,'00000000-0000-0000-0000-000000000003']);
 await db.query('select set_gradebook_delegation($1,$2)',[book,'00000000-0000-0000-0000-000000000003']);

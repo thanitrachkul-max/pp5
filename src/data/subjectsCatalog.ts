@@ -109,7 +109,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ว11201",
     "subject_name": "สวนพฤกษศาสตร์ในโรงเรียน",
-    "learning_area": "วิทยาศาสตร์และเทคโนโลยี",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ป.1",
     "semester_number": null,
@@ -278,7 +278,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ว12201",
     "subject_name": "สวนพฤกษศาสตร์ในโรงเรียน",
-    "learning_area": "วิทยาศาสตร์และเทคโนโลยี",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ป.2",
     "semester_number": null,
@@ -447,7 +447,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ว13201",
     "subject_name": "สวนพฤกษศาสตร์ในโรงเรียน",
-    "learning_area": "วิทยาศาสตร์และเทคโนโลยี",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ป.3",
     "semester_number": null,
@@ -616,7 +616,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ว14201",
     "subject_name": "สวนพฤกษศาสตร์ในโรงเรียน",
-    "learning_area": "วิทยาศาสตร์และเทคโนโลยี",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ป.4",
     "semester_number": null,
@@ -785,7 +785,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ว15201",
     "subject_name": "สวนพฤกษศาสตร์ในโรงเรียน",
-    "learning_area": "วิทยาศาสตร์และเทคโนโลยี",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ป.5",
     "semester_number": null,
@@ -954,7 +954,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ว16201",
     "subject_name": "สวนพฤกษศาสตร์ในโรงเรียน",
-    "learning_area": "วิทยาศาสตร์และเทคโนโลยี",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ป.6",
     "semester_number": null,
@@ -1084,7 +1084,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ง21201",
     "subject_name": "พื้นฐานอาชีพ",
-    "learning_area": "การงานอาชีพ",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.1",
     "semester_number": 1,
@@ -1097,7 +1097,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ง21202",
     "subject_name": "พื้นฐานอาชีพ",
-    "learning_area": "การงานอาชีพ",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.1",
     "semester_number": 2,
@@ -1240,7 +1240,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ว21201",
     "subject_name": "สวนพฤกษศาสตร์ในโรงเรียน",
-    "learning_area": "วิทยาศาสตร์และเทคโนโลยี",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.1",
     "semester_number": 1,
@@ -1253,7 +1253,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ว21202",
     "subject_name": "สวนพฤกษศาสตร์ในโรงเรียน",
-    "learning_area": "วิทยาศาสตร์และเทคโนโลยี",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.1",
     "semester_number": 2,
@@ -1448,7 +1448,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ง22201",
     "subject_name": "พื้นฐานอาชีพ",
-    "learning_area": "การงานอาชีพ",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.2",
     "semester_number": 1,
@@ -1461,7 +1461,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ง22202",
     "subject_name": "พื้นฐานอาชีพ",
-    "learning_area": "การงานอาชีพ",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.2",
     "semester_number": 2,
@@ -1604,7 +1604,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ว22201",
     "subject_name": "สวนพฤกษศาสตร์ในโรงเรียน",
-    "learning_area": "วิทยาศาสตร์และเทคโนโลยี",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.2",
     "semester_number": 1,
@@ -1617,7 +1617,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ว22202",
     "subject_name": "สวนพฤกษศาสตร์ในโรงเรียน",
-    "learning_area": "วิทยาศาสตร์และเทคโนโลยี",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.2",
     "semester_number": 2,
@@ -1812,7 +1812,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ง23201",
     "subject_name": "พื้นฐานอาชีพ",
-    "learning_area": "การงานอาชีพ",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.3",
     "semester_number": 1,
@@ -1825,7 +1825,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ง23202",
     "subject_name": "พื้นฐานอาชีพ",
-    "learning_area": "การงานอาชีพ",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.3",
     "semester_number": 2,
@@ -1968,7 +1968,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ว23201",
     "subject_name": "สวนพฤกษศาสตร์ในโรงเรียน",
-    "learning_area": "วิทยาศาสตร์และเทคโนโลยี",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.3",
     "semester_number": 1,
@@ -1981,7 +1981,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ว23202",
     "subject_name": "สวนพฤกษศาสตร์ในโรงเรียน",
-    "learning_area": "วิทยาศาสตร์และเทคโนโลยี",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.3",
     "semester_number": 2,
@@ -2176,7 +2176,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ง31201",
     "subject_name": "พื้นฐานอาชีพ",
-    "learning_area": "การงานอาชีพ",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.4",
     "semester_number": 1,
@@ -2189,7 +2189,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ง31202",
     "subject_name": "พื้นฐานอาชีพ",
-    "learning_area": "การงานอาชีพ",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.4",
     "semester_number": 2,
@@ -2306,7 +2306,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ว31201",
     "subject_name": "สวนพฤกษศาสตร์ในโรงเรียน",
-    "learning_area": "วิทยาศาสตร์และเทคโนโลยี",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.4",
     "semester_number": 1,
@@ -2319,7 +2319,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ว31202",
     "subject_name": "สวนพฤกษศาสตร์ในโรงเรียน",
-    "learning_area": "วิทยาศาสตร์และเทคโนโลยี",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.4",
     "semester_number": 2,
@@ -2540,7 +2540,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ง32201",
     "subject_name": "พื้นฐานอาชีพ",
-    "learning_area": "การงานอาชีพ",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.5",
     "semester_number": 1,
@@ -2553,7 +2553,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ง32202",
     "subject_name": "พื้นฐานอาชีพ",
-    "learning_area": "การงานอาชีพ",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.5",
     "semester_number": 2,
@@ -2722,7 +2722,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ว32201",
     "subject_name": "สวนพฤกษศาสตร์ในโรงเรียน",
-    "learning_area": "วิทยาศาสตร์และเทคโนโลยี",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.5",
     "semester_number": 1,
@@ -2735,7 +2735,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ว32202",
     "subject_name": "สวนพฤกษศาสตร์ในโรงเรียน",
-    "learning_area": "วิทยาศาสตร์และเทคโนโลยี",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.5",
     "semester_number": 2,
@@ -2954,6 +2954,32 @@ export const SUBJECTS_CATALOG = [
     "flag": ""
   },
   {
+    "subject_code": "33201",
+    "subject_name": "ทักษะสังคมและการดำรงชีวิต",
+    "learning_area": "สังคมศึกษา ศาสนา และวัฒนธรรม",
+    "subject_type": "เพิ่มเติม",
+    "default_class_level": "ม.6",
+    "semester_number": 1,
+    "credits": 0.5,
+    "hours_total": 20,
+    "hours_per_week": 1,
+    "is_active": true,
+    "flag": ""
+  },
+  {
+    "subject_code": "33202",
+    "subject_name": "ทักษะสังคมและการดำรงชีวิต",
+    "learning_area": "สังคมศึกษา ศาสนา และวัฒนธรรม",
+    "subject_type": "เพิ่มเติม",
+    "default_class_level": "ม.6",
+    "semester_number": 2,
+    "credits": 0.5,
+    "hours_total": 20,
+    "hours_per_week": 1,
+    "is_active": true,
+    "flag": ""
+  },
+  {
     "subject_code": "ค33101",
     "subject_name": "คณิตศาสตร์",
     "learning_area": "คณิตศาสตร์",
@@ -3008,7 +3034,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ง33201",
     "subject_name": "พื้นฐานอาชีพ",
-    "learning_area": "การงานอาชีพ",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.6",
     "semester_number": 1,
@@ -3021,7 +3047,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ง33202",
     "subject_name": "พื้นฐานอาชีพ",
-    "learning_area": "การงานอาชีพ",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.6",
     "semester_number": 2,
@@ -3190,7 +3216,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ว33201",
     "subject_name": "สวนพฤกษศาสตร์ในโรงเรียน",
-    "learning_area": "วิทยาศาสตร์และเทคโนโลยี",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.6",
     "semester_number": 1,
@@ -3203,7 +3229,7 @@ export const SUBJECTS_CATALOG = [
   {
     "subject_code": "ว33202",
     "subject_name": "สวนพฤกษศาสตร์ในโรงเรียน",
-    "learning_area": "วิทยาศาสตร์และเทคโนโลยี",
+    "learning_area": "กลุ่มสาระการเรียนรู้เพิ่มเติม",
     "subject_type": "เพิ่มเติม",
     "default_class_level": "ม.6",
     "semester_number": 2,
@@ -3394,57 +3420,5 @@ export const SUBJECTS_CATALOG = [
     "hours_per_week": 1,
     "is_active": true,
     "flag": ""
-  },
-  {
-    "subject_code": "ง33101",
-    "subject_name": "การงานอาชีพ",
-    "learning_area": "การงานอาชีพ",
-    "subject_type": "พื้นฐาน",
-    "default_class_level": "ม.6",
-    "semester_number": 1,
-    "credits": 0.5,
-    "hours_total": 20,
-    "hours_per_week": 1,
-    "is_active": true,
-    "flag": ""
-  },
-  {
-    "subject_code": "ง33102",
-    "subject_name": "การงานอาชีพ",
-    "learning_area": "การงานอาชีพ",
-    "subject_type": "พื้นฐาน",
-    "default_class_level": "ม.6",
-    "semester_number": 2,
-    "credits": 0.5,
-    "hours_total": 20,
-    "hours_per_week": 1,
-    "is_active": true,
-    "flag": ""
-  },
-  {
-    subject_code: '33201',
-    subject_name: 'ทักษะสังคมและการดำรงชีวิต',
-    learning_area: 'สังคมศึกษา ศาสนา และวัฒนธรรม',
-    subject_type: 'เพิ่มเติม',
-    default_class_level: 'ม.6',
-    semester_number: 1,
-    credits: 0.5,
-    hours_total: 20,
-    hours_per_week: 1,
-    is_active: true,
-    flag: '',
-  },
-  {
-    subject_code: '33202',
-    subject_name: 'ทักษะสังคมและการดำรงชีวิต',
-    learning_area: 'สังคมศึกษา ศาสนา และวัฒนธรรม',
-    subject_type: 'เพิ่มเติม',
-    default_class_level: 'ม.6',
-    semester_number: 2,
-    credits: 0.5,
-    hours_total: 20,
-    hours_per_week: 1,
-    is_active: true,
-    flag: '',
-  },
+  }
 ] as const satisfies readonly SubjectCatalogItem[];

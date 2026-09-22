@@ -131,3 +131,47 @@ test('math curriculum contains every grade and all 120 indicators from the 2568 
     assert.ok(upperSecondaryText.includes(code), `expected upper-secondary indicator ${code}`);
   }
 });
+
+test('additional curriculum keeps both school subjects outside the core learning areas', () => {
+  const additionalArea = 'กลุ่มสาระการเรียนรู้เพิ่มเติม';
+  assert.deepEqual(getCurriculumSubjectOptions(additionalArea), [
+    'สวนพฤกษศาสตร์ในโรงเรียน',
+    'พื้นฐานอาชีพ',
+  ]);
+
+  assert.equal(
+    getCurriculumRecords({ learningArea: 'วิทยาศาสตร์และเทคโนโลยี' })
+      .some((row) => row.subject.includes('สวนพฤกษศาสตร์')),
+    false,
+  );
+  assert.equal(
+    getCurriculumRecords({ learningArea: 'การงานอาชีพ' })
+      .some((row) => row.subject === 'พื้นฐานอาชีพ'),
+    false,
+  );
+});
+
+test('botanical outcomes match the 2568 school curriculum count and grade progression', () => {
+  const expectedCountByGrade = new Map([
+    ['ป.1', 5], ['ป.2', 5], ['ป.3', 5], ['ป.4', 5], ['ป.5', 5], ['ป.6', 5],
+    ['ม.1', 16], ['ม.2', 18], ['ม.3', 19], ['ม.4', 23], ['ม.5', 28], ['ม.6', 34],
+  ]);
+
+  for (const [gradeLevel, expectedCount] of expectedCountByGrade) {
+    const rows = getCurriculumRecords({
+      learningArea: 'กลุ่มสาระการเรียนรู้เพิ่มเติม',
+      subject: 'สวนพฤกษศาสตร์ในโรงเรียน',
+      gradeLevel,
+    });
+    assert.equal(rows.length, expectedCount, `unexpected botanical outcome count for ${gradeLevel}`);
+    assert.ok(rows.every((row) => row.learningArea === 'กลุ่มสาระการเรียนรู้เพิ่มเติม'));
+  }
+
+  const m6 = getCurriculumRecords({
+    learningArea: 'กลุ่มสาระการเรียนรู้เพิ่มเติม',
+    subject: 'สวนพฤกษศาสตร์ในโรงเรียน',
+    gradeLevel: 'ม.6',
+  });
+  assert.ok(m6.some((row) => row.exitIndicator?.includes('ตรวจสอบความถูกต้องทางวิชาการด้านพฤกษศาสตร์')));
+  assert.ok(m6.some((row) => row.exitIndicator?.includes('ใช้ ดูแลรักษา และพัฒนาแหล่งเรียนรู้')));
+});

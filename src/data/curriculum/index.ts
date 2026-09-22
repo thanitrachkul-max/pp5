@@ -143,7 +143,7 @@ export const CURRICULUM_SUBJECT_CATALOG: CurriculumSubjectCatalogItem[] = [
     id: 'elective-botanical',
     learningArea: ELECTIVE_LEARNING_AREA,
     subject: 'สวนพฤกษศาสตร์ในโรงเรียน',
-    description: 'มาตรฐานการเรียนรู้และตัวชี้วัด รายวิชาเพิ่มเติม สวนพฤกษศาสตร์ในโรงเรียน (รหัส ว 5.x หลักสูตรสถานศึกษา)',
+    description: 'ผลการเรียนรู้ที่คาดหวัง รายวิชาเพิ่มเติม สวนพฤกษศาสตร์ในโรงเรียน (หลักสูตรสถานศึกษา ปรับปรุง 2568)',
     availableGrades: Array.from(new Set(botanicalElectiveCurriculum.map((r) => r.gradeLevel))).sort(
       (a, b) => CURRICULUM_GRADE_LEVELS.indexOf(a) - CURRICULUM_GRADE_LEVELS.indexOf(b),
     ) as CurriculumSubjectCatalogItem['availableGrades'],

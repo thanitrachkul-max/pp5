@@ -5,6 +5,7 @@ import { LEARNING_AREAS } from '../src/lib/learningAreas';
 
 type SubjectType = 'พื้นฐาน' | 'เพิ่มเติม';
 type LearningArea = (typeof LEARNING_AREAS)[number];
+const ADDITIONAL_LEARNING_AREA: LearningArea = 'กลุ่มสาระการเรียนรู้เพิ่มเติม';
 
 interface SubjectRow {
   subject_code: string;
@@ -24,6 +25,7 @@ interface SubjectRow {
 interface SemesterPairSpec {
   letter: keyof typeof AREA_BY_LETTER;
   subjectName: string;
+  learningArea?: LearningArea;
   subjectType: SubjectType;
   semester1Seq: number;
   semester2Seq: number;
@@ -72,9 +74,9 @@ const lowerSecondarySpecs: SemesterPairSpec[] = [
   spec('พ', 'สุขศึกษาและพลศึกษา', 'พื้นฐาน', 1, 2, 1.0, 40, 2),
   spec('ศ', 'ศิลปะ', 'พื้นฐาน', 1, 2, 1.0, 40, 2),
   spec('ง', 'การงานอาชีพ', 'พื้นฐาน', 1, 2, 1.0, 40, 2),
-  spec('ง', 'พื้นฐานอาชีพ', 'เพิ่มเติม', 1, 2, 1.0, 40, 2),
+  spec('ง', 'พื้นฐานอาชีพ', 'เพิ่มเติม', 1, 2, 1.0, 40, 2, '', ADDITIONAL_LEARNING_AREA),
   spec('พ', 'กีฬาและนันทนาการ', 'เพิ่มเติม', 1, 2, 1.0, 40, 2),
-  spec('ว', 'สวนพฤกษศาสตร์ในโรงเรียน', 'เพิ่มเติม', 1, 2, 0.5, 20, 1),
+  spec('ว', 'สวนพฤกษศาสตร์ในโรงเรียน', 'เพิ่มเติม', 1, 2, 0.5, 20, 1, '', ADDITIONAL_LEARNING_AREA),
 ];
 
 const upperBasicBaseSpecs: SemesterPairSpec[] = [
@@ -92,17 +94,17 @@ const upperBasicBaseSpecs: SemesterPairSpec[] = [
 ];
 
 const m4AdditionalSpecs: SemesterPairSpec[] = [
-  spec('ง', 'พื้นฐานอาชีพ', 'เพิ่มเติม', 1, 2, 6.0, 240, 12, 'ตรวจสอบ'),
-  spec('ว', 'สวนพฤกษศาสตร์ในโรงเรียน', 'เพิ่มเติม', 1, 2, 0.5, 20, 1),
+  spec('ง', 'พื้นฐานอาชีพ', 'เพิ่มเติม', 1, 2, 6.0, 240, 12, 'ตรวจสอบ', ADDITIONAL_LEARNING_AREA),
+  spec('ว', 'สวนพฤกษศาสตร์ในโรงเรียน', 'เพิ่มเติม', 1, 2, 0.5, 20, 1, '', ADDITIONAL_LEARNING_AREA),
 ];
 
 const m5AdditionalSpecs: SemesterPairSpec[] = [
   spec('ค', 'คณิตศาสตร์', 'เพิ่มเติม', 1, 2, 0.5, 20, 1),
   spec('ท', 'ภาษาไทย', 'เพิ่มเติม', 1, 2, 0.5, 20, 1),
   spec('อ', 'ภาษาอังกฤษ', 'เพิ่มเติม', 1, 2, 0.5, 20, 1),
-  spec('ว', 'สวนพฤกษศาสตร์ในโรงเรียน', 'เพิ่มเติม', 1, 2, 0.5, 20, 1),
+  spec('ว', 'สวนพฤกษศาสตร์ในโรงเรียน', 'เพิ่มเติม', 1, 2, 0.5, 20, 1, '', ADDITIONAL_LEARNING_AREA),
   spec('ส', 'สังคมศึกษา ศาสนา และวัฒนธรรม', 'เพิ่มเติม', 1, 2, 0.5, 20, 1),
-  spec('ง', 'พื้นฐานอาชีพ', 'เพิ่มเติม', 1, 2, 2.0, 240, 12),
+  spec('ง', 'พื้นฐานอาชีพ', 'เพิ่มเติม', 1, 2, 2.0, 240, 12, '', ADDITIONAL_LEARNING_AREA),
   spec('พ', 'กีฬาและนันทนาการ', 'เพิ่มเติม', 1, 2, 1.0, 40, 2),
   spec('ศ', 'ศิลปะ ดนตรี นาฏศิลป์', 'เพิ่มเติม', 1, 2, 1.0, 40, 2),
 ];
@@ -111,9 +113,9 @@ const m6AdditionalSpecs: SemesterPairSpec[] = [
   spec('ค', 'คณิตศาสตร์', 'เพิ่มเติม', 1, 2, 0.5, 20, 1),
   spec('ท', 'ภาษาไทย', 'เพิ่มเติม', 1, 2, 0.5, 20, 1),
   spec('อ', 'ภาษาอังกฤษ', 'เพิ่มเติม', 1, 2, 0.5, 20, 1),
-  spec('ว', 'สวนพฤกษศาสตร์ในโรงเรียน', 'เพิ่มเติม', 1, 2, 0.5, 20, 1),
+  spec('ว', 'สวนพฤกษศาสตร์ในโรงเรียน', 'เพิ่มเติม', 1, 2, 0.5, 20, 1, '', ADDITIONAL_LEARNING_AREA),
   spec('ส', 'สังคมศึกษา ศาสนา และวัฒนธรรม', 'เพิ่มเติม', 1, 2, 0.5, 20, 1),
-  spec('ง', 'พื้นฐานอาชีพ', 'เพิ่มเติม', 1, 2, 1.5, 240, 12),
+  spec('ง', 'พื้นฐานอาชีพ', 'เพิ่มเติม', 1, 2, 1.5, 240, 12, '', ADDITIONAL_LEARNING_AREA),
   spec('พ', 'กีฬาและนันทนาการ', 'เพิ่มเติม', 1, 2, 1.5, 60, 3),
   spec('ศ', 'ศิลปะ ดนตรี นาฏศิลป์', 'เพิ่มเติม', 1, 2, 1.5, 60, 3),
 ];
@@ -140,8 +142,9 @@ function spec(
   hoursTotal: number,
   hoursPerWeek: number,
   flag: SubjectRow['flag'] = '',
+  learningArea?: LearningArea,
 ): SemesterPairSpec {
-  return { letter, subjectName, subjectType, semester1Seq, semester2Seq, credits, hoursTotal, hoursPerWeek, flag };
+  return { letter, subjectName, learningArea, subjectType, semester1Seq, semester2Seq, credits, hoursTotal, hoursPerWeek, flag };
 }
 
 function subjectCode(letter: keyof typeof AREA_BY_LETTER, levelDigit: 1 | 2 | 3, yearDigit: number, typeDigit: 1 | 2, seq: number): string {
@@ -159,7 +162,7 @@ function fromSemesterPair(levelDigit: 2 | 3, yearDigit: number, group: SubjectRo
     {
       subject_code: subjectCode(pair.letter, levelDigit, yearDigit, typeDigit, pair.semester1Seq),
       subject_name: pair.subjectName,
-      learning_area: AREA_BY_LETTER[pair.letter],
+      learning_area: pair.learningArea ?? AREA_BY_LETTER[pair.letter],
       subject_type: pair.subjectType,
       class_level: level,
       semester: 1,
@@ -173,7 +176,7 @@ function fromSemesterPair(levelDigit: 2 | 3, yearDigit: number, group: SubjectRo
     {
       subject_code: subjectCode(pair.letter, levelDigit, yearDigit, typeDigit, pair.semester2Seq),
       subject_name: pair.subjectName,
-      learning_area: AREA_BY_LETTER[pair.letter],
+      learning_area: pair.learningArea ?? AREA_BY_LETTER[pair.letter],
       subject_type: pair.subjectType,
       class_level: level,
       semester: 2,
@@ -195,6 +198,7 @@ function buildPrimaryRows(): SubjectRow[] {
     const primarySpecs: Array<{
       letter: keyof typeof AREA_BY_LETTER;
       subjectName: string;
+      learningArea?: LearningArea;
       subjectType: SubjectType;
       seq: number;
       hours13: number;
@@ -223,14 +227,14 @@ function buildPrimaryRows(): SubjectRow[] {
         periods13: 5,
         periods46: 5,
       },
-      { letter: 'ว', subjectName: 'สวนพฤกษศาสตร์ในโรงเรียน', subjectType: 'เพิ่มเติม', seq: 1, hours13: 40, hours46: 40, periods13: 1, periods46: 1 },
+      { letter: 'ว', subjectName: 'สวนพฤกษศาสตร์ในโรงเรียน', learningArea: ADDITIONAL_LEARNING_AREA, subjectType: 'เพิ่มเติม', seq: 1, hours13: 40, hours46: 40, periods13: 1, periods46: 1 },
     ];
 
     primarySpecs.forEach((item) => {
       rows.push({
         subject_code: subjectCode(item.letter, 1, year, item.subjectType === 'พื้นฐาน' ? 1 : 2, item.seq),
         subject_name: item.subjectName,
-        learning_area: AREA_BY_LETTER[item.letter],
+        learning_area: item.learningArea ?? AREA_BY_LETTER[item.letter],
         subject_type: item.subjectType,
         class_level: classLevel('ป', year),
         semester: null,
@@ -442,7 +446,7 @@ function assertRows(rows: SubjectRow[]): void {
     lower: 84,
     m4: 26,
     m5: 38,
-    m6: 34,
+    m6: 36,
   };
   const allowedAreas = new Set<string>(LEARNING_AREAS);
   const byGroup = rows.reduce<Record<SubjectRow['group'], number>>((acc, row) => {
@@ -461,7 +465,7 @@ function assertRows(rows: SubjectRow[]): void {
   });
 
   const total = rows.length;
-  if (total !== 260) throw new Error(`Expected total 260 rows, got ${total}`);
+  if (total !== 262) throw new Error(`Expected total 262 rows, got ${total}`);
 
   const duplicate = rows.find((row, index) => rows.findIndex((item) => item.subject_code === row.subject_code) !== index);
   if (duplicate) throw new Error(`Duplicate subject_code: ${duplicate.subject_code}`);

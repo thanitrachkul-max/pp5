@@ -51,7 +51,7 @@ export function healthStrandFromStandard(standardCode: string): { strandNo: numb
   return { strandNo: major, strandName: `สาระที่ ${major}` };
 }
 
-const INDICATOR_CODE_RE = /([ก-ฮ]\s*\d+\.\d+\s*(?:ป|ม)\.\d+\/\d+)/;
+const INDICATOR_CODE_RE = /([ก-ฮ]+\s*\d+\.\d+\s*(?:ป|ม)\.\d+\/\d+)/;
 
 export function extractIndicatorCode(value: string | null | undefined): string | null {
   if (!value) return null;
