@@ -1,8 +1,9 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { X, AlertCircle, Sparkles, Loader2, CheckCircle2 } from 'lucide-react';
+import { X, AlertCircle, Sparkles, Loader2, CheckCircle2, CopyCheck } from 'lucide-react';
 import { AppData, ScoreConfig, ScoreUnit } from '../types';
 import { StandardIndicatorFilter } from './StandardIndicatorFilter';
 import { ModalPortal } from './ModalPortal';
+import { fetchReusableScoreConfigs, type ReusableScoreConfigSource } from '../lib/reusableScoreConfigs';
 
 interface Props {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface Props {
   generalInfo: AppData['generalInfo'];
   initialConfig?: ScoreConfig;
   semesterFullScore?: 50 | 100;
+  currentGradebookId?: string;
   onSave: (config: ScoreConfig) => void;
 }
 
@@ -60,7 +62,7 @@ const distributeScoresAcrossUnits = (currentUnits: ScoreUnit[], targetStoredScor
   });
 };
 
-export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo, initialConfig, onSave, semesterFullScore = 100 }) => {
+export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo, initialConfig, onSave, semesterFullScore = 100, currentGradebookId }) => {
   const options = semesterFullScore === 50 ? [35] : [...STORED_SCORE_OPTIONS];
   const defaultStoredScore = semesterFullScore === 50 ? 35 : DEFAULT_STORED_SCORE;
   const initialStoredScore = semesterFullScore === 50 ? 35 : getStoredScore(initialConfig);
@@ -73,6 +75,12 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
   
   const [showConfirm, setShowConfirm] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showImport, setShowImport] = useState(false);
+  const [importSources, setImportSources] = useState<ReusableScoreConfigSource[]>([]);
+  const [selectedSourceId, setSelectedSourceId] = useState('');
+  const [importLoading, setImportLoading] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importNotice, setImportNotice] = useState<string | null>(null);
   const [mainStandard, setMainStandard] = useState<string>(initialConfig?.standard || '');
 
   const learningArea = generalInfo.learningArea;
@@ -110,8 +118,55 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
     setError(null);
     setShowConfirm(false);
     setShowClearConfirm(false);
+    setShowImport(false);
+    setImportSources([]);
+    setSelectedSourceId('');
+    setImportError(null);
+    setImportNotice(null);
     setResetKey(prev => prev + 1);
   }, [isOpen, initialConfig, learningArea, subjectName, subjectCode]);
+
+  const openImport = async () => {
+    if (!currentGradebookId) return;
+    setShowImport(true);
+    setImportLoading(true);
+    setImportError(null);
+    setSelectedSourceId('');
+    try {
+      const sources = await fetchReusableScoreConfigs({
+        currentGradebookId,
+        generalInfo,
+        semesterFullScore: semesterFullScore as 50 | 100,
+      });
+      setImportSources(sources);
+      if (sources.length === 1) setSelectedSourceId(sources[0].id);
+    } catch (fetchError) {
+      const message = fetchError && typeof fetchError === 'object' && 'message' in fetchError
+        ? String(fetchError.message)
+        : 'ไม่สามารถโหลดรายวิชาต้นทางได้';
+      setImportError(message);
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
+  const applyImportedConfig = () => {
+    const source = importSources.find(item => item.id === selectedSourceId);
+    if (!source) return;
+
+    const config = structuredClone(source.config);
+    const nextStoredScore = semesterFullScore === 50 ? 35 : getStoredScore(config);
+    setExpectedLearningOutcomes(config.expectedLearningOutcomes || '');
+    setSelectedIndicators(config.selectedIndicators || []);
+    setNumUnits(config.units.length || DEFAULT_UNIT_COUNT);
+    setStoredScore(nextStoredScore);
+    setUnits(config.units.length > 0 ? config.units : createDefaultUnits(nextStoredScore));
+    setMainStandard(config.standard || '');
+    setError(null);
+    setImportNotice(`ดึงการตั้งค่าจากห้อง ${source.classroomName} แล้ว กรุณาตรวจสอบและกดบันทึกข้อมูล`);
+    setResetKey(prev => prev + 1);
+    setShowImport(false);
+  };
 
   const recalculateLastScore = (currentUnits: ScoreUnit[], targetStoredScore = storedScore) => {
     if (currentUnits.length === 0) return currentUnits;
@@ -272,7 +327,7 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
   return (
     <ModalPortal>
       <div className="fixed inset-0 z-[120] grid min-h-dvh place-items-center overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-sm transition-all duration-300">
-        <div className={showConfirm || showClearConfirm ? "relative w-full max-w-md" : "relative flex max-h-[calc(100dvh-2rem)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl"}>
+        <div className={showConfirm || showClearConfirm || showImport ? "relative w-full max-w-2xl" : "relative flex max-h-[calc(100dvh-2rem)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl"}>
         
         {/* Confirmation Overlay */}
         {showConfirm && (
@@ -338,7 +393,69 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
           </div>
         )}
 
-        <div className={showConfirm || showClearConfirm ? "hidden" : "contents"}>
+        {showImport && (
+          <div className="flex items-center justify-center">
+            <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-xl animate-in zoom-in-95 duration-200">
+              <div className="mb-1 flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                  <CopyCheck size={23} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800">ดึงตัวชี้วัดจากวิชาที่บันทึกแล้ว</h3>
+                  <p className="text-sm text-slate-500">เลือกห้องเรียนต้นทาง ระบบจะคัดลอกหน่วยการเรียนรู้ คะแนน และตัวชี้วัดทั้งหมด</p>
+                </div>
+              </div>
+
+              <div className="my-5 max-h-[50dvh] space-y-3 overflow-y-auto pr-1 custom-scrollbar">
+                {importLoading && (
+                  <div className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 py-10 text-slate-600">
+                    <Loader2 className="animate-spin" size={20} /> กำลังค้นหารายวิชา...
+                  </div>
+                )}
+                {!importLoading && importError && (
+                  <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{importError}</div>
+                )}
+                {!importLoading && !importError && importSources.length === 0 && (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
+                    ไม่พบรายวิชาเดียวกันในกลุ่มสาระนี้ที่บันทึกการตั้งค่าไว้แล้ว
+                  </div>
+                )}
+                {!importLoading && importSources.map(source => {
+                  const selected = selectedSourceId === source.id;
+                  return (
+                    <button
+                      type="button"
+                      key={source.id}
+                      onClick={() => setSelectedSourceId(source.id)}
+                      className={`flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-colors ${selected ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-100' : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/40'}`}
+                    >
+                      <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded border-2 ${selected ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300 bg-white'}`}>
+                        {selected && <CheckCircle2 size={17} />}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block font-bold text-slate-800">{subjectName} — ห้อง {source.classroomName}</span>
+                        <span className="mt-1 block text-sm text-slate-500">
+                          ปีการศึกษา {source.academicYear || '-'} ภาคเรียนที่ {source.semester || '-'} · {source.config.units.length} หน่วย · {source.config.selectedIndicators.length} ตัวชี้วัด
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex justify-end gap-3 border-t border-slate-100 pt-4">
+                <button type="button" onClick={() => setShowImport(false)} className="rounded-lg border border-slate-300 px-5 py-2.5 font-medium text-slate-700 hover:bg-slate-50">
+                  ยกเลิก
+                </button>
+                <button type="button" disabled={!selectedSourceId || importLoading} onClick={applyImportedConfig} className="btn btn-primary disabled:cursor-not-allowed disabled:opacity-50">
+                  ดึงข้อมูลที่เลือก
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className={showConfirm || showClearConfirm || showImport ? "hidden" : "contents"}>
         <div className="flex justify-between items-center p-5 border-b bg-slate-50/50">
           <h3 className="text-xl font-bold text-slate-800">ตั้งค่าตัวชี้วัด</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-full hover:bg-slate-100">
@@ -351,6 +468,12 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
             <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-md flex items-start shadow-sm">
               <AlertCircle className="text-red-500 mr-3 mt-0.5 flex-shrink-0" size={20} />
               <p className="text-red-700 text-sm font-medium">{error}</p>
+            </div>
+          )}
+          {importNotice && (
+            <div className="flex items-start rounded-r-md border-l-4 border-emerald-500 bg-emerald-50 p-4 shadow-sm">
+              <CheckCircle2 className="mr-3 mt-0.5 shrink-0 text-emerald-600" size={20} />
+              <p className="text-sm font-medium text-emerald-700">{importNotice}</p>
             </div>
           )}
 
@@ -504,15 +627,26 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
           </div>
         </div>
         
-        <div className="p-5 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
-          <button 
-            onClick={() => setShowClearConfirm(true)} 
-            className="px-5 py-2.5 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium mr-auto"
+        <div className="grid grid-cols-1 items-center gap-3 border-t border-slate-100 bg-slate-50 p-5 sm:grid-cols-[1fr_auto_1fr]">
+          <button
+            onClick={() => setShowClearConfirm(true)}
+            className="justify-self-start rounded-lg border border-red-300 px-5 py-2.5 font-medium text-red-600 transition-colors hover:bg-red-50"
           >
             ล้างข้อมูล
           </button>
-          <button onClick={onClose} className="px-5 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-100 transition-colors font-medium">ยกเลิก</button>
-          <button onClick={handleSaveClick} className="btn btn-primary">บันทึกข้อมูล</button>
+          <button
+            type="button"
+            onClick={() => void openImport()}
+            disabled={!currentGradebookId}
+            className="flex items-center justify-self-center rounded-lg border border-blue-300 bg-white px-5 py-2.5 font-medium text-blue-700 shadow-sm transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <CopyCheck className="mr-2" size={18} />
+            ดึงจากวิชาที่บันทึกแล้ว
+          </button>
+          <div className="flex justify-end gap-3">
+            <button onClick={onClose} className="px-5 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-100 transition-colors font-medium">ยกเลิก</button>
+            <button onClick={handleSaveClick} className="btn btn-primary">บันทึกข้อมูล</button>
+          </div>
         </div>
         </div>
         </div>

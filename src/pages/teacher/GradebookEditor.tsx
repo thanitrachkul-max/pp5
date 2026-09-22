@@ -812,13 +812,14 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 onPersistStudentDelete={handlePersistStudentDelete}
               />
             )}
-            {activeTab === "scores" && (data.primaryYear ? <PrimaryScoresForm data={data} readOnly={session.readOnly} onChange={handleUpdate} /> : (
+            {activeTab === "scores" && (data.primaryYear ? <PrimaryScoresForm data={data} readOnly={session.readOnly} currentGradebookId={session.id} onChange={handleUpdate} /> : (
               <ScoresForm
                 students={data.students}
                 data={data.scores}
                 generalInfo={data.generalInfo}
                 scoreConfig={data.scoreConfig}
                 readOnly={session.readOnly}
+                currentGradebookId={session.id}
                 onChange={(scores) =>
                   !session.readOnly && handleUpdate({ ...data, scores })
                 }

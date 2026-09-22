@@ -13,8 +13,8 @@ function TermCells({ locked, children }: { key?: number; locked: boolean; childr
   });
   return <>{shade(children)}</>;
 }
-interface Props { data: AppData; readOnly?: boolean; printMode?: boolean; offset?: number; onChange: (data: AppData) => void }
-export function PrimaryScoresForm({ data, readOnly = false, printMode = false, offset = 0, onChange }: Props) {
+interface Props { data: AppData; readOnly?: boolean; printMode?: boolean; offset?: number; currentGradebookId?: string; onChange: (data: AppData) => void }
+export function PrimaryScoresForm({ data, readOnly = false, printMode = false, offset = 0, currentGradebookId, onChange }: Props) {
   const [configTerm, setConfigTerm] = useState<number | null>(null);
   const [fillTerm, setFillTerm] = useState<number | null>(null);
   const terms = [1, 2].map(number => {
@@ -87,7 +87,7 @@ export function PrimaryScoresForm({ data, readOnly = false, printMode = false, o
       <button disabled={!activeTerm?.value.scoreConfig} className="rounded bg-emerald-600 px-5 py-2 text-white disabled:bg-slate-300" onClick={() => activeTerm && setFillTerm(activeTerm.number)}>ระบบช่วยบันทึกคะแนน</button>
       <button disabled={!activeTerm} className="rounded bg-red-500 px-5 py-2 text-white disabled:bg-slate-300" onClick={() => { if (activeTerm && window.confirm(`ล้างคะแนนและการตั้งค่าเฉพาะภาคเรียนที่ ${activeTerm.number}?`)) onChange(updatePrimaryTerm(data,activeTerm.number,{scores:{},scoreConfig:undefined})); }}>ล้างข้อมูล</button>
     </div>}
-    {configTerm !== null && <ScoreConfigModal isOpen onClose={() => setConfigTerm(null)} generalInfo={data.generalInfo} initialConfig={terms[configTerm - 1].value.scoreConfig} semesterFullScore={50} onSave={saveConfig} />}
+    {configTerm !== null && <ScoreConfigModal isOpen onClose={() => setConfigTerm(null)} generalInfo={data.generalInfo} initialConfig={terms[configTerm - 1].value.scoreConfig} semesterFullScore={50} currentGradebookId={currentGradebookId} onSave={saveConfig} />}
     {fillTerm !== null && <AutoFillModal isOpen onClose={() => setFillTerm(null)} scoreConfig={terms[fillTerm - 1].value.scoreConfig} students={data.students} onFill={fill} />}
   </div>;
 }

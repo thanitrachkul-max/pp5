@@ -16,6 +16,7 @@ interface Props {
     endUnitIndex: number;
   };
   readOnly?: boolean;
+  currentGradebookId?: string;
   onChange: (data: AppData['scores']) => void;
   onConfigChange: (config?: ScoreConfig) => void;
   onClearScoresAndConfig?: () => void;
@@ -55,7 +56,7 @@ const getUnitDisplayName = (unit: ScoreUnit, index: number) => {
   return trimmedName ? `${index + 1}. ${trimmedName}` : '';
 };
 
-export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, scoreConfig, printMode = false, printUnitRange, readOnly = false, onChange, onConfigChange, onClearScoresAndConfig }) => {
+export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, scoreConfig, printMode = false, printUnitRange, readOnly = false, currentGradebookId, onChange, onConfigChange, onClearScoresAndConfig }) => {
   const [showConfigModal, setShowConfigModal] = useState(!printMode && !readOnly && !scoreConfig?.units.length);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showAutoFillModal, setShowAutoFillModal] = useState(false);
@@ -562,6 +563,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
           onClose={() => setShowConfigModal(false)}
           generalInfo={generalInfo}
           initialConfig={scoreConfig}
+          currentGradebookId={currentGradebookId}
           onSave={onConfigChange}
         />
       )}
