@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AppData, ScoreConfig, ScoreUnit } from '../types';
 import { ScoreConfigModal } from './ScoreConfigModal';
 import { AutoFillModal } from './AutoFillModal';
@@ -61,22 +61,43 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
   const [showConfigModal, setShowConfigModal] = useState(!printMode && !readOnly && !scoreConfig?.units.length);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showAutoFillModal, setShowAutoFillModal] = useState(false);
-  const [scoreWarning, setScoreWarning] = useState('');
+  const [scoreWarning, setScoreWarning] = useState<{ key: string; message: string; top: number; left: number } | null>(null);
   const { storedScore, midterm: midtermMax, final: finalMax } = examScoreLimits(scoreConfig);
+
+  useEffect(() => {
+    if (!scoreWarning) return;
+    const dismiss = () => setScoreWarning(null);
+    window.addEventListener('scroll', dismiss, true);
+    window.addEventListener('resize', dismiss);
+    return () => {
+      window.removeEventListener('scroll', dismiss, true);
+      window.removeEventListener('resize', dismiss);
+    };
+  }, [scoreWarning]);
+
+  const warningFor = (studentId: string, field: string) => scoreWarning?.key === `${studentId}:${field}`;
+  const dismissWarning = (studentId: string, field: string) =>
+    setScoreWarning(current => current?.key === `${studentId}:${field}` ? null : current);
 
   const notifyMissingScoreConfig = () => {
     setShowConfigModal(true);
   };
 
-  const handleChange = (studentId: string, field: string, value: string, maxScore?: number) => {
+  const handleChange = (studentId: string, field: string, value: string, maxScore: number, input: HTMLInputElement) => {
     if (readOnly) return;
-    const upperLimit = typeof maxScore === 'number' ? Math.max(0, maxScore) : Number.POSITIVE_INFINITY;
+    const upperLimit = Math.max(0, maxScore);
     const parsedValue = Number(value);
     if (value !== '' && (!Number.isFinite(parsedValue) || parsedValue < 0 || parsedValue > upperLimit)) {
-      setScoreWarning(`กรอกคะแนนได้ตั้งแต่ 0 ถึง ${upperLimit} คะแนนเท่านั้น`);
+      const rect = input.getBoundingClientRect();
+      setScoreWarning({
+        key: `${studentId}:${field}`,
+        message: parsedValue > upperLimit ? `เต็ม ${upperLimit} คะแนน` : 'คะแนนต้องไม่ต่ำกว่า 0',
+        top: rect.bottom + 36 < window.innerHeight ? rect.bottom + 6 : rect.top - 38,
+        left: Math.max(8, Math.min(rect.left, window.innerWidth - 160)),
+      });
       return;
     }
-    setScoreWarning('');
+    setScoreWarning(null);
     const numValue = value === '' ? '' : limitScore(parsedValue, upperLimit);
     onChange({
       ...data,
@@ -278,7 +299,6 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
       )}
 
       <div className="w-full bg-white p-4 sm:p-6" style={{ fontFamily: 'Sarabun' }}>
-        {!printMode && scoreWarning && <div role="alert" className="mb-4 rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-red-700">{scoreWarning}</div>}
         <div className="score-print-heading text-center mb-6">
           <h2 className="text-xl font-bold">
             {printMode ? (
@@ -424,7 +444,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                     {units.map((u, uIdx) => (
                       <React.Fragment key={`score-cells-${uIdx}`}>
                         {getIndicatorSlotIndexes(u).map((iIdx) => (
-                          <td key={`cell-${uIdx}-${iIdx}`} className="score-entry-cell score-unit-score-column" style={SCORE_INDICATOR_COLUMN_STYLE}>
+                          <td key={`cell-${uIdx}-${iIdx}`} className={`score-entry-cell score-unit-score-column ${warningFor(student.id, `u${uIdx}_i${iIdx}`) ? 'score-entry-cell-invalid' : ''}`} style={SCORE_INDICATOR_COLUMN_STYLE}>
                             {u.indicators[iIdx] ? (
                               printMode ? (
                                 <span className="score-print-cell-value">{score[`u${unitStartIndex + uIdx}_i${iIdx}`] ?? ''}</span>
@@ -447,8 +467,12 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                                       `u${uIdx}_i${iIdx}`,
                                       e.target.value,
                                       u.indicators[iIdx]?.fullScore || 0,
+                                      e.currentTarget,
                                     )
                                   }
+                                  onBlur={() => dismissWarning(student.id, `u${uIdx}_i${iIdx}`)}
+                                  aria-invalid={warningFor(student.id, `u${uIdx}_i${iIdx}`)}
+                                  aria-describedby={warningFor(student.id, `u${uIdx}_i${iIdx}`) ? 'score-cell-warning' : undefined}
                                   readOnly={!canEditScores}
                                   aria-disabled={!canEditScores}
                                 />
@@ -464,7 +488,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                     {showScoreSummaryColumns && (
                       <>
                         <td className="text-blue-600 text-center font-medium bg-blue-50" style={SCORE_BETWEEN_TERM_COLUMN_STYLE}>{hasScoreData ? betweenTermTotal : ''}</td>
-                        <td className="score-entry-cell">
+                        <td className={`score-entry-cell ${warningFor(student.id, 'midterm') ? 'score-entry-cell-invalid' : ''}`}>
                           <input
                             type="number"
                             min={0}
@@ -477,12 +501,15 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                                 if (!readOnly) notifyMissingScoreConfig();
                               }
                             }}
-                            onChange={(e) => handleChange(student.id, 'midterm', e.target.value, midtermMax)}
+                            onChange={(e) => handleChange(student.id, 'midterm', e.target.value, midtermMax, e.currentTarget)}
+                            onBlur={() => dismissWarning(student.id, 'midterm')}
+                            aria-invalid={warningFor(student.id, 'midterm')}
+                            aria-describedby={warningFor(student.id, 'midterm') ? 'score-cell-warning' : undefined}
                             readOnly={!canEditScores}
                             aria-disabled={!canEditScores}
                           />
                         </td>
-                        <td className="score-entry-cell">
+                        <td className={`score-entry-cell ${warningFor(student.id, 'final') ? 'score-entry-cell-invalid' : ''}`}>
                           <input
                             type="number"
                             min={0}
@@ -495,7 +522,10 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                                 if (!readOnly) notifyMissingScoreConfig();
                               }
                             }}
-                            onChange={(e) => handleChange(student.id, 'final', e.target.value, finalMax)}
+                            onChange={(e) => handleChange(student.id, 'final', e.target.value, finalMax, e.currentTarget)}
+                            onBlur={() => dismissWarning(student.id, 'final')}
+                            aria-invalid={warningFor(student.id, 'final')}
+                            aria-describedby={warningFor(student.id, 'final') ? 'score-cell-warning' : undefined}
                             readOnly={!canEditScores}
                             aria-disabled={!canEditScores}
                           />
@@ -579,6 +609,14 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
           students={students}
           onFill={handleAutoFill}
         />
+      )}
+
+      {!printMode && scoreWarning && (
+        <ModalPortal>
+          <div id="score-cell-warning" role="alert" className="pointer-events-none fixed z-[150] whitespace-nowrap rounded-md border border-red-300 bg-red-50 px-2 py-1 text-xs font-medium text-red-700 shadow-md" style={{ top: scoreWarning.top, left: scoreWarning.left }}>
+            {scoreWarning.message}
+          </div>
+        </ModalPortal>
       )}
     </div>
   );
