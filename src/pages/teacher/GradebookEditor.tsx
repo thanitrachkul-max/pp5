@@ -33,6 +33,7 @@ import {
   computeGradebookStats,
 } from "../../lib/gradebookStats";
 import { createSaveQueue } from "../../lib/saveQueue";
+import { constrainScores } from "../../lib/scoreLimits";
 import { supabase } from "../../lib/supabase";
 import { downloadPap5Pdf } from "../../utils/pap5PdfPreview";
 import { openPap5PrintDialog } from "../../utils/pap5PrintDialog";
@@ -131,6 +132,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
   const [pdfPreviewError, setPdfPreviewError] = useState<string | null>(null);
   const [pdfDownloadStatus, setPdfDownloadStatus] = useState<PdfDownloadStatus | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [scoreRepairNotice, setScoreRepairNotice] = useState('');
   const leaving = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestData = useRef(data);
@@ -237,6 +239,14 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
       void persist().catch(() => undefined);
     }, 1500);
   };
+
+  useEffect(() => {
+    if (session.readOnly || session.data.primaryYear) return;
+    const repaired = constrainScores(session.data.scores, session.data.scoreConfig);
+    if (!repaired.changed) return;
+    setScoreRepairNotice(`ปรับคะแนนเดิม ${repaired.changed} ช่องที่เกินคะแนนเต็มตามการตั้งค่าปัจจุบันแล้ว`);
+    handleUpdate({ ...session.data, scores: repaired.scores });
+  }, [session.id]);
 
   // Keep an already-open gradebook aligned when the admin or another teacher
   // changes the shared classroom roster in another tab/subject.
@@ -668,6 +678,7 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
           <button type="button" className="mt-2 rounded border border-red-300 px-3 py-1" onClick={() => { void flushPendingSave().catch(() => undefined); }}>ลองบันทึกอีกครั้ง</button>
         </div>
       )}
+      {scoreRepairNotice && <div role="status" className="sticky top-0 z-[109] border-b border-amber-200 bg-amber-50 px-4 py-2 text-amber-800">{scoreRepairNotice}</div>}
       {pdfDownloadStatus && (
         <ModalPortal>
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/35 px-4 backdrop-blur-sm">
@@ -882,9 +893,12 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
                 onChange={(scores) =>
                   !session.readOnly && handleUpdate({ ...data, scores })
                 }
-                onConfigChange={(scoreConfig) =>
-                  !session.readOnly && handleUpdate({ ...data, scoreConfig })
-                }
+                onConfigChange={(scoreConfig) => {
+                  if (session.readOnly) return;
+                  const repaired = constrainScores(data.scores, scoreConfig);
+                  if (repaired.changed) setScoreRepairNotice(`ปรับคะแนน ${repaired.changed} ช่องให้ไม่เกินคะแนนเต็มที่ตั้งใหม่แล้ว`);
+                  handleUpdate({ ...data, scoreConfig, scores: repaired.scores });
+                }}
                 onClearScoresAndConfig={() =>
                   !session.readOnly && handleUpdate({ ...data, scores: {}, scoreConfig: undefined })
                 }

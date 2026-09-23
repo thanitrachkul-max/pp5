@@ -4,6 +4,7 @@ import { ScoreConfigModal } from './ScoreConfigModal';
 import { AutoFillModal } from './AutoFillModal';
 import { AlertCircle, Sparkles } from 'lucide-react';
 import { ModalPortal } from './ModalPortal';
+import { examScoreLimits, limitScore } from '../lib/scoreLimits';
 
 interface Props {
   students: AppData['students'];
@@ -60,6 +61,8 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
   const [showConfigModal, setShowConfigModal] = useState(!printMode && !readOnly && !scoreConfig?.units.length);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showAutoFillModal, setShowAutoFillModal] = useState(false);
+  const [scoreWarning, setScoreWarning] = useState('');
+  const { storedScore, midterm: midtermMax, final: finalMax } = examScoreLimits(scoreConfig);
 
   const notifyMissingScoreConfig = () => {
     setShowConfigModal(true);
@@ -67,14 +70,14 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
 
   const handleChange = (studentId: string, field: string, value: string, maxScore?: number) => {
     if (readOnly) return;
-    const parsedValue = parseFloat(value);
     const upperLimit = typeof maxScore === 'number' ? Math.max(0, maxScore) : Number.POSITIVE_INFINITY;
-    const numValue =
-      value === ''
-        ? ''
-        : Number.isFinite(parsedValue)
-          ? Math.max(0, Math.min(parsedValue, upperLimit))
-          : 0;
+    const parsedValue = Number(value);
+    if (value !== '' && (!Number.isFinite(parsedValue) || parsedValue < 0 || parsedValue > upperLimit)) {
+      setScoreWarning(`กรอกคะแนนได้ตั้งแต่ 0 ถึง ${upperLimit} คะแนนเท่านั้น`);
+      return;
+    }
+    setScoreWarning('');
+    const numValue = value === '' ? '' : limitScore(parsedValue, upperLimit);
     onChange({
       ...data,
       [studentId]: {
@@ -122,9 +125,9 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
       });
     });
 
-    components.push({ key: 'midterm', max: 10 });
-    components.push({ key: 'final', max: 20 });
-    const totalMaxScore = totalMaxIndicators + 10 + 20;
+    components.push({ key: 'midterm', max: midtermMax });
+    components.push({ key: 'final', max: finalMax });
+    const totalMaxScore = totalMaxIndicators + midtermMax + finalMax;
 
     targetStudents.forEach(student => {
       if (!newData[student.id]) {
@@ -196,7 +199,6 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
   );
   const canEnterScores = Boolean(scoreConfig && hasConfiguredIndicators);
   const canEditScores = canEnterScores && !readOnly;
-  const storedScore = scoreConfig?.storedScore ?? 70;
   const storedPassingScore = Math.floor(storedScore / 2);
   const showUnitTotalColumns = !printMode;
   const showScoreSummaryColumns = !printMode;
@@ -276,6 +278,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
       )}
 
       <div className="w-full bg-white p-4 sm:p-6" style={{ fontFamily: 'Sarabun' }}>
+        {!printMode && scoreWarning && <div role="alert" className="mb-4 rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-red-700">{scoreWarning}</div>}
         <div className="score-print-heading text-center mb-6">
           <h2 className="text-xl font-bold">
             {printMode ? (
@@ -370,8 +373,8 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                 {showScoreSummaryColumns && (
                   <>
                     <th className="bg-orange-excel" style={SCORE_BETWEEN_TERM_COLUMN_STYLE}>{storedScore}</th>
-                    <th className="bg-orange-excel">10</th>
-                    <th className="bg-orange-excel">20</th>
+                    <th className="bg-orange-excel">{midtermMax}</th>
+                    <th className="bg-orange-excel">{finalMax}</th>
                     <th className="bg-orange-excel">100</th>
                     <th colSpan={2} className="bg-orange-excel"></th>
                   </>
@@ -394,8 +397,8 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                 {showScoreSummaryColumns && (
                   <>
                     <th className="bg-orange-excel" style={SCORE_BETWEEN_TERM_COLUMN_STYLE}>{storedPassingScore}</th>
-                    <th className="bg-orange-excel">5</th>
-                    <th className="bg-orange-excel">10</th>
+                    <th className="bg-orange-excel">{Math.floor(midtermMax / 2)}</th>
+                    <th className="bg-orange-excel">{50 - storedPassingScore - Math.floor(midtermMax / 2)}</th>
                     <th className="bg-orange-excel">50</th>
                     <th colSpan={2} className="bg-orange-excel"></th>
                   </>
@@ -465,7 +468,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                           <input
                             type="number"
                             min={0}
-                            max={10}
+                            max={midtermMax}
                             className="excel-input score-input text-center text-blue-600"
                             value={score.midterm ?? ''}
                             onMouseDown={(e) => {
@@ -474,7 +477,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                                 if (!readOnly) notifyMissingScoreConfig();
                               }
                             }}
-                            onChange={(e) => handleChange(student.id, 'midterm', e.target.value, 10)}
+                            onChange={(e) => handleChange(student.id, 'midterm', e.target.value, midtermMax)}
                             readOnly={!canEditScores}
                             aria-disabled={!canEditScores}
                           />
@@ -483,7 +486,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                           <input
                             type="number"
                             min={0}
-                            max={20}
+                            max={finalMax}
                             className="excel-input score-input text-center text-blue-600"
                             value={score.final ?? ''}
                             onMouseDown={(e) => {
@@ -492,7 +495,7 @@ export const ScoresForm: React.FC<Props> = ({ students, data, generalInfo, score
                                 if (!readOnly) notifyMissingScoreConfig();
                               }
                             }}
-                            onChange={(e) => handleChange(student.id, 'final', e.target.value, 20)}
+                            onChange={(e) => handleChange(student.id, 'final', e.target.value, finalMax)}
                             readOnly={!canEditScores}
                             aria-disabled={!canEditScores}
                           />

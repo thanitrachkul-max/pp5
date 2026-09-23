@@ -10,6 +10,7 @@ import {
   pdf,
 } from "@react-pdf/renderer";
 import type { AppData, GradebookApprovalStatus, Indicator, ScoreUnit, Student } from "../types";
+import { constrainScores, examScoreLimits } from "../lib/scoreLimits";
 
 const FONT_FAMILY = "TH Sarabun PSK";
 const DEFAULT_SCHOOL_NAME = "โรงเรียนกาฬสินธุ์ปัญญานุกูล จังหวัดกาฬสินธุ์";
@@ -1119,7 +1120,7 @@ function ScoresPage({ data }: { data: AppData }) {
   const leftWidth = 290;
   const labelWidth = 82;
   const scoreColWidth = Math.max(11, (LANDSCAPE_CONTENT_WIDTH - leftWidth - labelWidth) / (detailCols + summaryCols));
-  const storedScore = data.scoreConfig?.storedScore ?? 70;
+  const { storedScore, midterm: midtermMax, final: finalMax } = examScoreLimits(data.scoreConfig);
   const hasConfiguredScores = Boolean(data.scoreConfig);
   const rowHeight = bodyRowHeight(data.students.length, 13);
 
@@ -1166,8 +1167,8 @@ function ScoresPage({ data }: { data: AppData }) {
             </React.Fragment>
           ))}
           <HeaderCell width={scoreColWidth} minHeight={30}>{storedScore}</HeaderCell>
-          <HeaderCell width={scoreColWidth} minHeight={30}>10</HeaderCell>
-          <HeaderCell width={scoreColWidth} minHeight={30}>20</HeaderCell>
+          <HeaderCell width={scoreColWidth} minHeight={30}>{midtermMax}</HeaderCell>
+          <HeaderCell width={scoreColWidth} minHeight={30}>{finalMax}</HeaderCell>
           <HeaderCell width={scoreColWidth} minHeight={30}>100</HeaderCell>
           <HeaderCell width={scoreColWidth * 4} minHeight={30} />
         </View>
@@ -1187,8 +1188,8 @@ function ScoresPage({ data }: { data: AppData }) {
             </React.Fragment>
           ))}
           <HeaderCell width={scoreColWidth} minHeight={18}>{Math.floor(storedScore / 2)}</HeaderCell>
-          <HeaderCell width={scoreColWidth} minHeight={18}>5</HeaderCell>
-          <HeaderCell width={scoreColWidth} minHeight={18}>10</HeaderCell>
+          <HeaderCell width={scoreColWidth} minHeight={18}>{Math.floor(midtermMax / 2)}</HeaderCell>
+          <HeaderCell width={scoreColWidth} minHeight={18}>{50 - Math.floor(storedScore / 2) - Math.floor(midtermMax / 2)}</HeaderCell>
           <HeaderCell width={scoreColWidth} minHeight={18}>50</HeaderCell>
           <HeaderCell width={scoreColWidth * 4} minHeight={18} />
         </View>
@@ -1687,6 +1688,7 @@ export async function createPap5PdfBlob(
   registerPdfFonts();
   const preparedData: AppData = {
     ...data,
+    scores: data.primaryYear ? data.scores : constrainScores(data.scores, data.scoreConfig).scores,
     generalInfo: applyPdfOfficialDisplayDefaults(data.generalInfo),
   };
   const blob = await pdf(

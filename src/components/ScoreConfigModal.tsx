@@ -4,6 +4,7 @@ import { AppData, ScoreConfig, ScoreUnit } from '../types';
 import { StandardIndicatorFilter } from './StandardIndicatorFilter';
 import { ModalPortal } from './ModalPortal';
 import { fetchReusableScoreConfigs, type ReusableScoreConfigSource } from '../lib/reusableScoreConfigs';
+import { examScoreLimits } from '../lib/scoreLimits';
 
 interface Props {
   isOpen: boolean;
@@ -530,6 +531,7 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
                       <option key={score} value={score}>{score} คะแนน</option>
                     ))}
                   </select>
+                  {semesterFullScore === 100 && <p className="mt-1 text-xs text-slate-500">สอบกลางภาค {examScoreLimits({ storedScore }).midterm} และปลายภาค {examScoreLimits({ storedScore }).final} คะแนน รวมทั้งภาคเรียน 100 คะแนน</p>}
                 </div>
               </div>
             </div>

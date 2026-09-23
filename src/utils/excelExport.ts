@@ -2,6 +2,7 @@ import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import { applyPap5OfficialDisplayDefaults } from "../lib/pap5Officials";
 import type { AppData } from "../types";
+import { constrainScores, examScoreLimits } from "../lib/scoreLimits";
 
 const DEFAULT_SCHOOL_NAME = "โรงเรียนกาฬสินธุ์ปัญญานุกูล จังหวัดกาฬสินธุ์";
 const DEFAULT_AGENCY_NAME = "สำนักบริหารงานการศึกษาพิเศษ";
@@ -9,6 +10,7 @@ const DEFAULT_LOGO_URL = "/logo3.png";
 const LEGACY_LOGO_URL = "/logo1.png";
 
 export const exportToExcel = async (data: any) => {
+  if (!data.primaryYear) data = { ...data, scores: constrainScores(data.scores ?? {}, data.scoreConfig).scores };
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "App";
   workbook.created = new Date();
@@ -1106,9 +1108,9 @@ export const exportToExcel = async (data: any) => {
     "คะแนนสอบปลายภาค",
     "รวมคะแนนตลอดภาคเรียน",
   ];
-  const storedScore = data.scoreConfig?.storedScore ?? 70;
-  const summaryFullScores = [storedScore, 10, 20, 100];
-  const summaryPassScores = [Math.floor(storedScore / 2), 5, 10, 50];
+  const { storedScore, midterm: midtermMax, final: finalMax } = examScoreLimits(data.scoreConfig);
+  const summaryFullScores = [storedScore, midtermMax, finalMax, 100];
+  const summaryPassScores = [Math.floor(storedScore / 2), Math.floor(midtermMax / 2), 50 - Math.floor(storedScore / 2) - Math.floor(midtermMax / 2), 50];
 
   summaryHeaders.forEach((header, idx) => {
     if (idx === 0 || idx === 3) {

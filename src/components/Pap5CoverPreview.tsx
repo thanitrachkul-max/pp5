@@ -3,6 +3,7 @@ import React, { useLayoutEffect, useRef } from "react";
 import { Check } from "lucide-react";
 import { applyPap5OfficialDisplayDefaults } from "../lib/pap5Officials";
 import type { AppData, GradebookApprovalStatus } from "../types";
+import { constrainScores } from "../lib/scoreLimits";
 
 type GeneralInfo = AppData["generalInfo"];
 type CoverMode = "edit" | "preview" | "print";
@@ -75,6 +76,7 @@ function getAvg(keys: string[], attrs: Record<string, unknown> | undefined) {
 }
 
 function buildCoverSummary(appData: AppData) {
+  if (!appData.primaryYear) appData = { ...appData, scores: constrainScores(appData.scores, appData.scoreConfig).scores };
   const summary = {
     totalStudents: appData.students.length,
     grades: {

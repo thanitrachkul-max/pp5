@@ -1,6 +1,7 @@
 import { configuredIndicatorCodes, missingIndicatorCodes } from './indicatorDetails';
 import { isPrimaryGrade, primaryAnnualTotal, primaryAnnualComplete, primaryTerm, primaryAnnualQuality, qualityLabel } from "./primaryYear";
 import type { AppData } from '../types';
+import { constrainScores } from './scoreLimits';
 
 export interface GradebookStats {
   completionPercent: number;
@@ -66,6 +67,7 @@ function getHoursFromText(text: string): number {
 }
 
 function studentTotalScore(score: Record<string, unknown>, d: AppData): number {
+  score = (constrainScores({ student: score as AppData['scores'][string] }, d.scoreConfig).scores.student || {}) as Record<string, unknown>;
   let totalBetweenTerm = 0;
   if (d.scoreConfig?.units) {
     d.scoreConfig.units.forEach((u, uIdx) => {
