@@ -202,7 +202,7 @@ export const Attributes5_8Form: React.FC<Props> = ({ students, data, generalInfo
                 <th className="bg-orange-excel writing-vertical">8.2 เข้าร่วมกิจกรรมที่เป็นประโยชน์ต่อโรงเรียน ชุมชน และสังคม</th>
                 <th className="bg-orange-excel writing-vertical">ผลการประเมิน</th>
                 <th className="bg-orange-excel writing-vertical">รายคุณลักษณะ</th>
-                <th className="bg-orange-excel writing-vertical">รวมทุกคุณลักษณะภาคเรียนที่ 2</th>
+                <th className="bg-orange-excel writing-vertical">รวมทุกคุณลักษณะภาคเรียนที่ {generalInfo.semester}</th>
                 <th className="bg-orange-excel writing-vertical">ผลการตัดสินคุณลักษณะรายปี<br/>(ดีเยี่ยม ดี ผ่าน ไม่ผ่าน)</th>
               </tr>
               <tr>
