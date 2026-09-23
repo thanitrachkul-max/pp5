@@ -1304,7 +1304,7 @@ const ATTR_5_8_COLUMNS: AttributeColumn[] = [
   { key: "attr8_2", header: "8.2 เข้าร่วมกิจกรรมที่เป็นประโยชน์", max: "3" },
   { key: "avg8", header: "ผลการประเมิน", max: "3", compute: (attrs) => getAvg(["attr8_1", "attr8_2"], attrs), color: COLORS.orange },
   { key: "avg8s", header: "รายคุณลักษณะ", max: "ส", compute: (attrs) => getAvg(["attr8_1", "attr8_2"], attrs), color: COLORS.orange },
-  { key: "totalAvg", header: "รวมทุกคุณลักษณะภาคเรียนที่ 2", max: "3,2,1,0", compute: (attrs) => getAttributeTotalAvg(attrs), color: COLORS.orange },
+  { key: "totalAvg", header: "รวมทุกคุณลักษณะ", max: "3,2,1,0", compute: (attrs) => getAttributeTotalAvg(attrs), color: COLORS.orange },
   { key: "quality", header: "ผลการตัดสินคุณลักษณะรายปี", max: "", compute: (attrs) => qualityText(getAttributeTotalAvg(attrs)), color: COLORS.green },
 ];
 
@@ -1360,7 +1360,7 @@ function AttributesPage({
         <View style={styles.row}>
           <HeaderCell width={leftWidth} minHeight={46} />
           {columns.map((column) => (
-            <HeaderCell key={column.key} width={colWidth} minHeight={46} textStyle={styles.tinyText}>{column.header}</HeaderCell>
+            <HeaderCell key={column.key} width={colWidth} minHeight={46} textStyle={styles.tinyText}>{column.key === 'totalAvg' ? `รวมทุกคุณลักษณะภาคเรียนที่ ${data.generalInfo.semester}` : column.header}</HeaderCell>
           ))}
         </View>
         <View style={styles.row}>

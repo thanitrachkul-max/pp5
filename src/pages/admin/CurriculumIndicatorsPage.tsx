@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Loader2, Plus, Trash2, X } from 'lucide-react';
+import type { AppUser } from '../../types';
 import {
   CURRICULUM_GRADE_LEVELS,
   CURRICULUM_SUBJECT_CATALOG,
@@ -17,6 +18,10 @@ import {
   deleteCurriculumIndicator,
   getVisibleCustomCurriculumRecords,
   hideCurriculumIndicatorIds,
+  hasLocalCurriculumEdits,
+  loadSharedCurriculumStore,
+  persistSharedCurriculumStore,
+  promoteLocalCurriculumEdits,
   saveCurriculumIndicator,
 } from '../../lib/curriculumIndicatorStore';
 
@@ -142,9 +147,10 @@ function matchesCurriculumFilters(
 
 interface CurriculumIndicatorsPageProps {
   readOnly?: boolean;
+  currentUser?: AppUser;
 }
 
-export const CurriculumIndicatorsPage: React.FC<CurriculumIndicatorsPageProps> = ({ readOnly = false }) => {
+export const CurriculumIndicatorsPage: React.FC<CurriculumIndicatorsPageProps> = ({ readOnly = false, currentUser }) => {
   const [filterArea, setFilterArea] = useState(readInitialLearningArea);
   const [filterSubject, setFilterSubject] = useState('all');
   const [filterGrade, setFilterGrade] = useState('all');
@@ -162,6 +168,22 @@ export const CurriculumIndicatorsPage: React.FC<CurriculumIndicatorsPageProps> =
   const [message, setMessage] = useState('');
 
   const bumpStore = () => setStoreRevision((value) => value + 1);
+
+  useEffect(() => {
+    if (!currentUser?.schoolId) return;
+    let active = true;
+    void loadSharedCurriculumStore().then(async (exists) => {
+      if (!active) return;
+      if (!exists && hasLocalCurriculumEdits() && !readOnly) {
+        promoteLocalCurriculumEdits();
+        await persistSharedCurriculumStore(currentUser.schoolId!);
+      }
+      if (active) bumpStore();
+    }).catch(() => {
+      if (active) setMessage('ยังโหลดการแก้ไขหลักสูตรที่แชร์ร่วมกันไม่ได้');
+    });
+    return () => { active = false; };
+  }, [currentUser?.schoolId, readOnly]);
 
   const subjectOptions = useMemo(
     () => getCurriculumSubjectOptions(filterArea, filterGrade),
@@ -248,10 +270,13 @@ export const CurriculumIndicatorsPage: React.FC<CurriculumIndicatorsPageProps> =
     setMessage('');
     try {
       hideCurriculumIndicatorIds(ids);
+      if (currentUser?.schoolId) await persistSharedCurriculumStore(currentUser.schoolId);
       bumpStore();
       setSelectedIds(new Set());
       setBulkDeleteMode(null);
       setMessage(`ลบมาตรฐาน/ตัวชี้วัด ${ids.length.toLocaleString('th-TH')} รายการเรียบร้อยแล้ว`);
+    } catch {
+      setMessage('บันทึกการลบลงข้อมูลหลักสูตรที่แชร์ร่วมกันไม่สำเร็จ');
     } finally {
       setDeleting(false);
     }
@@ -270,6 +295,7 @@ export const CurriculumIndicatorsPage: React.FC<CurriculumIndicatorsPageProps> =
     setMessage('');
     try {
       deleteCurriculumIndicator(deleteTarget.id);
+      if (currentUser?.schoolId) await persistSharedCurriculumStore(currentUser.schoolId);
       bumpStore();
       setSelectedIds((current) => {
         const next = new Set(current);
@@ -278,6 +304,8 @@ export const CurriculumIndicatorsPage: React.FC<CurriculumIndicatorsPageProps> =
       });
       setDeleteTarget(null);
       setMessage(`ลบมาตรฐาน ${deleteTarget.standardCode} เรียบร้อยแล้ว`);
+    } catch {
+      setMessage('บันทึกการลบลงข้อมูลหลักสูตรที่แชร์ร่วมกันไม่สำเร็จ');
     } finally {
       setDeleting(false);
     }
@@ -318,10 +346,13 @@ export const CurriculumIndicatorsPage: React.FC<CurriculumIndicatorsPageProps> =
     setMessage('');
     try {
       saveCurriculumIndicator(record);
+      if (currentUser?.schoolId) await persistSharedCurriculumStore(currentUser.schoolId);
       bumpStore();
       setShowFormModal(false);
       setEditingRecord(null);
       setMessage(editingRecord ? 'บันทึกการแก้ไขตัวชี้วัดเรียบร้อยแล้ว' : 'เพิ่มตัวชี้วัดเรียบร้อยแล้ว');
+    } catch {
+      setFormError('บันทึกตัวชี้วัดลงข้อมูลหลักสูตรที่แชร์ร่วมกันไม่สำเร็จ');
     } finally {
       setSaving(false);
     }

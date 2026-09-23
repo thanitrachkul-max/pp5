@@ -42,6 +42,15 @@ export function canonicalCurriculumSubjectName(
 }
 
 export function canonicalizeCurriculumRecordSubject<T extends CurriculumIndicatorRecord>(record: T): T {
-  const subject = canonicalCurriculumSubjectName(record.learningArea, record.subject);
-  return subject === record.subject ? record : { ...record, subject };
+  const learningArea = record.learningArea === 'กลุ่มสาระการเรียนรู้เพิ่มเติม'
+    ? record.subject === 'สวนพฤกษศาสตร์ในโรงเรียน'
+      ? 'วิทยาศาสตร์และเทคโนโลยี'
+      : record.subject === 'พื้นฐานอาชีพ'
+        ? 'การงานอาชีพ'
+        : record.learningArea
+    : record.learningArea;
+  const subject = canonicalCurriculumSubjectName(learningArea, record.subject);
+  return subject === record.subject && learningArea === record.learningArea
+    ? record
+    : { ...record, learningArea, subject };
 }

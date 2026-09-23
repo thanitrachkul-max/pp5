@@ -16,6 +16,7 @@ import { standardsData } from '../data/standards';
 import {
   applyCurriculumStoreToBase,
   getVisibleCustomCurriculumRecords,
+  loadSharedCurriculumStore,
 } from './curriculumIndicatorStore';
 
 export type { Standard };
@@ -39,6 +40,12 @@ export async function fetchCurriculumStandards(
   options: CurriculumFetchOptions = {},
 ): Promise<Standard[]> {
   const classLevelCode = parseClassLevelCode(gradeLevel);
+
+  try {
+    await loadSharedCurriculumStore();
+  } catch {
+    // Keep bundled curriculum available until the shared edits table is deployed.
+  }
 
   const curriculumRows = getAdminCurriculumRows(learningArea, classLevelCode);
   const curriculumStandards = buildStandardsFromCurriculumRows(

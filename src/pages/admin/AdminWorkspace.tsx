@@ -636,7 +636,7 @@ export const AdminWorkspace: React.FC<AdminWorkspaceProps> = ({
             {activeTab === 'classrooms' && <ClassroomsPage currentUser={currentUser} initialYearId={workspaceYearId} />}
             {activeTab === 'students' && <StudentsPage currentUser={currentUser} initialYearId={workspaceYearId} />}
             {activeTab === 'subjects' && <SubjectsPage currentUser={currentUser} />}
-            {activeTab === 'curriculum' && <CurriculumIndicatorsPage />}
+            {activeTab === 'curriculum' && <CurriculumIndicatorsPage currentUser={currentUser} />}
             {activeTab === 'learning-area-heads' && (
               <LearningAreaHeadsPage currentUser={currentUser} readOnly={readOnly} />
             )}

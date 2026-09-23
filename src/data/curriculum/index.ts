@@ -9,8 +9,6 @@ import { thaiLanguageCurriculum } from './thai';
 import { occupationCurriculum } from './occupation';
 import {
   botanicalElectiveCurriculum,
-  electiveCurriculum,
-  ELECTIVE_LEARNING_AREA,
   occupationBasicElectiveCurriculum,
 } from './elective';
 import {
@@ -28,13 +26,12 @@ export { CURRICULUM_GRADE_LEVELS };
 const CURRICULUM_BY_AREA: Record<string, CurriculumIndicatorRecord[]> = {
   ภาษาไทย: thaiLanguageCurriculum,
   คณิตศาสตร์: mathCurriculum,
-  วิทยาศาสตร์และเทคโนโลยี: scienceCurriculum,
+  วิทยาศาสตร์และเทคโนโลยี: [...scienceCurriculum, ...botanicalElectiveCurriculum],
   'สังคมศึกษา ศาสนา และวัฒนธรรม': socialCurriculum,
   สุขศึกษาและพลศึกษา: healthCurriculum,
   ศิลปะ: artCurriculum,
   ภาษาต่างประเทศ: foreignCurriculum,
-  การงานอาชีพ: occupationCurriculum,
-  [ELECTIVE_LEARNING_AREA]: electiveCurriculum,
+  การงานอาชีพ: [...occupationCurriculum, ...occupationBasicElectiveCurriculum],
 };
 
 const CURRICULUM_SUBJECT_OPTION_ORDER: Record<string, string[]> = {
@@ -141,7 +138,7 @@ export const CURRICULUM_SUBJECT_CATALOG: CurriculumSubjectCatalogItem[] = [
   },
   {
     id: 'elective-botanical',
-    learningArea: ELECTIVE_LEARNING_AREA,
+    learningArea: 'วิทยาศาสตร์และเทคโนโลยี',
     subject: 'สวนพฤกษศาสตร์ในโรงเรียน',
     description: 'ผลการเรียนรู้ที่คาดหวัง รายวิชาเพิ่มเติม สวนพฤกษศาสตร์ในโรงเรียน (หลักสูตรสถานศึกษา ปรับปรุง 2568)',
     availableGrades: Array.from(new Set(botanicalElectiveCurriculum.map((r) => r.gradeLevel))).sort(
@@ -151,7 +148,7 @@ export const CURRICULUM_SUBJECT_CATALOG: CurriculumSubjectCatalogItem[] = [
   },
   {
     id: 'elective-occupation-basic',
-    learningArea: ELECTIVE_LEARNING_AREA,
+    learningArea: 'การงานอาชีพ',
     subject: 'พื้นฐานอาชีพ',
     description: 'มาตรฐานการเรียนรู้และตัวชี้วัด รายวิชาเพิ่มเติม พื้นฐานอาชีพ (หลักสูตรสถานศึกษา)',
     availableGrades: Array.from(new Set(occupationBasicElectiveCurriculum.map((r) => r.gradeLevel))).sort(

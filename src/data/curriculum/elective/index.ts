@@ -9,7 +9,6 @@ import {
 } from './electiveSource';
 import {
   BOTANICAL_SUBJECT,
-  ELECTIVE_LEARNING_AREA,
   OCCUPATION_BASIC_SUBJECT,
 } from './standards';
 
@@ -42,7 +41,7 @@ function expandElective(
         const indicatorCode = resolveIndicatorCode(standard.code, gradeLevel, indicator);
         rows.push({
           id: `${idPrefix}-${gradeLevel}-${seq}`,
-          learningArea: ELECTIVE_LEARNING_AREA,
+          learningArea: 'การงานอาชีพ',
           subject,
           gradeLevel,
           strandNo: standard.strandNo,
@@ -74,7 +73,7 @@ function buildBotanicalCurriculum(): CurriculumIndicatorRecord[] {
       const indicatorCode = `${standard.code} ${gradeLevel}/${indicatorNo}`;
       rows.push({
         id: `elec-bot-${gradeLevel}-${outcome.strandNo}-${indicatorNo}`,
-        learningArea: ELECTIVE_LEARNING_AREA,
+        learningArea: 'วิทยาศาสตร์และเทคโนโลยี',
         subject: BOTANICAL_SUBJECT,
         gradeLevel,
         strandNo: standard.strandNo,
@@ -107,6 +106,5 @@ export const electiveCurriculum: CurriculumIndicatorRecord[] = [
 
 export {
   BOTANICAL_SUBJECT,
-  ELECTIVE_LEARNING_AREA,
   OCCUPATION_BASIC_SUBJECT,
 } from './standards';

@@ -2,6 +2,8 @@ import type { CurriculumIndicatorRecord } from '../types';
 import { THAI_STANDARD_DESCRIPTIONS } from './standards';
 import { thaiLanguageP1 } from './p1';
 import rawParsed from './thaiLanguageData.json';
+// ม.2–ม.6 สกัดจากเอกสารตัวชี้วัดระหว่างทางและปลายทางภาษาไทย (ม.4–6 ใช้รหัสร่วมกัน)
+import secondaryParsed from './thaiSecondaryData.json';
 
 type RawRow = {
   id: string;
@@ -56,6 +58,7 @@ function normalizeRecord(row: CurriculumIndicatorRecord): CurriculumIndicatorRec
 export const thaiLanguageCurriculum: CurriculumIndicatorRecord[] = [
   ...thaiLanguageP1.map(normalizeRecord),
   ...parsedOtherGrades,
+  ...(secondaryParsed as RawRow[]).map(mapRawRow),
 ];
 
 export { thaiLanguageP1 } from './p1';

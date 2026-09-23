@@ -1,5 +1,6 @@
 import type { CurriculumIndicatorRecord } from '../data/curriculum/types';
 import { canonicalizeCurriculumRecordSubject } from '../data/curriculum/subjectGroups';
+import { supabase } from './supabase';
 
 const STORAGE_KEY = 'ksp-curriculum-indicator-store-v1';
 const LEGACY_HIDDEN_KEY = 'ksp-hidden-curriculum-indicator-ids';
@@ -10,7 +11,55 @@ interface CurriculumIndicatorStoreData {
   overrides: Record<string, CurriculumIndicatorRecord>;
 }
 
+let sharedStore: CurriculumIndicatorStoreData | null = null;
+
+/** Load the school-wide edits before reading curriculum in admin or grade entry. */
+export async function loadSharedCurriculumStore(): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('curriculum_indicator_edits')
+    .select('data')
+    .maybeSingle();
+  if (error) throw error;
+  if (!data?.data) {
+    sharedStore = { hiddenIds: [], customRecords: [], overrides: {} };
+    return false;
+  }
+  const parsed = data.data as Partial<CurriculumIndicatorStoreData>;
+  sharedStore = {
+    hiddenIds: Array.isArray(parsed.hiddenIds) ? parsed.hiddenIds : [],
+    customRecords: Array.isArray(parsed.customRecords)
+      ? parsed.customRecords.map(canonicalizeCurriculumRecordSubject) : [],
+    overrides: parsed.overrides && typeof parsed.overrides === 'object'
+      ? Object.fromEntries(Object.entries(parsed.overrides).map(([id, row]) => [id, canonicalizeCurriculumRecordSubject(row)]))
+      : {},
+  };
+  return true;
+}
+
+export async function persistSharedCurriculumStore(schoolId: string): Promise<void> {
+  const { error } = await supabase.from('curriculum_indicator_edits').upsert({
+    school_id: schoolId,
+    data: readStore(),
+    updated_at: new Date().toISOString(),
+  });
+  if (error) throw error;
+}
+
+export function hasLocalCurriculumEdits(): boolean {
+  const data = readLocalStore();
+  return data.hiddenIds.length > 0 || data.customRecords.length > 0 || Object.keys(data.overrides).length > 0;
+}
+
+export function promoteLocalCurriculumEdits(): void {
+  sharedStore = readLocalStore();
+}
+
 function readStore(): CurriculumIndicatorStoreData {
+  if (sharedStore) return sharedStore;
+  return readLocalStore();
+}
+
+function readLocalStore(): CurriculumIndicatorStoreData {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     const base: CurriculumIndicatorStoreData = raw
@@ -60,6 +109,7 @@ function migrateLegacyHiddenIds(store: CurriculumIndicatorStoreData): Curriculum
 }
 
 function writeStore(data: CurriculumIndicatorStoreData): void {
+  sharedStore = data;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 

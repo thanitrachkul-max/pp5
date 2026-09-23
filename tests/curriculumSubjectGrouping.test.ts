@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   CURRICULUM_GRADE_LEVELS,
+  getCurriculumLearningAreas,
   getCurriculumRecords,
   getCurriculumSubjectOptions,
 } from '../src/data/curriculum';
@@ -29,6 +30,22 @@ test('social curriculum combines strands 1-3 and keeps history and geography sep
       [...new Set(getCurriculumRecords({ learningArea: SOCIAL_AREA, subject: 'ภูมิศาสตร์', gradeLevel }).map((row) => row.strandNo))],
       [5],
     );
+  }
+});
+
+test('Thai secondary curriculum includes every official midway and exit indicator', () => {
+  for (const [gradeLevel, count, midway, exit] of [
+    ['ม.2', 32, 22, 10],
+    ['ม.3', 36, 26, 10],
+    ['ม.4', 36, 23, 13],
+    ['ม.5', 36, 23, 13],
+    ['ม.6', 36, 23, 13],
+  ] as const) {
+    const rows = getCurriculumRecords({ learningArea: 'ภาษาไทย', subject: 'ภาษาไทย', gradeLevel });
+    assert.equal(rows.length, count, gradeLevel);
+    assert.equal(rows.filter((row) => row.midwayIndicator).length, midway, gradeLevel);
+    assert.equal(rows.filter((row) => row.exitIndicator).length, exit, gradeLevel);
+    assert.ok(rows.every((row) => row.standardDescription && (row.midwayIndicator || row.exitIndicator)));
   }
 });
 
@@ -132,22 +149,17 @@ test('math curriculum contains every grade and all 120 indicators from the 2568 
   }
 });
 
-test('additional curriculum keeps both school subjects outside the core learning areas', () => {
-  const additionalArea = 'กลุ่มสาระการเรียนรู้เพิ่มเติม';
-  assert.deepEqual(getCurriculumSubjectOptions(additionalArea), [
-    'สวนพฤกษศาสตร์ในโรงเรียน',
-    'พื้นฐานอาชีพ',
-  ]);
-
+test('additional curriculum places school subjects in their core learning areas', () => {
+  assert.ok(!getCurriculumLearningAreas().includes('กลุ่มสาระการเรียนรู้เพิ่มเติม'));
   assert.equal(
     getCurriculumRecords({ learningArea: 'วิทยาศาสตร์และเทคโนโลยี' })
       .some((row) => row.subject.includes('สวนพฤกษศาสตร์')),
-    false,
+    true,
   );
   assert.equal(
     getCurriculumRecords({ learningArea: 'การงานอาชีพ' })
       .some((row) => row.subject === 'พื้นฐานอาชีพ'),
-    false,
+    true,
   );
 });
 
@@ -159,16 +171,16 @@ test('botanical outcomes match the 2568 school curriculum count and grade progre
 
   for (const [gradeLevel, expectedCount] of expectedCountByGrade) {
     const rows = getCurriculumRecords({
-      learningArea: 'กลุ่มสาระการเรียนรู้เพิ่มเติม',
+      learningArea: 'วิทยาศาสตร์และเทคโนโลยี',
       subject: 'สวนพฤกษศาสตร์ในโรงเรียน',
       gradeLevel,
     });
     assert.equal(rows.length, expectedCount, `unexpected botanical outcome count for ${gradeLevel}`);
-    assert.ok(rows.every((row) => row.learningArea === 'กลุ่มสาระการเรียนรู้เพิ่มเติม'));
+    assert.ok(rows.every((row) => row.learningArea === 'วิทยาศาสตร์และเทคโนโลยี'));
   }
 
   const m6 = getCurriculumRecords({
-    learningArea: 'กลุ่มสาระการเรียนรู้เพิ่มเติม',
+    learningArea: 'วิทยาศาสตร์และเทคโนโลยี',
     subject: 'สวนพฤกษศาสตร์ในโรงเรียน',
     gradeLevel: 'ม.6',
   });
