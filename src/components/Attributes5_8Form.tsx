@@ -3,6 +3,7 @@ import { AppData } from '../types';
 import { AutoFillAttributesModal } from './AutoFillAttributesModal';
 import { AlertCircle, Sparkles } from 'lucide-react';
 import { ModalPortal } from './ModalPortal';
+import { AssessmentScoreCell } from './AssessmentScoreCell';
 
 interface Props {
   students: AppData['students'];
@@ -40,14 +41,13 @@ export const Attributes5_8Form: React.FC<Props> = ({ students, data, generalInfo
   const classTermTitle = buildClassTermTitle(generalInfo);
   const fields = ['attr5_1', 'attr5_2', 'attr6_1', 'attr6_2', 'attr7_1', 'attr7_2', 'attr7_3', 'attr8_1', 'attr8_2'];
 
-  const handleChange = (studentId: string, field: string, value: string) => {
+  const handleChange = (studentId: string, field: string, value: number | '') => {
     if (readOnly) return;
-    const numValue = value === '' ? '' : parseInt(value);
     onChange({
       ...data,
       [studentId]: {
         ...data[studentId],
-        [field]: numValue
+        [field]: value
       }
     });
   };
@@ -248,24 +248,24 @@ export const Attributes5_8Form: React.FC<Props> = ({ students, data, generalInfo
                     <td className="text-center sticky z-10 bg-white" style={{ left: '48px', width: '128px', minWidth: '128px', maxWidth: '128px' }}>{student?.studentId ?? ''}</td>
                     <td className="text-center sticky z-10 bg-white" style={{ left: '176px', width: '180px', minWidth: '180px', maxWidth: '180px' }}>{student?.citizenId ?? ''}</td>
                     <td className="text-left px-2 sticky z-10 bg-white border-r-2 border-r-slate-400" style={{ left: '356px', width: '292px', minWidth: '292px', maxWidth: '292px' }}>{student?.name ?? ''}</td>
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr5_1'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr5_1', e.target.value)} disabled={!student || readOnly} /></td>
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr5_2'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr5_2', e.target.value)} disabled={!student || readOnly} /></td>
+                    <AssessmentScoreCell value={attrs['attr5_1']} onChange={(value) => student && handleChange(student.id, 'attr5_1', value)} disabled={!student || readOnly} />
+                    <AssessmentScoreCell value={attrs['attr5_2']} onChange={(value) => student && handleChange(student.id, 'attr5_2', value)} disabled={!student || readOnly} />
                     <td className="bg-orange-100 text-center">{avg5}</td>
                     <td className="bg-orange-100 text-center">{avg5}</td>
                     
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr6_1'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr6_1', e.target.value)} disabled={!student || readOnly} /></td>
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr6_2'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr6_2', e.target.value)} disabled={!student || readOnly} /></td>
+                    <AssessmentScoreCell value={attrs['attr6_1']} onChange={(value) => student && handleChange(student.id, 'attr6_1', value)} disabled={!student || readOnly} />
+                    <AssessmentScoreCell value={attrs['attr6_2']} onChange={(value) => student && handleChange(student.id, 'attr6_2', value)} disabled={!student || readOnly} />
                     <td className="bg-orange-100 text-center">{avg6}</td>
                     <td className="bg-orange-100 text-center">{avg6}</td>
                     
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr7_1'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr7_1', e.target.value)} disabled={!student || readOnly} /></td>
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr7_2'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr7_2', e.target.value)} disabled={!student || readOnly} /></td>
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr7_3'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr7_3', e.target.value)} disabled={!student || readOnly} /></td>
+                    <AssessmentScoreCell value={attrs['attr7_1']} onChange={(value) => student && handleChange(student.id, 'attr7_1', value)} disabled={!student || readOnly} />
+                    <AssessmentScoreCell value={attrs['attr7_2']} onChange={(value) => student && handleChange(student.id, 'attr7_2', value)} disabled={!student || readOnly} />
+                    <AssessmentScoreCell value={attrs['attr7_3']} onChange={(value) => student && handleChange(student.id, 'attr7_3', value)} disabled={!student || readOnly} />
                     <td className="bg-orange-100 text-center">{avg7}</td>
                     <td className="bg-orange-100 text-center">{avg7}</td>
                     
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr8_1'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr8_1', e.target.value)} disabled={!student || readOnly} /></td>
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr8_2'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr8_2', e.target.value)} disabled={!student || readOnly} /></td>
+                    <AssessmentScoreCell value={attrs['attr8_1']} onChange={(value) => student && handleChange(student.id, 'attr8_1', value)} disabled={!student || readOnly} />
+                    <AssessmentScoreCell value={attrs['attr8_2']} onChange={(value) => student && handleChange(student.id, 'attr8_2', value)} disabled={!student || readOnly} />
                     <td className="bg-orange-100 text-center">{avg8}</td>
                     <td className="bg-orange-100 text-center">{avg8}</td>
                     

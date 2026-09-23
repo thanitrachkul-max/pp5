@@ -3,6 +3,7 @@ import type { AppData } from '../types';
 import { primaryTerm, qualityAverage, qualityLabel, updatePrimaryTerm } from '../lib/primaryYear';
 import { ATTRIBUTE_GROUPS, ATTRIBUTE_LABELS, PRIMARY_ANALYTICAL_LABELS } from '../data/primaryAssessment';
 import { AutoFillAttributesModal } from './AutoFillAttributesModal';
+import { AssessmentScoreCell } from './AssessmentScoreCell';
 
 interface Props { data: AppData; kind: '1-4' | '5-8' | 'analytical'; readOnly?: boolean; printMode?: boolean; offset?: number; onChange: (data: AppData) => void }
 export function PrimaryAssessmentForm({ data, kind, readOnly = false, printMode = false, offset = 0, onChange }: Props) {
@@ -25,9 +26,8 @@ export function PrimaryAssessmentForm({ data, kind, readOnly = false, printMode 
     const a = overall(id, 1), b = overall(id, 2);
     return a === null || b === null ? '' : qualityLabel(Math.round((a + b) / 2));
   };
-  function change(term: number, id: string, key: string, text: string) {
+  function change(term: number, id: string, key: string, value: number | '') {
     if (!editable(term)) return;
-    const value = text === '' ? '' : Math.min(3, Math.max(0, Math.trunc(Number(text) || 0)));
     const current = primaryTerm(data, term)[section];
     onChange(updatePrimaryTerm(data, term, { [section]: { ...current, [id]: { ...current[id], [key]: value } } }));
   }
@@ -40,8 +40,9 @@ export function PrimaryAssessmentForm({ data, kind, readOnly = false, printMode 
     });
     onChange(updatePrimaryTerm(data, term, { [section]: next }));
   }
-  const cell = (term: number, id: string, key: string) => <td key={`${key}-${term}`} className={!editable(term) && !printMode ? '!bg-slate-200' : ''}>{printMode ? row(id, term)[key] ?? '' :
-    <input aria-label={`ภาคเรียนที่ ${term} ${id} ${key}`} className="excel-input text-center disabled:bg-slate-200 disabled:text-slate-500" type="number" min={0} max={3} step={1} disabled={!editable(term)} value={row(id, term)[key] ?? ''} onChange={e => change(term, id, key, e.target.value)} />}</td>;
+  const cell = (term: number, id: string, key: string) => printMode
+    ? <td key={`${key}-${term}`}>{row(id, term)[key] ?? ''}</td>
+    : <AssessmentScoreCell key={`${key}-${term}`} ariaLabel={`ภาคเรียนที่ ${term} ${id} ${key}`} className={!editable(term) ? '!bg-slate-200' : ''} disabled={!editable(term)} value={row(id, term)[key]} onChange={value => change(term, id, key, value)} />;
   return <div className={`primary-year-form ${printMode ? 'primary-year-print' : ''}`}>
     <h2 className="mb-4 text-center text-lg font-bold">{analytical ? 'ผลการประเมินการอ่าน คิดวิเคราะห์ และเขียน' : 'แบบบันทึกผลการประเมินคุณลักษณะอันพึงประสงค์'} ชั้น {data.generalInfo.gradeLevel} ปีการศึกษา {data.generalInfo.academicYear}</h2>
     <div className="overflow-x-auto"><table className="excel-table whitespace-nowrap">

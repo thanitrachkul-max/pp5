@@ -34,6 +34,7 @@ import {
 } from "../../lib/gradebookStats";
 import { createSaveQueue } from "../../lib/saveQueue";
 import { constrainScores } from "../../lib/scoreLimits";
+import { constrainAssessmentData } from "../../lib/assessmentLimits";
 import { supabase } from "../../lib/supabase";
 import { downloadPap5Pdf } from "../../utils/pap5PdfPreview";
 import { openPap5PrintDialog } from "../../utils/pap5PrintDialog";
@@ -124,7 +125,12 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
   onBack,
   onSyncStatusChange,
 }) => {
-  const [data, setData] = useState<AppData>(session.data);
+  const [data, setData] = useState<AppData>(() => {
+    const assessments = constrainAssessmentData(session.data).data;
+    if (session.data.primaryYear) return assessments;
+    const scores = constrainScores(assessments.scores, assessments.scoreConfig).scores;
+    return scores === assessments.scores ? assessments : { ...assessments, scores };
+  });
   const [approvalStatus, setApprovalStatus] = useState<GradebookApprovalStatus | null>(session.approval_status);
   const [activeTab, setActiveTab] = useState("general");
   const [exportingPdf, setExportingPdf] = useState(false);
@@ -242,10 +248,12 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
 
   useEffect(() => {
     if (session.readOnly || session.data.primaryYear) return;
-    const repaired = constrainScores(session.data.scores, session.data.scoreConfig);
-    if (!repaired.changed) return;
-    setScoreRepairNotice(`ปรับคะแนนเดิม ${repaired.changed} ช่องที่เกินคะแนนเต็มตามการตั้งค่าปัจจุบันแล้ว`);
-    handleUpdate({ ...session.data, scores: repaired.scores });
+    const scores = constrainScores(session.data.scores, session.data.scoreConfig);
+    const assessments = constrainAssessmentData(session.data);
+    if (!scores.changed && !assessments.changed) return;
+    const changed = scores.changed + assessments.changed;
+    setScoreRepairNotice(`ปรับคะแนนเดิม ${changed} ช่องที่อยู่นอกช่วงคะแนนที่กำหนดแล้ว`);
+    handleUpdate({ ...assessments.data, scores: scores.scores });
   }, [session.id]);
 
   // Keep an already-open gradebook aligned when the admin or another teacher

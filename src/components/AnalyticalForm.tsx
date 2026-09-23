@@ -3,6 +3,7 @@ import { AppData } from '../types';
 import { AutoFillAttributesModal } from './AutoFillAttributesModal';
 import { Sparkles, AlertCircle } from 'lucide-react';
 import { ModalPortal } from './ModalPortal';
+import { AssessmentScoreCell } from './AssessmentScoreCell';
 
 interface Props {
   students: AppData['students'];
@@ -39,14 +40,13 @@ export const AnalyticalForm: React.FC<Props> = ({ students, data, generalInfo, p
   const reportTitle = buildReportTitle(generalInfo);
   const classTermTitle = buildClassTermTitle(generalInfo);
 
-  const handleChange = (studentId: string, field: string, value: string) => {
+  const handleChange = (studentId: string, field: string, value: number | '') => {
     if (readOnly) return;
-    const numValue = value === '' ? '' : parseInt(value) || 0;
     onChange({
       ...data,
       [studentId]: {
         ...(data[studentId] || {}),
-        [field]: numValue
+        [field]: value
       }
     });
   };
@@ -227,13 +227,13 @@ export const AnalyticalForm: React.FC<Props> = ({ students, data, generalInfo, p
                     <td className="text-center sticky z-10 bg-white" style={{ left: '48px', width: '112px', minWidth: '112px', maxWidth: '112px' }}>{student?.studentId ?? ''}</td>
                     <td className="text-center sticky z-10 bg-white" style={{ left: '160px', width: '150px', minWidth: '150px', maxWidth: '150px' }}>{student?.citizenId ?? ''}</td>
                     <td className="text-left px-2 sticky z-10 bg-white border-r-2 border-r-slate-400" style={{ left: '310px', width: '292px', minWidth: '292px', maxWidth: '292px' }}>{student?.name ?? ''}</td>
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr1'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr1', e.target.value)} disabled={!student || readOnly} /></td>
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr2'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr2', e.target.value)} disabled={!student || readOnly} /></td>
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr3'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr3', e.target.value)} disabled={!student || readOnly} /></td>
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr4'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr4', e.target.value)} disabled={!student || readOnly} /></td>
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr5'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr5', e.target.value)} disabled={!student || readOnly} /></td>
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr6'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr6', e.target.value)} disabled={!student || readOnly} /></td>
-                    <td><input type="number" max={3} min={0} className="excel-input text-center" value={attrs['attr7'] ?? ''} onChange={(e) => student && handleChange(student.id, 'attr7', e.target.value)} disabled={!student || readOnly} /></td>
+                    <AssessmentScoreCell value={attrs['attr1']} onChange={(value) => student && handleChange(student.id, 'attr1', value)} disabled={!student || readOnly} />
+                    <AssessmentScoreCell value={attrs['attr2']} onChange={(value) => student && handleChange(student.id, 'attr2', value)} disabled={!student || readOnly} />
+                    <AssessmentScoreCell value={attrs['attr3']} onChange={(value) => student && handleChange(student.id, 'attr3', value)} disabled={!student || readOnly} />
+                    <AssessmentScoreCell value={attrs['attr4']} onChange={(value) => student && handleChange(student.id, 'attr4', value)} disabled={!student || readOnly} />
+                    <AssessmentScoreCell value={attrs['attr5']} onChange={(value) => student && handleChange(student.id, 'attr5', value)} disabled={!student || readOnly} />
+                    <AssessmentScoreCell value={attrs['attr6']} onChange={(value) => student && handleChange(student.id, 'attr6', value)} disabled={!student || readOnly} />
+                    <AssessmentScoreCell value={attrs['attr7']} onChange={(value) => student && handleChange(student.id, 'attr7', value)} disabled={!student || readOnly} />
                     <td className="analytical-summary-result-cell text-center">{student && avg > 0 ? avg : ''}</td>
                     <td className={`analytical-final-result-cell text-center font-bold ${student && avg > 0 ? grade.color : ''}`}>{student && avg > 0 ? grade.text : ''}</td>
                   </tr>
