@@ -1,4 +1,5 @@
 import { createCoalescedRefresh } from '../../lib/coalescedRefresh';
+import { countActiveEnrollments } from '../../lib/enrollmentCounts';
 import { gradebookCompletion, gradebookStudentCount, hydrateLegacyGradebooks, type DashboardGradebook } from '../../lib/dashboardGradebookSummary';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -85,8 +86,11 @@ interface DashboardAssignment {
     id: string;
     name: string;
     class_level_code: string;
+    academic_year_id: string;
   } | null;
   gradebooks?: DashboardGradebook[] | DashboardGradebook | null;
+  /** Live roster size; gradebook stats go stale when roster sync rewrites students. */
+  active_student_count?: number;
 }
 
 interface DashboardProgressItem {
@@ -296,6 +300,12 @@ function normalizeGradebook(value: DashboardAssignment['gradebooks']): Dashboard
   return value;
 }
 
+function dashboardStudentCount(row: DashboardAssignment): number {
+  const gradebook = normalizeGradebook(row.gradebooks);
+  if (!gradebook) return 0;
+  return row.active_student_count ?? gradebookStudentCount(gradebook);
+}
+
 function aggregateDashboardProgress(
   rows: DashboardAssignment[],
   keyFor: (row: DashboardAssignment) => string,
@@ -308,7 +318,7 @@ function aggregateDashboardProgress(
     const id = keyFor(row);
     const gradebook = normalizeGradebook(row.gradebooks);
     const completion = gradebookCompletion(gradebook);
-    const studentCount = gradebookStudentCount(gradebook);
+    const studentCount = dashboardStudentCount(row);
     const current = grouped.get(id) ?? {
       id,
       name: nameFor(row),
@@ -1027,7 +1037,7 @@ export const AdminHomePage: React.FC<AdminHomePageProps> = ({
           teacher_id,
           profiles:teacher_id(id, full_name, title, username),
           subjects:subject_id(id, subject_code, subject_name, learning_area),
-          classrooms:classroom_id(id, name, class_level_code),
+          classrooms:classroom_id(id, name, class_level_code, academic_year_id),
           gradebooks(id, status, stats)
         `)
         .eq('school_id', currentUser.schoolId)
@@ -1036,7 +1046,25 @@ export const AdminHomePage: React.FC<AdminHomePageProps> = ({
 
       if (queryError) throw queryError;
       const rows = (data ?? []) as unknown as DashboardAssignment[];
-      await hydrateLegacyGradebooks(supabase, rows.flatMap(row => row.gradebooks ? (Array.isArray(row.gradebooks) ? row.gradebooks : [row.gradebooks]) : []));
+      const rowsWithGradebook = rows.filter(row => normalizeGradebook(row.gradebooks) && row.classrooms);
+      // Roster sync rewrites gradebooks.students without touching stats, so count the live roster.
+      const activeCounts = await countActiveEnrollments(supabase, rowsWithGradebook.map(row => ({
+        classroomId: row.classrooms!.id,
+        academicYearId: row.classrooms!.academic_year_id,
+      }))).catch((countError) => {
+        console.warn('Falling back to gradebook student counts', countError);
+        return null;
+      });
+      await hydrateLegacyGradebooks(
+        supabase,
+        rows.flatMap(row => row.gradebooks ? (Array.isArray(row.gradebooks) ? row.gradebooks : [row.gradebooks]) : []),
+        { needsStudentCount: !activeCounts },
+      );
+      if (activeCounts) {
+        for (const row of rowsWithGradebook) {
+          row.active_student_count = activeCounts.get(`${row.classrooms!.id}:${row.classrooms!.academic_year_id}`) ?? 0;
+        }
+      }
       setDashboardAssignments(rows);
     } catch (err) {
       setDashboardAssignments([]);
@@ -1055,8 +1083,15 @@ export const AdminHomePage: React.FC<AdminHomePageProps> = ({
 
     const workspaceRefresher = createCoalescedRefresh(loadWorkspaces, { debounceMs: 5000 });
     const insightsRefresher = createCoalescedRefresh(loadDashboardInsights, { debounceMs: 5000 });
+    // Autosaves fire gradebook events constantly, but workspace cards only show
+    // submission counts, so refresh them on a slower cadence than structural changes.
+    const gradebookWorkspaceRefresher = createCoalescedRefresh(loadWorkspaces, { debounceMs: 30000, fallbackIntervalMs: 0 });
     const syncHomeData = () => {
       workspaceRefresher.schedule();
+      insightsRefresher.schedule();
+    };
+    const syncGradebookData = () => {
+      gradebookWorkspaceRefresher.schedule();
       insightsRefresher.schedule();
     };
 
@@ -1066,13 +1101,13 @@ export const AdminHomePage: React.FC<AdminHomePageProps> = ({
       .on('postgres_changes', { event: '*', schema: 'public', table: 'classrooms', filter: `school_id=eq.${currentUser.schoolId}` }, workspaceRefresher.schedule)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'teaching_assignments', filter: `school_id=eq.${currentUser.schoolId}` }, syncHomeData)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'student_enrollments' }, workspaceRefresher.schedule)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'gradebooks' }, syncHomeData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'gradebooks' }, syncGradebookData)
       .subscribe();
-
 
     return () => {
       workspaceRefresher.dispose();
       insightsRefresher.dispose();
+      gradebookWorkspaceRefresher.dispose();
       void supabase.removeChannel(channel);
     };
   }, [currentUser.schoolId, loadDashboardInsights, loadWorkspaces, variant]);
@@ -1122,10 +1157,7 @@ export const AdminHomePage: React.FC<AdminHomePageProps> = ({
       (sum, row) => sum + gradebookCompletion(normalizeGradebook(row.gradebooks)),
       0,
     );
-    const totalStudents = dashboardAssignments.reduce((sum, row) => {
-      const gradebook = normalizeGradebook(row.gradebooks);
-      return sum + gradebookStudentCount(gradebook);
-    }, 0);
+    const totalStudents = dashboardAssignments.reduce((sum, row) => sum + dashboardStudentCount(row), 0);
 
     return {
       totalAssignments,

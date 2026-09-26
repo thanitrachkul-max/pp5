@@ -1,6 +1,6 @@
 import { LiveClock, useLiveTime } from '../../components/LiveClock';
 import { WorkspaceTabs } from '../../components/WorkspaceTabs';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createCoalescedRefresh } from '../../lib/coalescedRefresh';
 import {
   AlertTriangle,
@@ -282,14 +282,21 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const displayUserName = viewedTeacher?.name ?? teacherGreetingName(currentUser);
 
 
+  const loadRequestId = useRef(0);
+  const assignmentGroupIds = useRef<Set<string>>(new Set());
+
   const load = useCallback(async (showLoading = true) => {
+    const requestId = ++loadRequestId.current;
     if (showLoading) setLoading(true);
     setError('');
     try {
       const data = await fetchTeacherAssignments(teacherId);
-      setAssignments(data);
+      // A slower refresh for a previously viewed teacher must not overwrite newer results.
+      if (requestId === loadRequestId.current) setAssignments(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'โหลดรายวิชาไม่สำเร็จ');
+      if (requestId === loadRequestId.current) {
+        setError(err instanceof Error ? err.message : 'โหลดรายวิชาไม่สำเร็จ');
+      }
     } finally {
       if (showLoading) setLoading(false);
     }
@@ -300,6 +307,10 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   }, [load]);
 
   useEffect(() => {
+    assignmentGroupIds.current = new Set(assignments.map((assignment) => assignment.assignment_group_id));
+  }, [assignments]);
+
+  useEffect(() => {
     const refresher = createCoalescedRefresh(() => load(false), { debounceMs: 2000 });
 
     const channel = supabase
@@ -307,7 +318,13 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'gradebooks' },
-        refresher.schedule,
+        (payload) => {
+          // Admins can read every gradebook, so skip other teachers' autosaves.
+          // Events without a group id (e.g. DELETE payloads) still refresh.
+          const row = (payload.new ?? payload.old) as { assignment_group_id?: string | null } | undefined;
+          const groupId = row?.assignment_group_id;
+          if (!groupId || assignmentGroupIds.current.has(groupId)) refresher.schedule();
+        },
       )
       .subscribe();
 

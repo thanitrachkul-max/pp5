@@ -447,16 +447,22 @@ export async function fetchTeacherAssignments(
   options?: { assignmentIds?: string[] },
 ): Promise<TeacherAssignmentView[]> {
   if (options?.assignmentIds?.length === 0) return [];
-  const delegations = await listOptionalGradebookDelegations();
-  const receivedIds = Array.from(new Set(delegations.filter(d => d.teacher_id === teacherId).map(d => d.assignment_id)));
-  const assignmentFilter = receivedIds.length ? `teacher_id.eq.${teacherId},id.in.(${receivedIds.join(',')})` : `teacher_id.eq.${teacherId}`;
+  const delegationsRequest = listOptionalGradebookDelegations();
+  // Avoid an unhandled rejection if the assignment query fails first; awaiting below still throws.
+  delegationsRequest.catch(() => undefined);
+  // Explicit ids already scope the query, so it need not wait for delegations to build the teacher filter.
+  let assignmentFilter: string | null = null;
+  if (!options?.assignmentIds) {
+    const receivedIds = Array.from(new Set((await delegationsRequest).filter(d => d.teacher_id === teacherId).map(d => d.assignment_id)));
+    assignmentFilter = receivedIds.length ? `teacher_id.eq.${teacherId},id.in.(${receivedIds.join(',')})` : `teacher_id.eq.${teacherId}`;
+  }
   const runQuery = async (select: string) => {
     const queryAssignments = (columns: string) => {
       let query = supabase
       .from("teaching_assignments")
       .select(columns)
-      .or(assignmentFilter)
       .order("created_at", { ascending: false });
+      if (assignmentFilter) query = query.or(assignmentFilter);
       if (options?.assignmentIds) query = query.in('id', options.assignmentIds);
       return query;
     };
@@ -507,12 +513,17 @@ export async function fetchTeacherAssignments(
     const year = semester?.academic_years;
     return Boolean(classroom && subject && semester && year);
   });
-  const [gradebookByAssignmentId, enrollmentCounts] = await Promise.all([
+  const [delegations, gradebookByAssignmentId, enrollmentCounts] = await Promise.all([
+    delegationsRequest,
     fetchGradebooksByAssignmentIds(teacherId, validRows),
     countActiveEnrollments(supabase, validRows.map(row => ({
       classroomId: row.classrooms!.id,
       academicYearId: row.semesters!.academic_years!.id,
-    }))),
+    }))).catch((error) => {
+      // Student counts are informational; keep subjects usable like the old per-row `count ?? 0`.
+      console.warn('Loading active student counts failed', error);
+      return new Map<string, number>();
+    }),
   ]);
   const views: TeacherAssignmentView[] = [];
 

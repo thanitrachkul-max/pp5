@@ -20,18 +20,28 @@ export function gradebookStudentCount(gradebook: DashboardGradebook | null): num
   return hasStudentCount(gradebook) ? Number(gradebook.stats!.studentCount) : normalizeStudents(gradebook.students).length;
 }
 
-export function needsLegacyGradebook(gradebook: DashboardGradebook): boolean {
+export function needsLegacyGradebook(gradebook: DashboardGradebook, needsStudentCount = true): boolean {
   // Zero completion still uses the original score-based fallback, even with stats present.
-  return !hasStudentCount(gradebook) || (numberFromStats(gradebook.stats, 'completionPercent') <= 0 && gradebook.status !== 'completed');
+  return (needsStudentCount && !hasStudentCount(gradebook))
+    || (numberFromStats(gradebook.stats, 'completionPercent') <= 0 && gradebook.status !== 'completed');
 }
 
-export async function hydrateLegacyGradebooks(client: Pick<SupabaseClient, 'from'>, rows: DashboardGradebook[]) {
-  const ids = [...new Set(rows.filter(needsLegacyGradebook).map(row => row.id))];
+export async function hydrateLegacyGradebooks(
+  client: Pick<SupabaseClient, 'from'>,
+  rows: DashboardGradebook[],
+  { needsStudentCount = true }: { needsStudentCount?: boolean } = {},
+) {
+  const ids = [...new Set(rows.filter(row => needsLegacyGradebook(row, needsStudentCount)).map(row => row.id))];
   const legacy = new Map<string, Partial<DashboardGradebook>>();
-  for (let index = 0; index < ids.length; index += 40) {
-    const { data, error } = await client.from('gradebooks').select('id, students, scores, score_config').in('id', ids.slice(index, index + 40));
-    if (error) throw error;
-    for (const row of data ?? []) legacy.set(row.id, row);
+  const chunks: string[][] = [];
+  for (let index = 0; index < ids.length; index += 40) chunks.push(ids.slice(index, index + 40));
+  // Chunks are independent; bound concurrency like countActiveEnrollments.
+  for (let index = 0; index < chunks.length; index += 4) {
+    await Promise.all(chunks.slice(index, index + 4).map(async chunk => {
+      const { data, error } = await client.from('gradebooks').select('id, students, scores, score_config').in('id', chunk);
+      if (error) throw error;
+      for (const row of data ?? []) legacy.set(row.id, row);
+    }));
   }
   for (const row of rows) {
     const details = legacy.get(row.id);

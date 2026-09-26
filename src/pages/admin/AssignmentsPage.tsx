@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createCoalescedRefresh } from '../../lib/coalescedRefresh';
 import { createPortal } from 'react-dom';
 import {
@@ -450,8 +450,11 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     setClassrooms(classroomData ?? []);
   }, [currentUser.schoolId, selectedYearId]);
 
+  const loadAssignmentsRequestId = useRef(0);
+
   const loadAssignments = useCallback(async (showLoading = true) => {
     if (!selectedSemesterId || !currentUser.schoolId) return;
+    const requestId = ++loadAssignmentsRequestId.current;
     if (showLoading) setLoading(true);
     setError('');
     try {
@@ -538,9 +541,12 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
           approval_reason_seen_at: gradebook?.approval_reason_seen_at ?? null,
         };
       });
-      setAssignments(mapped);
+      // A slower refresh for a previously selected semester must not overwrite newer results.
+      if (requestId === loadAssignmentsRequestId.current) setAssignments(mapped);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'โหลดรายการมอบหมายไม่สำเร็จ');
+      if (requestId === loadAssignmentsRequestId.current) {
+        setError(err instanceof Error ? err.message : 'โหลดรายการมอบหมายไม่สำเร็จ');
+      }
     } finally {
       if (showLoading) setLoading(false);
     }
