@@ -444,23 +444,26 @@ async function fetchGradebooksByAssignmentIds(
 
 export async function fetchTeacherAssignments(
   teacherId: string,
+  options?: { assignmentIds?: string[] },
 ): Promise<TeacherAssignmentView[]> {
+  if (options?.assignmentIds?.length === 0) return [];
   const delegations = await listOptionalGradebookDelegations();
   const receivedIds = Array.from(new Set(delegations.filter(d => d.teacher_id === teacherId).map(d => d.assignment_id)));
   const assignmentFilter = receivedIds.length ? `teacher_id.eq.${teacherId},id.in.(${receivedIds.join(',')})` : `teacher_id.eq.${teacherId}`;
   const runQuery = async (select: string) => {
-    let result = await supabase
+    const queryAssignments = (columns: string) => {
+      let query = supabase
       .from("teaching_assignments")
-      .select(select)
+      .select(columns)
       .or(assignmentFilter)
       .order("created_at", { ascending: false });
+      if (options?.assignmentIds) query = query.in('id', options.assignmentIds);
+      return query;
+    };
+    let result = await queryAssignments(select);
 
     if (result.error && isMissingAssignmentGroupColumn(result.error)) {
-      result = await supabase
-        .from("teaching_assignments")
-        .select(withoutAssignmentGroupColumn(select))
-        .or(assignmentFilter)
-        .order("created_at", { ascending: false });
+      result = await queryAssignments(withoutAssignmentGroupColumn(select));
     }
     return result;
   };

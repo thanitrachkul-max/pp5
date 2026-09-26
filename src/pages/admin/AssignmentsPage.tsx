@@ -812,7 +812,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     setError('');
 
     try {
-      const teacherAssignments = await fetchTeacherAssignments(assignment.teacher_id);
+      const teacherAssignments = await fetchTeacherAssignments(assignment.teacher_id, { assignmentIds: [assignment.id] });
       const matchedAssignment = teacherAssignments.find((item) => item.id === assignment.id);
       if (!matchedAssignment) {
         setError('ไม่พบข้อมูลรายวิชาที่มอบหมาย กรุณารีเฟรชแล้วลองใหม่');
@@ -867,7 +867,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     setError('');
     setMessage('');
     try {
-      const teacherAssignments = await fetchTeacherAssignments(assignment.teacher_id);
+      const teacherAssignments = await fetchTeacherAssignments(assignment.teacher_id, { assignmentIds: [assignment.id] });
       const matchedAssignment = teacherAssignments.find((item) => item.id === assignment.id);
       if (!matchedAssignment) {
         throw new Error('ไม่พบข้อมูลรายวิชาที่มอบหมาย กรุณารีเฟรชแล้วลองใหม่');
