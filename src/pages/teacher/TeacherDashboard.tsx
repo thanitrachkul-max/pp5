@@ -1,5 +1,6 @@
 import { WorkspaceTabs } from '../../components/WorkspaceTabs';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { createCoalescedRefresh } from '../../lib/coalescedRefresh';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -303,23 +304,19 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   }, [load]);
 
   useEffect(() => {
-    const syncAssignments = () => {
-      void load(false);
-    };
+    const refresher = createCoalescedRefresh(() => load(false), { debounceMs: 2000 });
 
     const channel = supabase
       .channel(`teacher-gradebooks-${currentUser.id}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'gradebooks' },
-        syncAssignments,
+        refresher.schedule,
       )
       .subscribe();
 
-    const timer = window.setInterval(syncAssignments, 5000);
-
     return () => {
-      window.clearInterval(timer);
+      refresher.dispose();
       void supabase.removeChannel(channel);
     };
   }, [currentUser.id, load]);
