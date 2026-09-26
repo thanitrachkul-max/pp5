@@ -1,3 +1,4 @@
+import { createCoalescedRefresh } from '../../lib/coalescedRefresh';
 import { configuredIndicatorCodes, missingIndicatorCodes, normalizeIndicatorCode, mergeIndicatorDetails } from '../../lib/indicatorDetails';
 import { fetchCurriculumStandards } from '../../lib/curriculum';
 import { primaryCombinedConfig } from "../../lib/primaryYear";
@@ -627,11 +628,13 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
 
   useEffect(() => {
     const syncApprovalStatus = async () => {
-      const { data: row } = await supabase
+      const { data: row, error } = await supabase
         .from("gradebooks")
         .select("approval_status")
         .eq("id", session.id)
         .maybeSingle();
+
+      if (error) return;
 
       setApprovalStatus(
         ((row?.approval_status as GradebookApprovalStatus | null | undefined) ?? null),
@@ -650,10 +653,10 @@ export const GradebookEditor: React.FC<GradebookEditorProps> = ({
       )
       .subscribe();
 
-    const timer = window.setInterval(syncApprovalStatus, 5000);
+    const refresher = createCoalescedRefresh(syncApprovalStatus, { debounceMs: 0 });
 
     return () => {
-      window.clearInterval(timer);
+      refresher.dispose();
       void supabase.removeChannel(channel);
     };
   }, [session.id]);
