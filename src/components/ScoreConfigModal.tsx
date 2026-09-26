@@ -561,7 +561,7 @@ export const ScoreConfigModal: React.FC<Props> = ({ isOpen, onClose, generalInfo
                         onChange={(e) => handleNumIndicatorsChange(uIndex, parseInt(e.target.value))}
                         className="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm bg-white"
                       >
-                        {[1, 2, 3, 4, 5].map(n => (
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
                           <option key={n} value={n}>{n} ตัวชี้วัด</option>
                         ))}
                       </select>
