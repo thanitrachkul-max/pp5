@@ -1,3 +1,4 @@
+import { LiveClock, useLiveTime } from '../../components/LiveClock';
 import { WorkspaceTabs } from '../../components/WorkspaceTabs';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createCoalescedRefresh } from '../../lib/coalescedRefresh';
@@ -100,6 +101,17 @@ function countdownParts(window: { start: string | null; end: string | null }, no
     minutes: String(minutes).padStart(2, '0'),
     seconds: String(seconds).padStart(2, '0'),
   };
+}
+
+function EntryCountdown({ window }: { window: { start: string | null; end: string | null } }) {
+  const now = useLiveTime();
+  const countdown = countdownParts(window, now);
+  return countdown.type === 'countdown' ? (
+    <>
+      {countdown.days} วัน {countdown.hours} ชม. {countdown.minutes} นาที{' '}
+      <span className="text-red-600">{countdown.seconds}</span> วินาที
+    </>
+  ) : <>{countdown.label}: {countdown.value}</>;
 }
 
 function teacherGreetingName(user: AppUser): string {
@@ -266,25 +278,9 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const [resubmittingId, setResubmittingId] = useState<string | null>(null);
   const [selectedPeriodKey, setSelectedPeriodKey] = useState<string | null>(() => initialPeriodKey);
   const [selectedPeriodKeys, setSelectedPeriodKeys] = useState<Set<string>>(new Set());
-  const [now, setNow] = useState(() => new Date());
   const teacherId = isAdmin(currentUser) && viewedTeacher ? viewedTeacher.id : currentUser.id;
   const displayUserName = viewedTeacher?.name ?? teacherGreetingName(currentUser);
-  const currentDateTime = useMemo(() => {
-    const dateText = now.toLocaleDateString('th-TH', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-    const timeText = now.toLocaleTimeString('th-TH', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    });
 
-    return { dateText, timeText };
-  }, [now]);
 
   const load = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true);
@@ -325,10 +321,6 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     setSelectedPeriodKey(initialPeriodKey);
   }, [initialPeriodKey]);
 
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(new Date()), 1000);
-    return () => window.clearInterval(timer);
-  }, []);
 
   const periods = useMemo(() => buildPeriods(assignments), [assignments]);
   const selectedPeriod = useMemo(
@@ -340,7 +332,6 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     return activeYear != null ? assignments.filter((assignment) => assignment.year_be === activeYear) : [];
   }, [assignments]);
   const activeEntryWindow = useMemo(() => assignmentEntryWindow(activeYearItems), [activeYearItems]);
-  const activeCountdown = useMemo(() => countdownParts(activeEntryWindow, now), [activeEntryWindow, now]);
   const activeEntryWindowLabel = entryWindowLabel(activeEntryWindow.start, activeEntryWindow.end);
   const selectedSubjectCodes = selectedPeriod
     ? uniqueStrings(selectedPeriod.items.map((item) => item.subject_code)).length
@@ -603,8 +594,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           )}
           <div className="flex items-center justify-start gap-2 lg:justify-end">
             <div className="hidden items-center gap-1.5 text-xs font-semibold text-slate-600 md:flex">
-              <span>{currentDateTime.dateText}</span>
-              <span className="font-mono text-blue-500">{currentDateTime.timeText}</span>
+              <LiveClock timeClassName="font-mono text-blue-500" />
             </div>
             <button
               type="button"
@@ -651,16 +641,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               <div className="text-right text-sm font-semibold text-slate-900 lg:mt-[1.375rem] lg:shrink-0">
                 <p>กำหนดส่งข้อมูล {activeEntryWindowLabel}</p>
                 <p className="mt-1 font-mono tabular-nums">
-                  {activeCountdown.type === 'countdown' ? (
-                    <>
-                      {activeCountdown.days} วัน {activeCountdown.hours} ชม. {activeCountdown.minutes} นาที{' '}
-                      <span className="text-red-600">{activeCountdown.seconds}</span> วินาที
-                    </>
-                  ) : (
-                    <>
-                      {activeCountdown.label}: {activeCountdown.value}
-                    </>
-                  )}
+                  <EntryCountdown window={activeEntryWindow} />
                 </p>
               </div>
             )}

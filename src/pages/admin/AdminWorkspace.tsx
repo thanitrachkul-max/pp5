@@ -1,3 +1,4 @@
+import { LiveClock } from '../../components/LiveClock';
 import { WorkspaceTabs } from '../../components/WorkspaceTabs';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -208,7 +209,6 @@ export const AdminWorkspace: React.FC<AdminWorkspaceProps> = ({
   const [entryCreateYearRequest, setEntryCreateYearRequest] = useState(0);
   const [activeAdminDevices, setActiveAdminDevices] = useState<number | null>(null);
   const [networkStatus, setNetworkStatus] = useState<NetworkStatus>(() => readNetworkStatus());
-  const [now, setNow] = useState(() => new Date());
   const [workspaceYearLabel, setWorkspaceYearLabel] = useState('');
   const [assignmentFilter, setAssignmentFilter] = useState<AdminTabNavigateOptions | null>(null);
   const [mainBackAction, setMainBackAction] = useState<(() => void) | null>(null);
@@ -235,31 +235,12 @@ export const AdminWorkspace: React.FC<AdminWorkspaceProps> = ({
       : 'p-4 pb-16 sm:p-6 sm:pb-16 lg:p-8 lg:pb-16';
 
   const network = networkStatusMeta(networkStatus);
-  const currentDateTime = useMemo(() => {
-    const dateText = now.toLocaleDateString('th-TH', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-    const timeText = now.toLocaleTimeString('th-TH', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    });
 
-    return { dateText, timeText };
-  }, [now]);
 
   const handleMainBackActionChange = useCallback((action: (() => void) | null) => {
     setMainBackAction(() => action);
   }, []);
 
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(new Date()), 1000);
-    return () => window.clearInterval(timer);
-  }, []);
 
   useEffect(() => {
     if (!workspaceYearId) {
@@ -543,8 +524,7 @@ export const AdminWorkspace: React.FC<AdminWorkspaceProps> = ({
             <div className="flex shrink-0 items-center gap-2">
               <div className="mr-1 hidden text-right xl:block">
                 <p className="flex items-center justify-end gap-1.5 text-xs font-semibold text-slate-700">
-                  <span>{currentDateTime.dateText}</span>
-                  <span className="font-mono text-[11px] tabular-nums text-slate-400">{currentDateTime.timeText}</span>
+                  <LiveClock timeClassName="font-mono text-[11px] tabular-nums text-slate-400" />
                   <RefreshCw className="h-3.5 w-3.5 text-blue-500" aria-label="ซิงก์ข้อมูลอัตโนมัติ" />
                 </p>
               </div>
@@ -662,7 +642,7 @@ export const AdminWorkspace: React.FC<AdminWorkspaceProps> = ({
               {network.label}
             </span>
             <span className="font-medium">
-              {currentDateTime.dateText} <span className="font-mono tabular-nums">{currentDateTime.timeText}</span>
+              <LiveClock inlineDate timeClassName="font-mono tabular-nums" />
             </span>
           </div>
         </footer>
