@@ -1,5 +1,5 @@
 ﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import JSZip from 'jszip';
+
 import { AlertCircle, ArrowLeft, BookOpenCheck, CheckCircle2, ChevronRight, Download, Eye, Loader2, Printer, Search, X } from 'lucide-react';
 import { FilterDropdown } from '../../components/FilterBar';
 import { ModalPortal } from '../../components/ModalPortal';
@@ -1299,7 +1299,7 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({
       return;
     }
 
-    const zip = new JSZip();
+
     const usedPaths = new Set<string>();
     let completedCount = 0;
     let currentPercent = 0;
@@ -1314,6 +1314,8 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({
     });
 
     try {
+      const { default: JSZip } = await import('jszip');
+      const zip = new JSZip();
       for (let index = 0; index < sourceReports.length; index += 1) {
         const report = sourceReports[index];
         const currentLabel = `${report.classLevel} ห้อง ${roomNumberLabel(report.classroomName)} · ${report.subjectName}`;

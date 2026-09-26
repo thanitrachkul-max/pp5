@@ -1,5 +1,5 @@
-import ExcelJS from 'exceljs';
-import JSZip from 'jszip';
+import type ExcelJS from 'exceljs';
+
 import type { Classroom, Profile, Subject, UserRole } from '../types';
 
 export interface AssignmentImportRow {
@@ -1257,6 +1257,7 @@ async function parseImageOnlyPdfWithOcr(
 
 export async function parseAssignmentExcel(file: File): Promise<AssignmentImportRow[]> {
   const buffer = await file.arrayBuffer();
+  const { default: ExcelJS } = await import('exceljs');
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(buffer);
   const sheet = workbook.worksheets[0];
@@ -1312,6 +1313,7 @@ export async function parseAssignmentExcel(file: File): Promise<AssignmentImport
 }
 
 export async function parseAssignmentWordBuffer(buffer: ArrayBuffer): Promise<AssignmentImportRow[]> {
+  const { default: JSZip } = await import('jszip');
   const zip = await JSZip.loadAsync(buffer);
   const documentXml = await zip.file('word/document.xml')?.async('string');
   if (!documentXml) throw new Error('ไม่พบเนื้อหาเอกสาร Word');

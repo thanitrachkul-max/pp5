@@ -25,7 +25,7 @@ import { AssignmentsPage } from './AssignmentsPage';
 import { ClassroomsPage } from './ClassroomsPage';
 import { StudentsPage } from './StudentsPage';
 import { SubjectsPage } from './SubjectsPage';
-import { CurriculumIndicatorsPage } from './CurriculumIndicatorsPage';
+const CurriculumIndicatorsPage = React.lazy(() => import('./CurriculumIndicatorsPage').then(module => ({ default: module.CurriculumIndicatorsPage })));
 import { TeachersPage } from './TeachersPage';
 import { GradebookSearchPage } from './GradebookSearchPage';
 import { SettingsPage, type SettingsSection } from './SettingsPage';
@@ -616,7 +616,7 @@ export const AdminWorkspace: React.FC<AdminWorkspaceProps> = ({
             {activeTab === 'classrooms' && <ClassroomsPage currentUser={currentUser} initialYearId={workspaceYearId} />}
             {activeTab === 'students' && <StudentsPage currentUser={currentUser} initialYearId={workspaceYearId} />}
             {activeTab === 'subjects' && <SubjectsPage currentUser={currentUser} />}
-            {activeTab === 'curriculum' && <CurriculumIndicatorsPage currentUser={currentUser} />}
+            {activeTab === 'curriculum' && <React.Suspense fallback={<div className="p-8 text-center text-slate-500">กำลังโหลดหลักสูตร...</div>}><CurriculumIndicatorsPage currentUser={currentUser} /></React.Suspense>}
             {activeTab === 'learning-area-heads' && (
               <LearningAreaHeadsPage currentUser={currentUser} readOnly={readOnly} />
             )}

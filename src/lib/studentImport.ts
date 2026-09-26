@@ -1,4 +1,4 @@
-import ExcelJS from 'exceljs';
+import type ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import type { Classroom, DbStudent } from '../types';
 
@@ -273,6 +273,7 @@ function parseKspRosterWorkbook(workbook: ExcelJS.Workbook): ImportRow[] {
 
 export async function parseStudentExcel(file: File): Promise<ImportRow[]> {
   const buffer = await file.arrayBuffer();
+  const { default: ExcelJS } = await import('exceljs');
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(buffer);
   if (workbook.worksheets.length === 0) throw new Error('ไม่พบชีตในไฟล์ Excel');
@@ -406,6 +407,7 @@ export async function importStudents(
 }
 
 export async function downloadStudentImportTemplate(classrooms: Classroom[]): Promise<void> {
+  const { default: ExcelJS } = await import('exceljs');
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'KSP GradeBook';
   workbook.created = new Date();

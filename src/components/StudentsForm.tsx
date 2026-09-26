@@ -3,7 +3,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { AppData, Student } from "../types";
 import { AlertTriangle, Check, Pencil, X, Upload, Download, Trash2, Plus } from "lucide-react";
-import ExcelJS from "exceljs";
+import type ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import {
   attendanceDateKey,
@@ -365,6 +365,7 @@ export const StudentsForm: React.FC<Props> = ({
   };
 
   const downloadTemplate = async () => {
+    const { default: ExcelJS } = await import('exceljs');
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Students");
 
@@ -396,6 +397,7 @@ export const StudentsForm: React.FC<Props> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const { default: ExcelJS } = await import('exceljs');
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.load(await file.arrayBuffer());
     const worksheet = workbook.getWorksheet(1);

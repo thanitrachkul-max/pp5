@@ -1,4 +1,4 @@
-import ExcelJS from "exceljs";
+import type ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import { applyPap5OfficialDisplayDefaults } from "../lib/pap5Officials";
 import type { AppData } from "../types";
@@ -11,6 +11,7 @@ const LEGACY_LOGO_URL = "/logo1.png";
 
 export const exportToExcel = async (data: any) => {
   if (!data.primaryYear) data = { ...data, scores: constrainScores(data.scores ?? {}, data.scoreConfig).scores };
+  const { default: ExcelJS } = await import('exceljs');
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "App";
   workbook.created = new Date();
