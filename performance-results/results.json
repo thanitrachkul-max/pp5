@@ -1,0 +1,282 @@
+{
+  "before": {
+    "teacher": {
+      "initial": {
+        "count": 15,
+        "bytes": 985094
+      },
+      "idle65Seconds": {
+        "count": 195,
+        "bytes": 12806222
+      },
+      "text": "KSP GradeBook\n\nระบบบันทึกผลการพัฒนาคุณภาพผู้เรียน (ปพ.5)\n\nวันอาทิตย์ที่ 27 กันยายน 2569\n00:40:00\nค\nครูทดสอบ\n\nปีการศึกษาและภาคเรียน\n\nสวัสดี, ครูทดสอบ\n\nเลือกปีการศึกษาและภาคเรียนก่อนเข้าสู่รายวิชาที่ได้รับมอบหมาย\n\nกำหนดส่งข้อมูล ยังไม่กำหนด\n\nกำหนดเวลา: ยังไม่กำหนด\n\n\tปีการศึกษา\tภาคเรียนที่\tจำนวนวิชา\tกำหนดเวลา\tสถานะ\tส่ง ปพ.5\n\tปีการศึกษา 2569\t1\t\n12 วิชา\n\tยังไม่กำหนด\tเปิดให้กรอกคะแนน\t\nอนุมัติแล้ว\n\nKSP GradeBook V 1.0\n\nโรงเรียนกาฬสินธุ์ปัญญานุกูล จังหวัดกาฬสินธุ์"
+    },
+    "admin": {
+      "initial": {
+        "count": 8,
+        "bytes": 513048
+      },
+      "idle65Seconds": {
+        "count": 26,
+        "bytes": 178906
+      },
+      "text": "จัดการ ปพ.5\n\nกำหนดครูแต่ละคนให้กรอกเกรดตามชั้นเรียน รายวิชา และภาคเรียนที่เปิดใช้งาน\n\nเพิ่มจากตารางสอน (Word)\nเพิ่มรายการ\nอนุมัติทั้งหมด\nครูผู้สอน\nภาคเรียน\nภาค 1 (เปิดอยู่)\nสถานะ\nทั้งหมด\nเปิดใช้งาน\nปิดอยู่\nวิชา\nทุกวิชา\nชั้น/ห้อง\nทุกชั้น/ห้อง\nม.6/1\nม.6/2\nม.6/3\nม.6/4\nล้างค่า\n\tลำดับ\tครูผู้สอน\tจำนวนวิชา\tชั้นเรียนที่สอน\tสถานะ\tการอนุมัติ\tจัดการ\n\t1\tนาย ครูทดสอบ\t12 วิชา\tม.6\t\nส่งแล้ว\nส่งแล้ว 12 / 12 · 100%\n\tอนุมัติแล้ว\t\nแก้ไข\nลบ\n\nKSP GradeBook V 1.0\n\nโรงเรียนกาฬสินธุ์ปัญญานุกูล จังหวัดกาฬสินธุ์"
+    },
+    "open": {
+      "count": 20,
+      "bytes": 1033601,
+      "requests": [
+        {
+          "table": "list_gradebook_delegations",
+          "columns": "*",
+          "count": 0,
+          "bytes": 34
+        },
+        {
+          "table": "teaching_assignments",
+          "columns": "\n  id,\n  assignment_group_id,\n  school_id,\n  subject_id,\n  semester_id,\n  hours_per_week,\n  hours_per_semester,\n  co_teacher_name,\n  entry_start_date,\n  entry_end_date,\n  schools:school_id(name),\n  profiles:teacher_id(title, full_name),\n  subjects:subject_id(subject_code, subject_name, learning_area),\n  classrooms:classroom_id(\n    id,\n    name,\n    class_level_code,\n    room_number,\n    homeroom_teacher_1:homeroom_teacher_id(title, full_name),\n    homeroom_teacher_2:homeroom_teacher_2_id(title, full_name),\n    homeroom_teacher_3:homeroom_teacher_3_id(title, full_name)\n  ),\n  semesters:semester_id(\n    semester_number,\n    start_date,\n    end_date,\n    grade_entry_enabled,\n    entry_start_date,\n    entry_end_date,\n    academic_years:academic_year_id(\n      id,\n      year_be,\n      start_date,\n      end_date,\n      is_active,\n      primary_grade_entry_enabled,\n      primary_entry_start_date,\n      primary_entry_end_date,\n      study_start_date,\n      study_end_date\n    )\n  )\n",
+          "count": 12,
+          "bytes": 498336,
+          "or": "teacher_id.eq.teacher"
+        },
+        {
+          "table": "gradebooks",
+          "columns": "\n  \n  \n  id,\n  teaching_assignment_id,\n  status,\n  stats,\n  students,\n  attendance,\n  scores,\n  score_config,\n  attributes,\n  analytical,\n  indicators\n,\n  assignment_group_id\n,\n  approval_status,\n  approval_reason,\n  approval_reason_seen_at\n",
+          "count": 12,
+          "bytes": 486280
+        },
+        {
+          "table": "student_enrollments",
+          "columns": "id",
+          "count": 30,
+          "bytes": 37
+        },
+        {
+          "table": "student_enrollments",
+          "columns": "id",
+          "count": 30,
+          "bytes": 37
+        },
+        {
+          "table": "student_enrollments",
+          "columns": "id",
+          "count": 30,
+          "bytes": 37
+        },
+        {
+          "table": "student_enrollments",
+          "columns": "id",
+          "count": 30,
+          "bytes": 37
+        },
+        {
+          "table": "student_enrollments",
+          "columns": "id",
+          "count": 30,
+          "bytes": 37
+        },
+        {
+          "table": "student_enrollments",
+          "columns": "id",
+          "count": 30,
+          "bytes": 37
+        },
+        {
+          "table": "student_enrollments",
+          "columns": "id",
+          "count": 30,
+          "bytes": 37
+        },
+        {
+          "table": "student_enrollments",
+          "columns": "id",
+          "count": 30,
+          "bytes": 37
+        },
+        {
+          "table": "student_enrollments",
+          "columns": "id",
+          "count": 30,
+          "bytes": 37
+        },
+        {
+          "table": "student_enrollments",
+          "columns": "id",
+          "count": 30,
+          "bytes": 37
+        },
+        {
+          "table": "student_enrollments",
+          "columns": "id",
+          "count": 30,
+          "bytes": 37
+        },
+        {
+          "table": "student_enrollments",
+          "columns": "id",
+          "count": 30,
+          "bytes": 37
+        },
+        {
+          "table": "gradebooks",
+          "columns": "*",
+          "count": 1,
+          "bytes": 40680
+        },
+        {
+          "table": "student_enrollments",
+          "columns": "student_number, students(id, student_code, citizen_id, title, first_name, last_name)",
+          "count": 30,
+          "bytes": 7725
+        },
+        {
+          "table": "get_pap5_official_names",
+          "columns": "*",
+          "count": 1,
+          "bytes": 34
+        },
+        {
+          "table": "list_gradebook_delegations",
+          "columns": "*",
+          "count": 0,
+          "bytes": 34
+        },
+        {
+          "table": "can_manage_gradebook_delegation",
+          "columns": "*",
+          "count": 0,
+          "bytes": 34
+        }
+      ],
+      "elapsedMs": 2612
+    },
+    "home": {
+      "initial": {
+        "count": 9,
+        "bytes": 1029528
+      },
+      "idle65Seconds": {
+        "count": 20,
+        "bytes": 3055728
+      },
+      "text": "ภาพรวม ปพ.5\n\nปีการศึกษา 2569\n\nปีการศึกษา\n\n2569\n\nปีการศึกษาที่ใช้งานอยู่\n\nภาคเรียน\n\nภาคเรียนที่ 1ปัจจุบัน\n\nห้องเรียนทั้งหมด\n\n4\n\nรวมทุก workspace ปีการศึกษา\n\nรายชื่อนักเรียน\n\n120\n\nนับเฉพาะ enrollment ที่ใช้งานอยู่\n\nครูทั้งหมด\n\n1\n\nนับจากครูที่ผูกกับรายการมอบหมายในปีนี้\n\nจำนวนวิชาทั้งหมด\n\n12\n\nนับจากรายวิชาที่มอบหมายในปีนี้\n\nรายงานผล ปพ.5\n\nภาพรวมรายงานผลตามระดับชั้น\n\nดูจำนวนห้องเรียน นักเรียน ครูผู้สอน และความคืบหน้าการกรอก ปพ.5 ในปีการศึกษานี้\n\nความคืบหน้าการกรอก ปพ.5 ทั้งหมด\nเรียบร้อยแล้ว\nประถมศึกษา\n6 ระดับชั้น\nป.1\nป.1\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nป.2\nป.2\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nป.3\nป.3\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nป.4\nป.4\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nป.5\nป.5\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nป.6\nป.6\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nมัธยมศึกษาตอนต้น\n3 ระดับชั้น\nภาคเรียนที่ 1\nม.1\nม.1\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nม.2\nม.2\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nม.3\nม.3\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nมัธยมศึกษาตอนปลาย\n3 ระดับชั้น\nภาคเรียนที่ 1\nม.4\nม.4\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nม.5\nม.5\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nม.6\nมัธยมศึกษาปีที่ 6\n\n4\nห้องเรียน\n\n120\nนักเรียน\n\n1\nครูผู้สอน\n\nกรอก ปพ.5\nเรียบร้อยแล้ว"
+    }
+  },
+  "after": {
+    "teacher": {
+      "initial": {
+        "count": 4,
+        "bytes": 984963
+      },
+      "idle65Seconds": {
+        "count": 4,
+        "bytes": 984963
+      },
+      "text": "KSP GradeBook\n\nระบบบันทึกผลการพัฒนาคุณภาพผู้เรียน (ปพ.5)\n\nวันอาทิตย์ที่ 27 กันยายน 2569\n00:40:00\nค\nครูทดสอบ\n\nปีการศึกษาและภาคเรียน\n\nสวัสดี, ครูทดสอบ\n\nเลือกปีการศึกษาและภาคเรียนก่อนเข้าสู่รายวิชาที่ได้รับมอบหมาย\n\nกำหนดส่งข้อมูล ยังไม่กำหนด\n\nกำหนดเวลา: ยังไม่กำหนด\n\n\tปีการศึกษา\tภาคเรียนที่\tจำนวนวิชา\tกำหนดเวลา\tสถานะ\tส่ง ปพ.5\n\tปีการศึกษา 2569\t1\t\n12 วิชา\n\tยังไม่กำหนด\tเปิดให้กรอกคะแนน\t\nอนุมัติแล้ว\n\nKSP GradeBook V 1.0\n\nโรงเรียนกาฬสินธุ์ปัญญานุกูล จังหวัดกาฬสินธุ์"
+    },
+    "realtimeBurstQueries": 4,
+    "resumeQueries": 4,
+    "fallback": {
+      "count": 8,
+      "studentCounts": [
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30
+      ]
+    },
+    "admin": {
+      "initial": {
+        "count": 8,
+        "bytes": 513048
+      },
+      "idle65Seconds": {
+        "count": 2,
+        "bytes": 13762
+      },
+      "text": "จัดการ ปพ.5\n\nกำหนดครูแต่ละคนให้กรอกเกรดตามชั้นเรียน รายวิชา และภาคเรียนที่เปิดใช้งาน\n\nเพิ่มจากตารางสอน (Word)\nเพิ่มรายการ\nอนุมัติทั้งหมด\nครูผู้สอน\nภาคเรียน\nภาค 1 (เปิดอยู่)\nสถานะ\nทั้งหมด\nเปิดใช้งาน\nปิดอยู่\nวิชา\nทุกวิชา\nชั้น/ห้อง\nทุกชั้น/ห้อง\nม.6/1\nม.6/2\nม.6/3\nม.6/4\nล้างค่า\n\tลำดับ\tครูผู้สอน\tจำนวนวิชา\tชั้นเรียนที่สอน\tสถานะ\tการอนุมัติ\tจัดการ\n\t1\tนาย ครูทดสอบ\t12 วิชา\tม.6\t\nส่งแล้ว\nส่งแล้ว 12 / 12 · 100%\n\tอนุมัติแล้ว\t\nแก้ไข\nลบ\n\nKSP GradeBook V 1.0\n\nโรงเรียนกาฬสินธุ์ปัญญานุกูล จังหวัดกาฬสินธุ์"
+    },
+    "open": {
+      "count": 9,
+      "bytes": 130754,
+      "requests": [
+        {
+          "table": "list_gradebook_delegations",
+          "columns": "*",
+          "count": 0,
+          "bytes": 34
+        },
+        {
+          "table": "teaching_assignments",
+          "columns": "\n  id,\n  assignment_group_id,\n  school_id,\n  subject_id,\n  semester_id,\n  hours_per_week,\n  hours_per_semester,\n  co_teacher_name,\n  entry_start_date,\n  entry_end_date,\n  schools:school_id(name),\n  profiles:teacher_id(title, full_name),\n  subjects:subject_id(subject_code, subject_name, learning_area),\n  classrooms:classroom_id(\n    id,\n    name,\n    class_level_code,\n    room_number,\n    homeroom_teacher_1:homeroom_teacher_id(title, full_name),\n    homeroom_teacher_2:homeroom_teacher_2_id(title, full_name),\n    homeroom_teacher_3:homeroom_teacher_3_id(title, full_name)\n  ),\n  semesters:semester_id(\n    semester_number,\n    start_date,\n    end_date,\n    grade_entry_enabled,\n    entry_start_date,\n    entry_end_date,\n    academic_years:academic_year_id(\n      id,\n      year_be,\n      start_date,\n      end_date,\n      is_active,\n      primary_grade_entry_enabled,\n      primary_entry_start_date,\n      primary_entry_end_date,\n      study_start_date,\n      study_end_date\n    )\n  )\n",
+          "count": 1,
+          "bytes": 41557,
+          "or": "teacher_id.eq.teacher"
+        },
+        {
+          "table": "gradebooks",
+          "columns": "\n  \n  \n  id,\n  teaching_assignment_id,\n  status,\n  stats,\n  students,\n  attendance,\n  scores,\n  score_config,\n  attributes,\n  analytical,\n  indicators\n,\n  assignment_group_id\n,\n  approval_status,\n  approval_reason,\n  approval_reason_seen_at\n",
+          "count": 1,
+          "bytes": 40553
+        },
+        {
+          "table": "count_active_enrollments",
+          "columns": "*",
+          "count": 1,
+          "bytes": 103
+        },
+        {
+          "table": "gradebooks",
+          "columns": "*",
+          "count": 1,
+          "bytes": 40680
+        },
+        {
+          "table": "student_enrollments",
+          "columns": "student_number, students(id, student_code, citizen_id, title, first_name, last_name)",
+          "count": 30,
+          "bytes": 7725
+        },
+        {
+          "table": "get_pap5_official_names",
+          "columns": "*",
+          "count": 1,
+          "bytes": 34
+        },
+        {
+          "table": "list_gradebook_delegations",
+          "columns": "*",
+          "count": 0,
+          "bytes": 34
+        },
+        {
+          "table": "can_manage_gradebook_delegation",
+          "columns": "*",
+          "count": 0,
+          "bytes": 34
+        }
+      ],
+      "elapsedMs": 1560
+    },
+    "approvalRealtime": "passed",
+    "home": {
+      "initial": {
+        "count": 9,
+        "bytes": 543140
+      },
+      "idle65Seconds": {
+        "count": 9,
+        "bytes": 543140
+      },
+      "text": "ภาพรวม ปพ.5\n\nปีการศึกษา 2569\n\nปีการศึกษา\n\n2569\n\nปีการศึกษาที่ใช้งานอยู่\n\nภาคเรียน\n\nภาคเรียนที่ 1ปัจจุบัน\n\nห้องเรียนทั้งหมด\n\n4\n\nรวมทุก workspace ปีการศึกษา\n\nรายชื่อนักเรียน\n\n120\n\nนับเฉพาะ enrollment ที่ใช้งานอยู่\n\nครูทั้งหมด\n\n1\n\nนับจากครูที่ผูกกับรายการมอบหมายในปีนี้\n\nจำนวนวิชาทั้งหมด\n\n12\n\nนับจากรายวิชาที่มอบหมายในปีนี้\n\nรายงานผล ปพ.5\n\nภาพรวมรายงานผลตามระดับชั้น\n\nดูจำนวนห้องเรียน นักเรียน ครูผู้สอน และความคืบหน้าการกรอก ปพ.5 ในปีการศึกษานี้\n\nความคืบหน้าการกรอก ปพ.5 ทั้งหมด\nเรียบร้อยแล้ว\nประถมศึกษา\n6 ระดับชั้น\nป.1\nป.1\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nป.2\nป.2\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nป.3\nป.3\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nป.4\nป.4\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nป.5\nป.5\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nป.6\nป.6\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nมัธยมศึกษาตอนต้น\n3 ระดับชั้น\nภาคเรียนที่ 1\nม.1\nม.1\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nม.2\nม.2\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nม.3\nม.3\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nมัธยมศึกษาตอนปลาย\n3 ระดับชั้น\nภาคเรียนที่ 1\nม.4\nม.4\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nม.5\nม.5\n\n0\nห้องเรียน\n\n0\nนักเรียน\n\n0\nครูผู้สอน\n\nกรอก ปพ.5\n0%\nม.6\nมัธยมศึกษาปีที่ 6\n\n4\nห้องเรียน\n\n120\nนักเรียน\n\n1\nครูผู้สอน\n\nกรอก ปพ.5\nเรียบร้อยแล้ว"
+    }
+  }
+}
