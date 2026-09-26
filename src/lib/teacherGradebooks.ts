@@ -1,5 +1,6 @@
 import { listOptionalGradebookDelegations, recordingMode, type RecordingMode } from "./gradebookDelegations";
 import { supabase } from "./supabase";
+import { countActiveEnrollments } from './enrollmentCounts';
 import { rowToAppData } from "./gradebookAdapter";
 import {
   computeGradebookStats,
@@ -503,10 +504,13 @@ export async function fetchTeacherAssignments(
     const year = semester?.academic_years;
     return Boolean(classroom && subject && semester && year);
   });
-  const gradebookByAssignmentId = await fetchGradebooksByAssignmentIds(
-    teacherId,
-    validRows,
-  );
+  const [gradebookByAssignmentId, enrollmentCounts] = await Promise.all([
+    fetchGradebooksByAssignmentIds(teacherId, validRows),
+    countActiveEnrollments(supabase, validRows.map(row => ({
+      classroomId: row.classrooms!.id,
+      academicYearId: row.semesters!.academic_years!.id,
+    }))),
+  ]);
   const views: TeacherAssignmentView[] = [];
 
   for (const row of validRows) {
@@ -517,13 +521,6 @@ export async function fetchTeacherAssignments(
     const year = semester.academic_years!;
     const [homeroomTeacher1, homeroomTeacher2, homeroomTeacher3] =
       currentHomeroomTeacherNames(classroom);
-
-    const { count } = await supabase
-      .from("student_enrollments")
-      .select("id", { count: "exact", head: true })
-      .eq("classroom_id", classroom.id)
-      .eq("academic_year_id", year.id)
-      .eq("status", "active");
 
     const assignmentGroupId = row.assignment_group_id ?? row.id;
     const gb = gradebookByAssignmentId.get(assignmentGroupId) ?? null;
@@ -579,7 +576,7 @@ export async function fetchTeacherAssignments(
       study_start_date: studyStartDate,
       study_end_date: studyEndDate,
       semester_grade_entry_enabled: semesterGradeEntryEnabled,
-      student_count: count ?? 0,
+      student_count: enrollmentCounts.get(`${classroom.id}:${year.id}`) ?? 0,
       gradebook_id: gb?.id ?? null,
       gradebook_status: gb ? gradebookStatus : null,
       completion_percent: completionPercent,
