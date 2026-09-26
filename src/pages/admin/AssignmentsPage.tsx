@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { createCoalescedRefresh } from '../../lib/coalescedRefresh';
 import { createPortal } from 'react-dom';
 import {
   AlertTriangle,
@@ -552,23 +553,19 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
   useEffect(() => {
     if (!selectedSemesterId) return undefined;
 
-    const syncAssignments = () => {
-      void loadAssignments(false);
-    };
+    const refresher = createCoalescedRefresh(() => loadAssignments(false), { debounceMs: 3000 });
 
     const channel = supabase
       .channel(`assignments-gradebooks-${selectedSemesterId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'gradebooks', filter: `semester_id=eq.${selectedSemesterId}` },
-        syncAssignments,
+        refresher.schedule,
       )
       .subscribe();
 
-    const timer = window.setInterval(syncAssignments, 5000);
-
     return () => {
-      window.clearInterval(timer);
+      refresher.dispose();
       void supabase.removeChannel(channel);
     };
   }, [loadAssignments, selectedSemesterId]);
