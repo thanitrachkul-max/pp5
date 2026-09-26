@@ -1,3 +1,5 @@
+import { createCoalescedRefresh } from '../../lib/coalescedRefresh';
+import { gradebookCompletion, gradebookStudentCount, hydrateLegacyGradebooks, type DashboardGradebook } from '../../lib/dashboardGradebookSummary';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
@@ -22,7 +24,7 @@ import {
 import { supabase } from '../../lib/supabase';
 import { formatThaiDate, yearBeToDates } from '../../lib/academicYear';
 import { progressTone } from '../../lib/progressTone';
-import type { AcademicYear, AcademicYearWorkspaceStatus, AppUser, ClassLevel, ScoreConfig, Semester, Student } from '../../types';
+import type { AcademicYear, AcademicYearWorkspaceStatus, AppUser, ClassLevel, Semester } from '../../types';
 
 type AdminHomeTargetTab =
   | 'main'
@@ -62,15 +64,6 @@ interface WorkspaceGradebookRow {
 }
 
 type GradebookStatus = 'not_started' | 'in_progress' | 'completed';
-
-interface DashboardGradebook {
-  id: string;
-  status: GradebookStatus;
-  stats: Record<string, unknown> | null;
-  students: unknown;
-  scores: Record<string, unknown> | null;
-  score_config: ScoreConfig | null;
-}
 
 interface DashboardAssignment {
   id: string;
@@ -303,52 +296,6 @@ function normalizeGradebook(value: DashboardAssignment['gradebooks']): Dashboard
   return value;
 }
 
-function numberFromStats(stats: Record<string, unknown> | null, key: string): number {
-  const raw = stats?.[key];
-  const value = Number(raw);
-  return Number.isFinite(value) ? value : 0;
-}
-
-function scoreKeys(scoreConfig: ScoreConfig | null): string[] {
-  if (!scoreConfig?.units?.length) return [];
-  const keys: string[] = [];
-  scoreConfig.units.forEach((unit, unitIndex) => {
-    unit.indicators.forEach((_indicator, indicatorIndex) => {
-      keys.push(`u${unitIndex}_i${indicatorIndex}`);
-    });
-  });
-  keys.push('midterm', 'final');
-  return keys;
-}
-
-function normalizeStudents(value: unknown): Student[] {
-  return Array.isArray(value) ? (value as Student[]) : [];
-}
-
-function gradebookCompletion(gradebook: DashboardGradebook | null): number {
-  if (!gradebook) return 0;
-  const completion = numberFromStats(gradebook.stats, 'completionPercent');
-  if (completion > 0 || gradebook.status === 'completed') {
-    return gradebook.status === 'completed' ? Math.max(100, completion) : completion;
-  }
-
-  const students = normalizeStudents(gradebook.students);
-  const keys = scoreKeys(gradebook.score_config);
-  if (students.length === 0 || keys.length === 0) return 0;
-
-  let filled = 0;
-  const scores = gradebook.scores ?? {};
-  students.forEach((student) => {
-    const row = (scores[student.id] ?? {}) as Record<string, unknown>;
-    keys.forEach((key) => {
-      const value = row[key];
-      if (value !== '' && value != null) filled += 1;
-    });
-  });
-
-  return round1((filled / (students.length * keys.length)) * 100);
-}
-
 function aggregateDashboardProgress(
   rows: DashboardAssignment[],
   keyFor: (row: DashboardAssignment) => string,
@@ -361,7 +308,7 @@ function aggregateDashboardProgress(
     const id = keyFor(row);
     const gradebook = normalizeGradebook(row.gradebooks);
     const completion = gradebookCompletion(gradebook);
-    const students = normalizeStudents(gradebook?.students);
+    const studentCount = gradebookStudentCount(gradebook);
     const current = grouped.get(id) ?? {
       id,
       name: nameFor(row),
@@ -379,7 +326,7 @@ function aggregateDashboardProgress(
     current.started += gradebook ? 1 : 0;
     current.completed += completion >= 100 || gradebook?.status === 'completed' ? 1 : 0;
     current.completionSum += completion;
-    current.studentSum += students.length;
+    current.studentSum += studentCount;
     current.studentCount = current.studentSum;
     current.avgCompletion = round1(current.completionSum / current.total);
     grouped.set(id, current);
@@ -1060,8 +1007,10 @@ export const AdminHomePage: React.FC<AdminHomePageProps> = ({
     [activeWorkspace?.semesters],
   );
 
+  const activeSemesterId = activeSemester?.id;
+
   const loadDashboardInsights = useCallback(async () => {
-    if (variant === 'entry' || !currentUser.schoolId || !activeSemester) {
+    if (variant === 'entry' || !currentUser.schoolId || !activeSemesterId) {
       setDashboardAssignments([]);
       setLoadingDashboard(false);
       return;
@@ -1079,21 +1028,23 @@ export const AdminHomePage: React.FC<AdminHomePageProps> = ({
           profiles:teacher_id(id, full_name, title, username),
           subjects:subject_id(id, subject_code, subject_name, learning_area),
           classrooms:classroom_id(id, name, class_level_code),
-          gradebooks(id, status, stats, students, scores, score_config)
+          gradebooks(id, status, stats)
         `)
         .eq('school_id', currentUser.schoolId)
-        .eq('semester_id', activeSemester.id)
+        .eq('semester_id', activeSemesterId)
         .order('created_at', { ascending: false });
 
       if (queryError) throw queryError;
-      setDashboardAssignments((data ?? []) as unknown as DashboardAssignment[]);
+      const rows = (data ?? []) as unknown as DashboardAssignment[];
+      await hydrateLegacyGradebooks(supabase, rows.flatMap(row => row.gradebooks ? (Array.isArray(row.gradebooks) ? row.gradebooks : [row.gradebooks]) : []));
+      setDashboardAssignments(rows);
     } catch (err) {
       setDashboardAssignments([]);
       setError(err instanceof Error ? err.message : 'โหลดข้อมูลแดชบอร์ดไม่สำเร็จ');
     } finally {
       setLoadingDashboard(false);
     }
-  }, [activeSemester, currentUser.schoolId, variant]);
+  }, [activeSemesterId, currentUser.schoolId, variant]);
 
   useEffect(() => {
     void loadDashboardInsights();
@@ -1102,24 +1053,26 @@ export const AdminHomePage: React.FC<AdminHomePageProps> = ({
   useEffect(() => {
     if (variant === 'entry' || !currentUser.schoolId) return undefined;
 
+    const workspaceRefresher = createCoalescedRefresh(loadWorkspaces, { debounceMs: 5000 });
+    const insightsRefresher = createCoalescedRefresh(loadDashboardInsights, { debounceMs: 5000 });
     const syncHomeData = () => {
-      void loadWorkspaces();
-      void loadDashboardInsights();
+      workspaceRefresher.schedule();
+      insightsRefresher.schedule();
     };
 
     const channel = supabase
       .channel(`admin-home-sync-${currentUser.schoolId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'academic_years', filter: `school_id=eq.${currentUser.schoolId}` }, syncHomeData)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'classrooms', filter: `school_id=eq.${currentUser.schoolId}` }, syncHomeData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'academic_years', filter: `school_id=eq.${currentUser.schoolId}` }, workspaceRefresher.schedule)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'classrooms', filter: `school_id=eq.${currentUser.schoolId}` }, workspaceRefresher.schedule)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'teaching_assignments', filter: `school_id=eq.${currentUser.schoolId}` }, syncHomeData)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'student_enrollments' }, syncHomeData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'student_enrollments' }, workspaceRefresher.schedule)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'gradebooks' }, syncHomeData)
       .subscribe();
 
-    const timer = window.setInterval(syncHomeData, 30000);
 
     return () => {
-      window.clearInterval(timer);
+      workspaceRefresher.dispose();
+      insightsRefresher.dispose();
       void supabase.removeChannel(channel);
     };
   }, [currentUser.schoolId, loadDashboardInsights, loadWorkspaces, variant]);
@@ -1171,7 +1124,7 @@ export const AdminHomePage: React.FC<AdminHomePageProps> = ({
     );
     const totalStudents = dashboardAssignments.reduce((sum, row) => {
       const gradebook = normalizeGradebook(row.gradebooks);
-      return sum + normalizeStudents(gradebook?.students).length;
+      return sum + gradebookStudentCount(gradebook);
     }, 0);
 
     return {
