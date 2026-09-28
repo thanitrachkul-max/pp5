@@ -1,12 +1,17 @@
 import React from "react";
 import {
+  Award,
   BarChart3,
   Brain,
   ClipboardCheck,
   Clock3,
+  Compass,
   FileText,
+  HeartHandshake,
   Home,
   Star,
+  Tent,
+  UsersRound,
 } from "lucide-react";
 
 export interface FolderTabItem {
@@ -20,6 +25,8 @@ interface FolderTabsProps {
   activeId: string;
   onChange: (id: string) => void;
   ariaLabel?: string;
+  /** ให้แต่ละแท็บกว้างอย่างน้อยเท่าชื่อแท็บ (ใช้เมื่อชื่อแท็บยาว) */
+  fitLabels?: boolean;
 }
 
 const tabIcons = {
@@ -32,6 +39,12 @@ const tabIcons = {
   indicators: ClipboardCheck,
   instructions1: FileText,
   instructions2: FileText,
+  instructions: FileText,
+  activity_guidance: Compass,
+  activity_scout: Tent,
+  activity_club: UsersRound,
+  activity_social: HeartHandshake,
+  activity_summary: Award,
 } as const;
 
 const tabThemes: Record<
@@ -117,6 +130,54 @@ const tabThemes: Record<
     text: "#475569",
     icon: "#64748b",
   },
+  instructions: {
+    bg: "#fed9b6",
+    activeBg: "#ffffff",
+    border: "#fed7aa",
+    accent: "#f97316",
+    text: "#9a3412",
+    icon: "#c2410c",
+  },
+  activity_guidance: {
+    bg: "#c9f3f4",
+    activeBg: "#ffffff",
+    border: "#a5f3fc",
+    accent: "#06b6d4",
+    text: "#0e7490",
+    icon: "#0891b2",
+  },
+  activity_scout: {
+    bg: "#ddf1d2",
+    activeBg: "#ffffff",
+    border: "#bbf7d0",
+    accent: "#22c55e",
+    text: "#166534",
+    icon: "#16a34a",
+  },
+  activity_club: {
+    bg: "#eef4ff",
+    activeBg: "#ffffff",
+    border: "#bfdbfe",
+    accent: "#2563eb",
+    text: "#1d4ed8",
+    icon: "#2563eb",
+  },
+  activity_social: {
+    bg: "#ffd9e4",
+    activeBg: "#ffffff",
+    border: "#fecdd3",
+    accent: "#e11d48",
+    text: "#be123c",
+    icon: "#be123c",
+  },
+  activity_summary: {
+    bg: "#f2ddff",
+    activeBg: "#ffffff",
+    border: "#e9d5ff",
+    accent: "#8b5cf6",
+    text: "#6d28d9",
+    icon: "#7c3aed",
+  },
 };
 
 type FolderTabStyle = React.CSSProperties &
@@ -127,11 +188,12 @@ export const FolderTabs: React.FC<FolderTabsProps> = ({
   activeId,
   onChange,
   ariaLabel = "เมนูกรอก ปพ.5",
+  fitLabels = false,
 }) => {
   return (
     <div className="folder-tabs-shell">
       <nav className="folder-tabs-scroll hide-scrollbar" aria-label={ariaLabel}>
-        <div className="folder-tabs-track" role="tablist">
+        <div className={`folder-tabs-track ${fitLabels ? "folder-tabs-fit" : ""}`} role="tablist">
           {menuItems.map((item, index) => {
             const selected = item.id === activeId;
             const theme = tabThemes[item.id] ?? tabThemes.instructions2;

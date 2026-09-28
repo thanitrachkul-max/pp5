@@ -35,6 +35,13 @@ import {
   submitGradebookPeriod,
   type TeacherAssignmentView,
 } from '../../lib/teacherGradebooks';
+import {
+  fetchHomeroomActivityStatuses,
+  fetchStudentActivityClassrooms,
+  STUDENT_ACTIVITY_MIGRATION_MESSAGE,
+  type StudentActivityClassroomOption,
+} from '../../lib/studentActivityRecords';
+import { longClassroomName } from '../../lib/studentActivities';
 import type { AppUser } from '../../types';
 
 interface TeacherDashboardProps {
@@ -46,8 +53,118 @@ interface TeacherDashboardProps {
     gradebookId: string,
     options?: { readOnly?: boolean; returnPeriodKey?: string | null },
   ) => void;
+  /** เปิดบันทึกกิจกรรมพัฒนาผู้เรียนของห้องเรียน (โยน error กลับมาให้หน้าแสดงข้อความ) */
+  onOpenActivityRecord?: (classroom: StudentActivityClassroomOption) => Promise<void>;
   onLogout: () => void;
   onSettings: () => void;
+}
+
+interface ActivityClassroomStep {
+  loading: boolean;
+  error: string;
+  migrationMissing: boolean;
+  includeAllClassrooms: boolean;
+  classrooms: StudentActivityClassroomOption[];
+  openingClassroomId: string | null;
+}
+
+function activityStatusLabel(classroom: StudentActivityClassroomOption): { label: string; className: string } {
+  if (classroom.approvalStatus === 'approved') {
+    return { label: 'อนุมัติแล้ว', className: 'bg-emerald-50 text-emerald-700 ring-emerald-200' };
+  }
+  if (classroom.approvalStatus === 'pending') {
+    return { label: 'ส่งแล้ว รออนุมัติ', className: 'bg-blue-50 text-blue-700 ring-blue-200' };
+  }
+  if (classroom.approvalStatus === 'revision_requested') {
+    return { label: 'ไม่อนุมัติ รอแก้ไข', className: 'bg-rose-50 text-rose-700 ring-rose-200' };
+  }
+  if (!classroom.recordId || classroom.status === 'not_started') {
+    return { label: 'ยังไม่เริ่มบันทึก', className: 'bg-slate-100 text-slate-600 ring-slate-200' };
+  }
+  if (classroom.completionPercent >= 100) {
+    return { label: 'บันทึกครบแล้ว', className: 'bg-emerald-50 text-emerald-700 ring-emerald-200' };
+  }
+  return { label: 'กำลังบันทึก', className: 'bg-amber-50 text-amber-800 ring-amber-200' };
+}
+
+interface ActivityStatusState {
+  loading: boolean;
+  migrationMissing: boolean;
+  byYear: Map<string, StudentActivityClassroomOption[]>;
+}
+
+type ActivitySubmissionBadge =
+  | { kind: 'none'; title: string }
+  | {
+      kind: 'badge';
+      label: string;
+      className: string;
+      icon: 'approved' | 'pending' | 'revision' | 'send';
+      revision: StudentActivityClassroomOption | null;
+    };
+
+/** สถานะการส่งการประเมินกิจกรรมพัฒนาผู้เรียนของห้องที่เป็นครูประจำชั้น (แสดงแบบเดียวกับคอลัมน์ส่ง ปพ.5) */
+function activitySubmissionBadge(
+  classrooms: StudentActivityClassroomOption[] | undefined,
+  migrationMissing: boolean,
+): ActivitySubmissionBadge {
+  if (migrationMissing) return { kind: 'none', title: STUDENT_ACTIVITY_MIGRATION_MESSAGE };
+  if (!classrooms || classrooms.length === 0) {
+    return { kind: 'none', title: 'ไม่ได้เป็นครูประจำชั้นในปีการศึกษานี้' };
+  }
+  const total = classrooms.length;
+  const approved = classrooms.filter((classroom) => classroom.approvalStatus === 'approved').length;
+  const pending = classrooms.filter((classroom) => classroom.approvalStatus === 'pending').length;
+  const revisions = classrooms.filter((classroom) => classroom.approvalStatus === 'revision_requested');
+
+  if (approved === total) {
+    return {
+      kind: 'badge',
+      label: 'อนุมัติแล้ว',
+      className: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+      icon: 'approved',
+      revision: null,
+    };
+  }
+  if (revisions.length > 0) {
+    return {
+      kind: 'badge',
+      label: total > 1 ? `ไม่อนุมัติ ${revisions.length} ห้อง` : 'ไม่อนุมัติ',
+      className: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200',
+      icon: 'revision',
+      revision: revisions[0],
+    };
+  }
+  if (approved + pending === total) {
+    return {
+      kind: 'badge',
+      label: 'ส่งแล้วรออนุมัติ',
+      className: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
+      icon: 'pending',
+      revision: null,
+    };
+  }
+  if (total === 1) {
+    const [classroom] = classrooms;
+    return {
+      kind: 'badge',
+      label: classroom.completionPercent >= 100 ? 'พร้อมส่ง (100%)' : `ยังไม่ส่ง (${classroom.completionPercent}%)`,
+      className:
+        classroom.completionPercent >= 100
+          ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200'
+          : 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
+      icon: 'send',
+      revision: null,
+    };
+  }
+  const submitted = approved + pending;
+  return {
+    kind: 'badge',
+    label: `ส่งแล้ว ${submitted}/${total}`,
+    className: submitted > 0 ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' : 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
+    icon: 'send',
+    revision: null,
+  };
 }
 
 interface TeacherPeriod {
@@ -263,6 +380,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   viewedTeacher,
   initialPeriodKey = null,
   onOpenGradebook,
+  onOpenActivityRecord,
   onLogout,
   onSettings,
 }) => {
@@ -274,10 +392,21 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const [submittingAssignmentId, setSubmittingAssignmentId] = useState<string | null>(null);
   const [revisionModalAssignment, setRevisionModalAssignment] = useState<TeacherAssignmentView | null>(null);
   const [periodChooser, setPeriodChooser] = useState<TeacherPeriod | null>(null);
+  const [activityStep, setActivityStep] = useState<ActivityClassroomStep | null>(null);
+  const activityRequestId = useRef(0);
   const [acknowledgingId, setAcknowledgingId] = useState<string | null>(null);
   const [resubmittingId, setResubmittingId] = useState<string | null>(null);
   const [selectedPeriodKey, setSelectedPeriodKey] = useState<string | null>(() => initialPeriodKey);
-  const [selectedPeriodKeys, setSelectedPeriodKeys] = useState<Set<string>>(new Set());
+  const [activityStatuses, setActivityStatuses] = useState<ActivityStatusState>({
+    loading: true,
+    migrationMissing: false,
+    byYear: new Map(),
+  });
+  const [activityRevision, setActivityRevision] = useState<{
+    period: TeacherPeriod;
+    classroom: StudentActivityClassroomOption;
+  } | null>(null);
+  const activityStatusRequestId = useRef(0);
   const teacherId = isAdmin(currentUser) && viewedTeacher ? viewedTeacher.id : currentUser.id;
   const displayUserName = viewedTeacher?.name ?? teacherGreetingName(currentUser);
 
@@ -338,6 +467,43 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     setSelectedPeriodKey(initialPeriodKey);
   }, [initialPeriodKey]);
 
+  const academicYearIdsKey = useMemo(
+    () => Array.from(new Set(assignments.map((assignment) => assignment.academic_year_id))).sort().join(','),
+    [assignments],
+  );
+
+  const loadActivityStatuses = useCallback(async () => {
+    const requestId = ++activityStatusRequestId.current;
+    const academicYearIds = academicYearIdsKey ? academicYearIdsKey.split(',') : [];
+    try {
+      const result = await fetchHomeroomActivityStatuses({ teacherId, academicYearIds });
+      if (requestId === activityStatusRequestId.current) {
+        setActivityStatuses({ loading: false, migrationMissing: result.migrationMissing, byYear: result.byYear });
+      }
+    } catch {
+      // The column falls back to a dash; opening the activity record still reports the error.
+      if (requestId === activityStatusRequestId.current) {
+        setActivityStatuses({ loading: false, migrationMissing: false, byYear: new Map() });
+      }
+    }
+  }, [academicYearIdsKey, teacherId]);
+
+  useEffect(() => {
+    void loadActivityStatuses();
+  }, [loadActivityStatuses]);
+
+  useEffect(() => {
+    const refresher = createCoalescedRefresh(() => loadActivityStatuses(), { debounceMs: 1500 });
+    const channel = supabase
+      .channel(`teacher-activity-records-${currentUser.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'student_activity_records' }, () => refresher.schedule())
+      .subscribe();
+    return () => {
+      refresher.dispose();
+      void supabase.removeChannel(channel);
+    };
+  }, [currentUser.id, loadActivityStatuses]);
+
 
   const periods = useMemo(() => buildPeriods(assignments), [assignments]);
   const selectedPeriod = useMemo(
@@ -353,27 +519,12 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const selectedSubjectCodes = selectedPeriod
     ? uniqueStrings(selectedPeriod.items.map((item) => item.subject_code)).length
     : 0;
-  const allPeriodsChecked =
-    periods.length > 0 && periods.every((period) => selectedPeriodKeys.has(period.key));
 
   useEffect(() => {
     if (!loading && selectedPeriodKey && !periods.some((period) => period.key === selectedPeriodKey)) {
       setSelectedPeriodKey(null);
     }
   }, [loading, periods, selectedPeriodKey]);
-
-  const togglePeriodSelection = (key: string, checked: boolean) => {
-    setSelectedPeriodKeys((prev) => {
-      const next = new Set(prev);
-      if (checked) next.add(key);
-      else next.delete(key);
-      return next;
-    });
-  };
-
-  const toggleAllPeriods = (checked: boolean) => {
-    setSelectedPeriodKeys(checked ? new Set(periods.map((period) => period.key)) : new Set());
-  };
 
   const handleOpen = async (assignment: TeacherAssignmentView) => {
     setOpeningId(assignment.id);
@@ -397,6 +548,64 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       setError(err instanceof Error ? err.message : 'เปิดสมุดบันทึกไม่สำเร็จ');
     } finally {
       setOpeningId(null);
+    }
+  };
+
+  const closePeriodChooser = () => {
+    activityRequestId.current += 1;
+    setPeriodChooser(null);
+    setActivityStep(null);
+  };
+
+  const openActivityClassroom = async (classroom: StudentActivityClassroomOption) => {
+    if (!onOpenActivityRecord) return;
+    setActivityStep((step) => (step ? { ...step, openingClassroomId: classroom.classroomId, error: '' } : step));
+    try {
+      await onOpenActivityRecord(classroom);
+    } catch (err) {
+      setActivityStep((step) =>
+        step
+          ? {
+              ...step,
+              openingClassroomId: null,
+              error: err instanceof Error ? err.message : 'เปิดบันทึกกิจกรรมพัฒนาผู้เรียนไม่สำเร็จ',
+            }
+          : step,
+      );
+    }
+  };
+
+  const showActivityClassrooms = async (period: TeacherPeriod) => {
+    const requestId = ++activityRequestId.current;
+    const includeAllClassrooms = isAdmin(currentUser) && !viewedTeacher;
+    const emptyStep: ActivityClassroomStep = {
+      loading: true,
+      error: '',
+      migrationMissing: false,
+      includeAllClassrooms,
+      classrooms: [],
+      openingClassroomId: null,
+    };
+    setActivityStep(emptyStep);
+    try {
+      const result = await fetchStudentActivityClassrooms({
+        teacherId,
+        academicYearId: period.academicYearId,
+        includeAllClassrooms,
+      });
+      if (requestId !== activityRequestId.current) return;
+      setActivityStep({ ...emptyStep, loading: false, migrationMissing: result.migrationMissing, classrooms: result.classrooms });
+      // A homeroom teacher normally has one classroom, so open it straight away.
+      if (result.classrooms.length === 1 && !includeAllClassrooms && !result.migrationMissing) {
+        void openActivityClassroom(result.classrooms[0]);
+      }
+    } catch (err) {
+      if (requestId !== activityRequestId.current) return;
+      setActivityStep({
+        ...emptyStep,
+        loading: false,
+        error: err instanceof Error ? err.message : 'โหลดห้องเรียนไม่สำเร็จ',
+      });
     }
   };
 
@@ -615,7 +824,10 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             </div>
             <button
               type="button"
-              onClick={() => void load()}
+              onClick={() => {
+                void load();
+                void loadActivityStatuses();
+              }}
               className="rounded-full p-2 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600"
               title="รีเฟรช"
             >
@@ -745,46 +957,31 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         ) : (
           <div className="ui-card overflow-hidden animate-fade-up">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1080px] text-sm">
+              <table className="w-full min-w-[960px] text-sm">
                 <thead className="bg-slate-900 text-white">
                   <tr>
-                    <th className="w-14 px-4 py-3 text-center font-semibold">
-                      <input
-                        type="checkbox"
-                        checked={allPeriodsChecked}
-                        onChange={(event) => toggleAllPeriods(event.target.checked)}
-                        aria-label="เลือกปีการศึกษาและภาคเรียนทั้งหมด"
-                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                      />
-                    </th>
-                    <th className="px-4 py-3 text-left font-semibold">ปีการศึกษา</th>
+                    <th className="px-4 py-3 text-center font-semibold">ปีการศึกษา</th>
                     <th className="px-4 py-3 text-center font-semibold">ภาคเรียนที่</th>
                     <th className="px-4 py-3 text-center font-semibold">จำนวนวิชา</th>
-                    <th className="px-4 py-3 text-center font-semibold">กำหนดเวลา</th>
                     <th className="px-4 py-3 text-center font-semibold">สถานะ</th>
                     <th className="px-4 py-3 text-center font-semibold">ส่ง ปพ.5</th>
+                    <th className="px-4 py-3 text-center font-semibold">กิจกรรมพัฒนาผู้เรียน</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 bg-white">
                   {periods.map((period) => {
                     const submission = periodSubmissionBadge(period);
+                    const activity = activitySubmissionBadge(
+                      activityStatuses.byYear.get(period.academicYearId),
+                      activityStatuses.migrationMissing,
+                    );
                     return (
                     <tr
                       key={period.key}
                       onClick={() => setPeriodChooser(period)}
                       className="cursor-pointer transition-colors hover:bg-slate-50/70"
                     >
-                      <td className="px-4 py-4 text-center">
-                        <input
-                          type="checkbox"
-                          checked={selectedPeriodKeys.has(period.key)}
-                          onClick={(event) => event.stopPropagation()}
-                          onChange={(event) => togglePeriodSelection(period.key, event.target.checked)}
-                          aria-label={`เลือกปีการศึกษา ${period.yearBe} ภาคเรียนที่ ${period.semesterNumber}`}
-                          className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                        />
-                      </td>
-                      <td className="px-4 py-4 font-extrabold text-slate-900">ปีการศึกษา {period.yearBe}</td>
+                      <td className="px-4 py-4 text-center font-extrabold text-slate-900">{period.yearBe}</td>
                       <td className="px-4 py-4 text-center font-semibold text-slate-700">{period.semesterNumber}</td>
                       <td className="px-4 py-4 text-center">
                         <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-extrabold text-blue-800">
@@ -792,9 +989,6 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                           {period.items.length} วิชา
                           <ChevronRight className="ml-1 h-3.5 w-3.5" />
                         </span>
-                      </td>
-                      <td className="px-4 py-4 text-center font-medium text-slate-600">
-                        {entryWindowLabel(period.entryStartDate, period.entryEndDate)}
                       </td>
                       <td className="px-4 py-4 text-center">
                         <span
@@ -828,6 +1022,40 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                           {submission.label}
                         </button>
                       </td>
+                      <td className="px-4 py-4 text-center">
+                        {activityStatuses.loading ? (
+                          <Loader2 className="mx-auto h-4 w-4 animate-spin text-slate-300" aria-label="กำลังโหลดสถานะ" />
+                        ) : activity.kind === 'none' ? (
+                          <span className="font-bold text-slate-300" title={activity.title}>
+                            —
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              if (activity.revision) {
+                                setActivityRevision({ period, classroom: activity.revision });
+                                return;
+                              }
+                              setPeriodChooser(period);
+                              void showActivityClassrooms(period);
+                            }}
+                            className={`inline-flex min-w-[154px] items-center justify-center rounded-lg px-3 py-2 text-xs font-extrabold transition hover:brightness-95 ${activity.className}`}
+                          >
+                            {activity.icon === 'approved' ? (
+                              <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
+                            ) : activity.icon === 'pending' ? (
+                              <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+                            ) : activity.icon === 'revision' ? (
+                              <AlertTriangle className="mr-1.5 h-3.5 w-3.5" />
+                            ) : (
+                              <Send className="mr-1.5 h-3.5 w-3.5" />
+                            )}
+                            {activity.label}
+                          </button>
+                        )}
+                      </td>
                     </tr>
                     );
                   })}
@@ -851,22 +1079,43 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             aria-modal="true"
             aria-labelledby="teacher-workspace-title"
             onMouseDown={(event) => {
-              if (event.target === event.currentTarget) setPeriodChooser(null);
+              if (event.target === event.currentTarget) closePeriodChooser();
             }}
           >
             <div className="w-full max-w-3xl overflow-hidden rounded-3xl border border-white/70 bg-white shadow-2xl">
               <div className="flex items-start justify-between border-b border-slate-100 px-6 py-5 sm:px-8">
-                <div>
-                  <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-blue-600">
-                    เลือกประเภทการบันทึกข้อมูล
-                  </p>
-                  <h3 id="teacher-workspace-title" className="mt-1 text-xl font-extrabold text-slate-900">
-                    ปีการศึกษา {periodChooser.yearBe} ภาคเรียนที่ {periodChooser.semesterNumber}
-                  </h3>
+                <div className="flex items-start gap-3">
+                  {activityStep && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        activityRequestId.current += 1;
+                        setActivityStep(null);
+                      }}
+                      className="mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                      aria-label="กลับไปเลือกประเภทการบันทึก"
+                    >
+                      <ArrowLeft className="h-5 w-5" />
+                    </button>
+                  )}
+                  <div>
+                    <p
+                      className={`text-xs font-extrabold uppercase tracking-[0.16em] ${
+                        activityStep ? 'text-emerald-600' : 'text-blue-600'
+                      }`}
+                    >
+                      {activityStep ? 'บันทึกข้อมูลกิจกรรมพัฒนาผู้เรียน' : 'เลือกประเภทการบันทึกข้อมูล'}
+                    </p>
+                    <h3 id="teacher-workspace-title" className="mt-1 text-xl font-extrabold text-slate-900">
+                      {activityStep
+                        ? `ปีการศึกษา ${periodChooser.yearBe} (ทั้งปีการศึกษา)`
+                        : `ปีการศึกษา ${periodChooser.yearBe} ภาคเรียนที่ ${periodChooser.semesterNumber}`}
+                    </h3>
+                  </div>
                 </div>
                 <button
                   type="button"
-                  onClick={() => setPeriodChooser(null)}
+                  onClick={closePeriodChooser}
                   className="grid h-10 w-10 place-items-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
                   aria-label="ปิดหน้าต่างเลือกประเภทการบันทึก"
                 >
@@ -874,12 +1123,94 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 </button>
               </div>
 
+              {activityStep ? (
+                <div className="p-6 sm:p-8">
+                  <p className="mb-4 text-sm font-semibold text-slate-600">
+                    {activityStep.includeAllClassrooms
+                      ? 'เลือกห้องเรียนที่ต้องการเปิดบันทึกกิจกรรมพัฒนาผู้เรียน'
+                      : 'ห้องเรียนที่คุณเป็นครูประจำชั้น'}
+                  </p>
+                  {activityStep.error && (
+                    <div role="alert" className="mb-4 rounded-xl border border-red-100 bg-red-50 p-3.5 text-sm font-medium text-red-700">
+                      {activityStep.error}
+                    </div>
+                  )}
+                  {activityStep.migrationMissing && !activityStep.error && (
+                    <div role="alert" className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-sm font-medium text-amber-800">
+                      {STUDENT_ACTIVITY_MIGRATION_MESSAGE}
+                    </div>
+                  )}
+                  {activityStep.loading ? (
+                    <div className="flex items-center justify-center py-14 text-slate-400">
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" /> กำลังโหลดห้องเรียน...
+                    </div>
+                  ) : activityStep.classrooms.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center">
+                      <Users className="mx-auto mb-3 h-10 w-10 text-slate-300" />
+                      <p className="font-semibold text-slate-700">ยังไม่ได้รับมอบหมายเป็นครูประจำชั้นในปีการศึกษานี้</p>
+                      <p className="mt-1 text-sm text-slate-500">
+                        ติดต่อฝ่ายวิชาการเพื่อกำหนดครูประจำชั้นในเมนูห้องเรียน
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="-m-1 grid max-h-[55vh] gap-3 overflow-y-auto p-1 sm:grid-cols-2">
+                      {activityStep.classrooms.map((classroom) => {
+                        const status = activityStatusLabel(classroom);
+                        const opening = activityStep.openingClassroomId === classroom.classroomId;
+                        return (
+                          <button
+                            key={classroom.classroomId}
+                            type="button"
+                            disabled={Boolean(activityStep.openingClassroomId)}
+                            onClick={() => void openActivityClassroom(classroom)}
+                            className="group flex flex-col rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/70 to-white p-5 text-left shadow-sm transition duration-150 hover:-translate-y-0.5 hover:border-emerald-400 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-emerald-100 disabled:cursor-wait disabled:opacity-70 disabled:hover:translate-y-0"
+                          >
+                            <span className="flex items-start justify-between gap-3">
+                              <span>
+                                <span className="block text-xl font-extrabold text-slate-900">{classroom.classroomName}</span>
+                                <span className="mt-0.5 block text-sm text-slate-500">
+                                  {longClassroomName(classroom.classroomName)}
+                                </span>
+                              </span>
+                              <span className={`shrink-0 rounded-lg px-2.5 py-1 text-xs font-bold ring-1 ${status.className}`}>
+                                {status.label}
+                              </span>
+                            </span>
+                            <span className="mt-4 flex items-center gap-3">
+                              <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200">
+                                <span
+                                  className="block h-full rounded-full bg-emerald-600"
+                                  style={{ width: `${classroom.completionPercent}%` }}
+                                />
+                              </span>
+                              <span className="w-10 text-right text-xs font-bold text-slate-600">
+                                {classroom.completionPercent}%
+                              </span>
+                            </span>
+                            <span className="mt-4 inline-flex items-center text-sm font-extrabold text-emerald-700 transition group-hover:translate-x-1">
+                              {opening ? (
+                                <>
+                                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> กำลังเปิดบันทึก...
+                                </>
+                              ) : (
+                                <>
+                                  เปิดบันทึกกิจกรรม <ChevronRight className="ml-0.5 h-4 w-4" />
+                                </>
+                              )}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ) : (
               <div className="grid gap-4 p-6 sm:grid-cols-2 sm:p-8">
                 <button
                   type="button"
                   onClick={() => {
                     setSelectedPeriodKey(periodChooser.key);
-                    setPeriodChooser(null);
+                    closePeriodChooser();
                   }}
                   className="group flex min-h-52 flex-col items-start rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-6 text-left shadow-sm transition duration-150 hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-100"
                 >
@@ -897,25 +1228,63 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => {
-                    setMessage('เมนูบันทึกข้อมูลกิจกรรมพัฒนาผู้เรียนกำลังอยู่ระหว่างพัฒนา');
-                    setPeriodChooser(null);
-                  }}
-                  className="group flex min-h-52 flex-col items-start rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-6 text-left shadow-sm transition duration-150 hover:-translate-y-0.5 hover:border-emerald-400 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                  disabled={!onOpenActivityRecord}
+                  onClick={() => void showActivityClassrooms(periodChooser)}
+                  className="group flex min-h-52 flex-col items-start rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-6 text-left shadow-sm transition duration-150 hover:-translate-y-0.5 hover:border-emerald-400 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-200">
                     <Users className="h-6 w-6" />
                   </span>
                   <span className="mt-6 text-lg font-extrabold text-slate-900">บันทึกข้อมูลกิจกรรมพัฒนาผู้เรียน</span>
                   <span className="mt-2 text-sm leading-6 text-slate-500">
-                    พื้นที่สำหรับบันทึกกิจกรรมพัฒนาผู้เรียน จะเปิดใช้งานในขั้นตอนถัดไป
+                    บันทึกเวลาเรียน การประเมินกิจกรรม และสรุปผลของห้องที่เป็นครูประจำชั้น (ทั้งปีการศึกษา)
                   </span>
-                  <span className="mt-auto pt-5 text-sm font-extrabold text-emerald-700">เร็ว ๆ นี้</span>
+                  <span className="mt-auto pt-5 text-sm font-extrabold text-emerald-700 transition group-hover:translate-x-1">
+                    เปิดบันทึกกิจกรรม <ChevronRight className="inline h-4 w-4" />
+                  </span>
                 </button>
               </div>
+              )}
             </div>
           </div>
         </ModalPortal>
+      )}
+
+      {activityRevision && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-4">
+              <h3 className="text-lg font-extrabold text-slate-900">เหตุผลที่ไม่อนุมัติการประเมินกิจกรรมพัฒนาผู้เรียน</h3>
+              <p className="mt-1 text-sm text-slate-500">
+                ชั้น {activityRevision.classroom.classroomName} ปีการศึกษา {activityRevision.period.yearBe}
+              </p>
+            </div>
+            <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm leading-6 text-rose-800">
+              {activityRevision.classroom.approvalReason || 'ไม่มีรายละเอียดเพิ่มเติม'}
+            </div>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setActivityRevision(null)}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50"
+              >
+                ปิด
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const { period } = activityRevision;
+                  setActivityRevision(null);
+                  setPeriodChooser(period);
+                  void showActivityClassrooms(period);
+                }}
+                className="inline-flex items-center rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
+              >
+                เปิดบันทึกเพื่อแก้ไข
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {revisionModalAssignment && (

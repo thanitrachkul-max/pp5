@@ -7,7 +7,10 @@ import type ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import {
   attendanceDateKey,
+  attendanceGridDates,
+  buildSegmentedAttendanceSchedule,
   buildShiftedAttendanceSchedule,
+  type AttendancePeriodConfig,
 } from "../lib/attendanceSchedule";
 
 const THAI_MONTHS_FULL = [
@@ -96,6 +99,8 @@ interface Props {
   data: AppData["students"];
   generalInfo: AppData["generalInfo"];
   attendance?: AppData["attendance"];
+  /** ช่วงเวลาเรียนที่กำหนดเอง เช่น ทั้งปีการศึกษา (ไม่ระบุ = ใช้ภาคเรียนตามหน้าปก ปพ.5) */
+  period?: AttendancePeriodConfig;
   rosterLocked?: boolean;
   printMode?: boolean;
   readOnly?: boolean;
@@ -112,6 +117,7 @@ export const StudentsForm: React.FC<Props> = ({
   data,
   generalInfo,
   attendance,
+  period,
   rosterLocked = false,
   printMode = false,
   readOnly = false,
@@ -163,13 +169,14 @@ export const StudentsForm: React.FC<Props> = ({
   });
 
   const currentHoursPerWeek =
-    parsePositiveInteger(generalInfo.hoursPerWeek, generalInfo.totalHours) || 1;
-  const currentTotalHours = currentHoursPerWeek * 20;
+    period?.hoursPerWeek ??
+    (parsePositiveInteger(generalInfo.hoursPerWeek, generalInfo.totalHours) || 1);
+  const currentTotalHours = period?.totalHours ?? currentHoursPerWeek * 20;
   const fallbackStudyPeriod = useMemo(
     () => defaultStudyPeriod(generalInfo),
     [generalInfo.academicYear, generalInfo.semester],
   );
-  const effectiveStudyStartDate = normalizeThaiOrIsoDate(
+  const effectiveStudyStartDate = period?.startDate ?? normalizeThaiOrIsoDate(
     generalInfo.studyStartDate ||
     attendance?.settings?.startDate ||
     fallbackStudyPeriod.startDate)!;
@@ -177,7 +184,7 @@ export const StudentsForm: React.FC<Props> = ({
     generalInfo.studyEndDate ||
     attendance?.settings?.endDate ||
     fallbackStudyPeriod.endDate)!;
-  const effectiveStudyEndDate = generalInfo.semester !== "2" && requestedStudyEndDate > fallbackStudyPeriod.endDate ? fallbackStudyPeriod.endDate : requestedStudyEndDate;
+  const effectiveStudyEndDate = period?.endDate ?? (generalInfo.semester !== "2" && requestedStudyEndDate > fallbackStudyPeriod.endDate ? fallbackStudyPeriod.endDate : requestedStudyEndDate);
   const studyPeriodText = formatThaiStudyPeriod(
     effectiveStudyStartDate,
     effectiveStudyEndDate,
@@ -666,10 +673,10 @@ export const StudentsForm: React.FC<Props> = ({
 
     const normalizedStart = normalizeThaiOrIsoDate(startDate)!;
     const requestedEnd = normalizeThaiOrIsoDate(endDate)!;
-    const normalizedEnd = generalInfo.semester !== "2" && requestedEnd > fallbackStudyPeriod.endDate ? fallbackStudyPeriod.endDate : requestedEnd;
+    const normalizedEnd = !period && generalInfo.semester !== "2" && requestedEnd > fallbackStudyPeriod.endDate ? fallbackStudyPeriod.endDate : requestedEnd;
     const start = parseDate(normalizedStart);
     const end = parseDate(normalizedEnd);
-    const totalHoursNeeded = currentHoursPerWeek * 20;
+    const totalHoursNeeded = currentTotalHours;
 
     const newHoursMap: Record<string, string> = {};
     const newRecords: Record<string, Record<string, string>> = {};
@@ -680,7 +687,17 @@ export const StudentsForm: React.FC<Props> = ({
 
     if (startDate && endDate && start.getTime() <= end.getTime()) {
       let plan: ReturnType<typeof buildShiftedAttendanceSchedule>;
-      try { plan = buildShiftedAttendanceSchedule({
+      try { plan = period
+        ? buildSegmentedAttendanceSchedule({
+          segments: period.segments.map((segment) => ({
+            startDate: parseDate(segment.startDate),
+            endDate: parseDate(segment.endDate),
+          })),
+          schedule,
+          holidays,
+          totalHours: totalHoursNeeded,
+        })
+        : buildShiftedAttendanceSchedule({
         startDate: start,
         endDate: end,
         schedule,
@@ -736,15 +753,26 @@ export const StudentsForm: React.FC<Props> = ({
 
     const calculatedDates: Date[] = [];
     const periodEnd = new Date(`${effectiveStudyEndDate}T00:00:00`);
-    for (let i = 0; i < 200 && currentDate <= periodEnd; i++) {
-      calculatedDates.push(new Date(currentDate));
-      currentDate.setDate(currentDate.getDate() + 1);
-      while (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
+    if (period) {
+      calculatedDates.push(
+        ...attendanceGridDates(
+          period.segments.map((segment) => ({
+            startDate: new Date(`${segment.startDate}T00:00:00`),
+            endDate: new Date(`${segment.endDate}T00:00:00`),
+          })),
+        ),
+      );
+    } else {
+      for (let i = 0; i < 200 && currentDate <= periodEnd; i++) {
+        calculatedDates.push(new Date(currentDate));
         currentDate.setDate(currentDate.getDate() + 1);
+        while (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
       }
     }
 
-    if (!printMode && generalInfo.semester !== '2') {
+    if (!printMode && !period && generalInfo.semester !== '2') {
       const legacyDays = Object.keys(attendance?.hoursMap ?? {}).filter(key => key > '09-30' && attendance?.hoursMap[key]);
       if (legacyDays.length) {
         const last = legacyDays.sort().at(-1)!;
@@ -811,7 +839,7 @@ export const StudentsForm: React.FC<Props> = ({
         "ธ.ค.",
       ],
     };
-  }, [effectiveStudyStartDate, effectiveStudyEndDate, generalInfo.academicYear, generalInfo.semester, attendance?.hoursMap, printMode]);
+  }, [effectiveStudyStartDate, effectiveStudyEndDate, generalInfo.academicYear, generalInfo.semester, attendance?.hoursMap, printMode, period]);
 
   const selectedPrintDates = useMemo(() => {
     if (!printDateMonths?.length) return dates;
@@ -938,22 +966,33 @@ export const StudentsForm: React.FC<Props> = ({
       >
         <div className="mb-4 text-center">
           <h2 className="text-xl font-bold">
-            บันทึกเวลาเรียน ชั้น {generalInfo.gradeLevel}{" "}
-            ภาคเรียนที่ {generalInfo.semester} ปีการศึกษา{" "}
-            {generalInfo.academicYear}
+            {period ? period.heading : (
+              <>
+                บันทึกเวลาเรียน ชั้น {generalInfo.gradeLevel}{" "}
+                ภาคเรียนที่ {generalInfo.semester} ปีการศึกษา{" "}
+                {generalInfo.academicYear}
+              </>
+            )}
           </h2>
           <h3 className="text-lg">
-            รวมเวลาเรียน {generalInfo.totalHours} ชั่วโมง/สัปดาห์{" "}
-            {generalInfo.hoursPerSemester} ชั่วโมงภาคเรียน
+            {period ? period.subheading : (
+              <>
+                รวมเวลาเรียน {generalInfo.totalHours} ชั่วโมง/สัปดาห์{" "}
+                {generalInfo.hoursPerSemester} ชั่วโมงภาคเรียน
+              </>
+            )}
           </h3>
           {studyPeriodText && (
             <p className="mt-2 text-sm font-semibold text-slate-600">
               {studyPeriodText}
             </p>
           )}
+          {period?.note && (
+            <p className="mt-1 text-xs font-medium text-slate-500">{period.note}</p>
+          )}
         </div>
 
-        {!printMode && generalInfo.semester !== '2' && Object.keys(attendance?.hoursMap ?? {}).some(key => key > '09-30' && attendance?.hoursMap[key]) && <p className="mb-3 rounded bg-amber-50 p-3 text-amber-800">ตารางเดิมมีชั่วโมงเรียนหลัง 30 กันยายน กรุณาใช้ระบบช่วยลงเวลาเรียนเพื่อจัดตารางใหม่ ระบบจะกระจายชั่วโมงให้ครบภายในภาคเรียน</p>}
+        {!printMode && !period && generalInfo.semester !== '2' && Object.keys(attendance?.hoursMap ?? {}).some(key => key > '09-30' && attendance?.hoursMap[key]) && <p className="mb-3 rounded bg-amber-50 p-3 text-amber-800">ตารางเดิมมีชั่วโมงเรียนหลัง 30 กันยายน กรุณาใช้ระบบช่วยลงเวลาเรียนเพื่อจัดตารางใหม่ ระบบจะกระจายชั่วโมงให้ครบภายในภาคเรียน</p>}
         <div className="excel-scroll-area overflow-x-auto">
           <div className="excel-scroll-content">
           <table className="excel-table whitespace-nowrap relative" style={{ width: "max-content", minWidth: "max-content" }}>
@@ -1830,7 +1869,9 @@ export const StudentsForm: React.FC<Props> = ({
                       {currentHoursPerWeek} ชั่วโมง
                     </div>
                     <span className="text-sm text-slate-500">
-                      (อ้างอิงจากข้อมูลหน้าปก)
+                      {period
+                        ? `(รวม ${currentTotalHours} ชั่วโมง/ปี)`
+                        : "(อ้างอิงจากข้อมูลหน้าปก)"}
                     </span>
                   </div>
                   <div className="flex flex-wrap items-center gap-4">
@@ -1841,6 +1882,9 @@ export const StudentsForm: React.FC<Props> = ({
                       {studyPeriodText || "ยังไม่ได้กำหนดระยะเวลาเรียน"}
                     </div>
                   </div>
+                  {period?.note && (
+                    <p className="mt-3 text-sm text-slate-500 sm:pl-52">{period.note}</p>
+                  )}
                 </section>
               </div>
 

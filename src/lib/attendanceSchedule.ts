@@ -18,6 +18,26 @@ interface BuildAttendanceScheduleOptions {
   teachingWeeks?: number;
 }
 
+export interface AttendanceSegment {
+  startDate: Date;
+  endDate: Date;
+}
+
+/**
+ * ช่วงเวลาเรียนที่ยาวกว่า 1 ภาคเรียน เช่น กิจกรรมพัฒนาผู้เรียนทั้งปีการศึกษา
+ * แต่ละ segment คือช่วงที่มีการเรียนจริง (วันนอก segment เช่น ปิดภาคเรียน จะไม่ถูกจัดชั่วโมง)
+ */
+export interface AttendancePeriodConfig {
+  heading: string;
+  subheading: string;
+  note?: string;
+  hoursPerWeek: number;
+  totalHours: number;
+  startDate: string;
+  endDate: string;
+  segments: Array<{ startDate: string; endDate: string }>;
+}
+
 function addDays(date: Date, days: number): Date {
   const next = new Date(date);
   next.setDate(next.getDate() + days);
@@ -143,4 +163,93 @@ export function buildShiftedAttendanceSchedule({
     scheduleDays,
     lastTeachingDate: scheduleDays.at(-1)?.date ?? null,
   };
+}
+
+function localDayKey(date: Date): string {
+  return `${date.getFullYear()}-${attendanceDateKey(date)}`;
+}
+
+/**
+ * Split the total hours evenly across teaching segments (the earlier segment
+ * takes the extra hour when the split is uneven), plan each segment with the
+ * regular weekly schedule, then number the hours 1..N across the whole period.
+ */
+export function buildSegmentedAttendanceSchedule({
+  segments,
+  schedule,
+  holidays,
+  totalHours,
+}: {
+  segments: AttendanceSegment[];
+  schedule: AttendanceScheduleItem[];
+  holidays: Record<string, string>;
+  totalHours: number;
+}): {
+  hoursMap: Record<string, string>;
+  scheduleDays: AttendanceScheduleDay[];
+  lastTeachingDate: Date | null;
+} {
+  const validSegments = segments.filter((segment) => segment.startDate.getTime() <= segment.endDate.getTime());
+  if (validSegments.length === 0) throw new Error("ยังไม่ได้กำหนดช่วงวันที่เรียน");
+
+  const baseShare = Math.floor(totalHours / validSegments.length);
+  const remainder = totalHours % validSegments.length;
+  const scheduleDays: AttendanceScheduleDay[] = [];
+
+  validSegments.forEach((segment, index) => {
+    const share = baseShare + (index < remainder ? 1 : 0);
+    if (share <= 0) return;
+    const days = Math.round((segment.endDate.getTime() - segment.startDate.getTime()) / 86_400_000) + 1;
+    const plan = buildShiftedAttendanceSchedule({
+      startDate: segment.startDate,
+      endDate: segment.endDate,
+      schedule,
+      holidays,
+      totalHours: share,
+      teachingWeeks: Math.ceil(days / 7) + 1,
+    });
+    scheduleDays.push(...plan.scheduleDays);
+  });
+
+  scheduleDays.sort((a, b) => a.date.getTime() - b.date.getTime());
+  const hoursMap: Record<string, string> = {};
+  let hour = 1;
+  for (const day of scheduleDays) {
+    const last = hour + day.hours - 1;
+    hoursMap[day.dateKey] = hour === last ? `${hour}` : `${hour}-${last}`;
+    hour = last + 1;
+  }
+
+  return {
+    hoursMap,
+    scheduleDays,
+    lastTeachingDate: scheduleDays.at(-1)?.date ?? null,
+  };
+}
+
+/**
+ * Weekdays (Mon–Fri) of every week that overlaps a teaching segment. Whole
+ * weeks keep the attendance grid aligned in groups of five days, while weeks
+ * that fall entirely inside a break between segments are left out.
+ */
+export function attendanceGridDates(segments: AttendanceSegment[]): Date[] {
+  const mondays = new Map<string, Date>();
+
+  for (const segment of segments) {
+    let firstDay = new Date(segment.startDate);
+    while (isWeekend(firstDay)) firstDay = addDays(firstDay, 1);
+    if (firstDay > segment.endDate) continue;
+
+    for (
+      let monday = addDays(firstDay, -((firstDay.getDay() + 6) % 7));
+      monday <= segment.endDate;
+      monday = addDays(monday, 7)
+    ) {
+      mondays.set(localDayKey(monday), new Date(monday));
+    }
+  }
+
+  return [...mondays.values()]
+    .sort((a, b) => a.getTime() - b.getTime())
+    .flatMap((monday) => Array.from({ length: 5 }, (_, index) => addDays(monday, index)));
 }

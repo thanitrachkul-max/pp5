@@ -385,6 +385,63 @@ input[type="number"] {
   --folder-active-outline: rgba(100, 116, 139, 0.12);
 }
 
+.gradebook-folder-frame-instructions {
+  --folder-active-border: #eba66d;
+  --folder-active-outline: rgba(249, 115, 22, 0.12);
+}
+
+.gradebook-folder-frame-activity_guidance {
+  --folder-active-border: #73d5dc;
+  --folder-active-outline: rgba(6, 182, 212, 0.12);
+}
+
+.gradebook-folder-frame-activity_scout {
+  --folder-active-border: #67c986;
+  --folder-active-outline: rgba(34, 197, 94, 0.13);
+}
+
+.gradebook-folder-frame-activity_club {
+  --folder-active-border: #74a8f7;
+  --folder-active-outline: rgba(37, 99, 235, 0.13);
+}
+
+.gradebook-folder-frame-activity_social {
+  --folder-active-border: #f4a6b7;
+  --folder-active-outline: rgba(225, 29, 72, 0.1);
+}
+
+.gradebook-folder-frame-activity_summary {
+  --folder-active-border: #ba91f4;
+  --folder-active-outline: rgba(139, 92, 246, 0.13);
+}
+
+/* กิจกรรมพัฒนาผู้เรียน: หัวตารางรายการประเมินแนวตั้ง (2 ช่อง ผ/มผ ต่อรายการ) */
+.activity-assessment-table thead tr:nth-child(2) th.activity-item-header {
+  height: 232px;
+  font-size: 0.86em;
+  font-weight: 500;
+  line-height: 1.25;
+  padding: 8px 3px;
+}
+
+.activity-assessment-table thead tr:nth-child(2) th.activity-item-header-tall {
+  height: 300px;
+  font-size: 0.78em;
+  line-height: 1.16;
+  padding: 8px 2px;
+}
+
+.activity-assessment-table .activity-mark-cell,
+.activity-summary-table td {
+  height: 34px;
+}
+
+/* ช่องที่ครูกำหนดผลเองในแท็บสรุปผล */
+.activity-summary-table td.activity-summary-cell-manual {
+  outline: 1.5px dashed #8b5cf6;
+  outline-offset: -4px;
+}
+
 .gradebook-folder-content {
   position: relative;
   z-index: 1;
@@ -613,6 +670,21 @@ input[type="number"] {
   right: 24px;
   background: color-mix(in srgb, var(--folder-paper-border) 80%, #7c8ca2);
   transform: skewX(23deg);
+}
+
+.folder-tabs-fit .folder-tab {
+  flex: 1 0 auto;
+  padding-left: 11px;
+  font-size: 12.5px;
+}
+
+.folder-tabs-fit .folder-tab-label {
+  gap: 5px;
+}
+
+.folder-tabs-fit .folder-tab-icon {
+  width: 16px;
+  height: 16px;
 }
 
 @media (max-width: 860px) {
@@ -1188,6 +1260,27 @@ main table:not(.excel-table) tbody td {
 
 .pap5-attendance-summary-table .result-col {
   width: 24mm;
+}
+
+/* สรุปเวลาเรียนกิจกรรมพัฒนาผู้เรียนมี 10 เดือนในหน้าเดียว */
+.activity-attendance-summary-table .col-citizen {
+  width: 25mm;
+}
+
+.activity-attendance-summary-table .col-name {
+  width: 44mm;
+}
+
+.activity-attendance-summary-table .month-col {
+  width: 11mm;
+}
+
+.activity-attendance-summary-table .summary-col {
+  width: 14mm;
+}
+
+.activity-attendance-summary-table .result-col {
+  width: 18mm;
 }
 
 .pap5-score-summary-table .item-col {
@@ -2540,4 +2633,99 @@ main table:not(.excel-table) tbody td {
 @media print {
   .pap5-original-print-document .primary-score-print-page { display: flex !important; align-items: center !important; justify-content: center !important; padding: 16mm !important; }
   .primary-score-print-content { flex: 0 1 265mm; }
+}
+
+/* กิจกรรมพัฒนาผู้เรียน: หน้าพิมพ์ตารางการประเมินและสรุปผล (จัดหน้าแบบหน้าคุณลักษณะของ ปพ.5) */
+.activity-print-footnote {
+  margin-top: 3mm;
+  font-size: 11px;
+  line-height: 1.3;
+  color: #334155;
+  text-align: left;
+}
+
+@media print {
+  .pap5-original-print-document .activity-assessment-print-page .activity-print-table,
+  .pap5-original-print-document .activity-summary-print-page .activity-print-table {
+    width: 100% !important;
+    table-layout: fixed !important;
+  }
+
+  .pap5-original-print-document .activity-print-table .activity-col-no {
+    width: 8mm;
+  }
+
+  .pap5-original-print-document .activity-print-table .activity-col-code {
+    width: 17mm;
+  }
+
+  .pap5-original-print-document .activity-print-table .activity-col-name {
+    width: 42mm;
+  }
+
+  .pap5-original-print-document .activity-print-table .activity-col-result {
+    width: 17mm;
+  }
+
+  .pap5-original-print-document .activity-summary-print-table .activity-col-name {
+    width: 48mm;
+  }
+
+  .pap5-original-print-document .activity-print-table .activity-col-overall {
+    width: 24mm;
+  }
+
+  .pap5-original-print-document .activity-print-table .activity-print-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pap5-original-print-document .activity-print-table .activity-print-group-header,
+  .pap5-original-print-document .activity-print-table .activity-print-activity-header {
+    white-space: normal;
+  }
+
+  .pap5-original-print-document .activity-assessment-print-page .activity-print-item-header {
+    height: 58mm !important;
+    padding: 1mm 0.4mm !important;
+    font-size: 7.6pt !important;
+    font-weight: 400 !important;
+    line-height: 1.12 !important;
+    white-space: normal !important;
+  }
+
+  .pap5-original-print-document .activity-assessment-print-page .activity-print-item-header-small {
+    font-size: 6.8pt !important;
+  }
+
+  .pap5-original-print-document .activity-assessment-print-page .activity-print-mark-header,
+  .pap5-original-print-document .activity-assessment-print-page .activity-print-mark-cell {
+    padding: 0 !important;
+    font-size: 9.5px !important;
+  }
+
+  .pap5-original-print-document .activity-assessment-print-page .activity-print-result-header {
+    padding: 2px 1px !important;
+    line-height: 1.15 !important;
+  }
+
+  .pap5-original-print-document .activity-print-pass-mark {
+    font-weight: 700;
+  }
+
+  .pap5-original-print-document .activity-print-table td.activity-print-name {
+    padding-left: 2mm !important;
+    text-align: left !important;
+  }
+
+  /* คำชี้แจงกิจกรรมเป็นย่อหน้ายาว จึงเว้นบรรทัดมากกว่าคำชี้แจง ปพ.5 ที่ตัดบรรทัดไว้แล้ว */
+  .pap5-pdf-route-root .activity-print-document .explanation-print-page > div > div {
+    padding: 14mm 16mm !important;
+  }
+
+  .pap5-pdf-route-root .activity-print-document .explanation-print-page > div > div > div {
+    font-size: 13.5px !important;
+    line-height: 1.65 !important;
+  }
 }

@@ -324,7 +324,7 @@ function DateField({
   );
 }
 
-function ApprovalChoice({
+export function ApprovalChoice({
   checked,
   label,
 }: {
@@ -718,7 +718,7 @@ function TeacherSignatures({ names }: { names: [string, string] | string[] }) {
   );
 }
 
-function SignatureLine({ label, name }: { label: string; name: string | undefined }) {
+export function SignatureLine({ label, name }: { label: string; name: string | undefined }) {
   return (
     <>
       <div className="flex items-end justify-center">

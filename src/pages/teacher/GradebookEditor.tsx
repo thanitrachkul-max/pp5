@@ -41,6 +41,7 @@ import { downloadPap5Pdf } from "../../utils/pap5PdfPreview";
 import { openPap5PrintDialog } from "../../utils/pap5PrintDialog";
 import { buildStudentRoster } from "../../lib/teacherGradebooks";
 import { mergeRosterWithSavedState } from "../../lib/studentRoster";
+import { splitStudentNameForAcademicRecord, UUID_PATTERN } from "../../lib/studentNames";
 import type { GradebookSession } from "../../lib/teacherGradebooks";
 import type { AppData, AppUser, GradebookApprovalStatus, Student } from "../../types";
 
@@ -55,33 +56,6 @@ const menuItems = [
   { id: "instructions1", label: "คำชี้แจง", surface: "document" },
   { id: "instructions2", label: "คำชี้แจงต่อ", surface: "document" },
 ];
-
-const STUDENT_NAME_TITLES = [
-  "เด็กชาย",
-  "เด็กหญิง",
-  "ด.ช.",
-  "ด.ญ.",
-  "นาย",
-  "นางสาว",
-  "น.ส.",
-  "นาง",
-];
-
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-function splitStudentNameForAcademicRecord(fullName: string) {
-  const parts = fullName.trim().split(/\s+/).filter(Boolean);
-  const title = parts.length > 0 && STUDENT_NAME_TITLES.includes(parts[0]) ? parts.shift() ?? null : null;
-  const firstName = parts.shift() ?? "";
-  const lastName = parts.join(" ");
-
-  return {
-    title,
-    firstName: firstName || fullName.trim(),
-    lastName,
-  };
-}
 
 function getSupabaseErrorMessage(error: unknown) {
   if (error && typeof error === "object" && "message" in error) {

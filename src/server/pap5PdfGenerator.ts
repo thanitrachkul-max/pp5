@@ -35,10 +35,32 @@ const LOCAL_CHROME_CANDIDATES = [
   "/Applications/Chromium.app/Contents/MacOS/Chromium",
   "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
   "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+  "C:/Program Files/Google/Chrome/Application/chrome.exe",
+  "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
+  "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
+  "C:/Program Files/Microsoft/Edge/Application/msedge.exe",
 ];
 
-function safePrintId(value: string | undefined) {
-  return encodeURIComponent(value || `pap5-${Date.now()}`);
+/** หน้าเว็บสำหรับพิมพ์ที่ใช้สร้าง PDF ทีละหน้า และช่องทางส่งข้อมูลให้หน้านั้น */
+export interface PrintRouteTarget {
+  routePath: string;
+  payloadGlobal: string;
+  storageKeyPrefix: string;
+}
+
+export interface PrintPageSizeSpec {
+  id: string;
+  orientation: "portrait" | "landscape";
+}
+
+const PAP5_PRINT_ROUTE: PrintRouteTarget = {
+  routePath: "/print/pap5",
+  payloadGlobal: "__PAP5_PRINT_PAYLOAD__",
+  storageKeyPrefix: "pap5-print-payload",
+};
+
+function safePrintId(value: string | undefined, fallbackPrefix = "pap5") {
+  return encodeURIComponent(value || `${fallbackPrefix}-${Date.now()}`);
 }
 
 async function appendPdf(target: PDFDocument, sourceBytes: Uint8Array) {
@@ -56,7 +78,7 @@ function isCloseToA4(actual: number, expected: number) {
 
 export async function assertPap5PdfPageSizes(
   pdfBytes: Uint8Array,
-  specs: ReturnType<typeof getPap5PrintPageSpecs>,
+  specs: PrintPageSizeSpec[],
 ) {
   const pdf = await PDFDocument.load(pdfBytes);
   const pages = pdf.getPages();
@@ -106,14 +128,16 @@ async function renderSinglePagePdf({
   pageId,
   landscape,
   headers,
+  target,
 }: {
   browser: Browser;
   origin: string;
   printId: string;
-  payload: Pap5PdfPayload;
+  payload: unknown;
   pageId: string;
   landscape: boolean;
   headers?: Record<string, string>;
+  target: PrintRouteTarget;
 }) {
   const page = await browser.newPage();
   if (headers && Object.keys(headers).length > 0) {
@@ -121,8 +145,8 @@ async function renderSinglePagePdf({
   }
 
   await page.evaluateOnNewDocument(
-    ({ storageKey, storagePayload }) => {
-      (window as typeof window & { __PAP5_PRINT_PAYLOAD__?: unknown }).__PAP5_PRINT_PAYLOAD__ = storagePayload;
+    ({ storageKey, storagePayload, payloadGlobal }) => {
+      (window as unknown as Record<string, unknown>)[payloadGlobal] = storagePayload;
       try {
         window.localStorage.setItem(storageKey, JSON.stringify(storagePayload));
       } catch {
@@ -130,14 +154,17 @@ async function renderSinglePagePdf({
       }
     },
     {
-      storageKey: `pap5-print-payload:${printId}`,
+      storageKey: `${target.storageKeyPrefix}:${printId}`,
       storagePayload: payload,
+      payloadGlobal: target.payloadGlobal,
     },
   );
 
   try {
-    await page.goto(`${origin}/print/pap5/${printId}?page=${encodeURIComponent(pageId)}`, {
-      waitUntil: "networkidle0",
+    await page.goto(`${origin}${target.routePath}/${printId}?page=${encodeURIComponent(pageId)}`, {
+      // The ready marker, fonts and images below determine print readiness.
+      // Waiting for all network traffic to stop can stall on dev connections.
+      waitUntil: "domcontentloaded",
     });
     await page.waitForSelector("[data-pap5-ready='true']", { timeout: 30_000 });
     await page.evaluate(async () => {
@@ -199,12 +226,20 @@ async function launchChromium() {
   });
 }
 
-export async function generatePap5Pdf(
-  payload: Pap5PdfPayload,
-  options: Pap5PdfGenerateOptions,
-) {
-  const printId = safePrintId(payload.id);
-  const specs = getPap5PrintPageSpecs(payload.data);
+/** เปิดหน้าพิมพ์ทีละหน้าตาม specs แล้วรวมเป็น PDF ไฟล์เดียว (ตรวจขนาด A4 ของทุกหน้า) */
+export async function generatePrintRoutePdf({
+  payload,
+  printId,
+  specs,
+  target,
+  options,
+}: {
+  payload: unknown;
+  printId: string;
+  specs: PrintPageSizeSpec[];
+  target: PrintRouteTarget;
+  options: Pap5PdfGenerateOptions;
+}) {
   const merged = await PDFDocument.create();
   const browser = await launchChromium();
 
@@ -218,6 +253,7 @@ export async function generatePap5Pdf(
         pageId: spec.id,
         landscape: spec.orientation === "landscape",
         headers: options.headers,
+        target,
       });
       await appendPdf(merged, pagePdf);
     }
@@ -228,4 +264,21 @@ export async function generatePap5Pdf(
   const bytes = await merged.save();
   await assertPap5PdfPageSizes(bytes, specs);
   return Buffer.from(bytes);
+}
+
+export async function generatePap5Pdf(
+  payload: Pap5PdfPayload,
+  options: Pap5PdfGenerateOptions,
+) {
+  return generatePrintRoutePdf({
+    payload,
+    printId: safePrintId(payload.id),
+    specs: getPap5PrintPageSpecs(payload.data),
+    target: PAP5_PRINT_ROUTE,
+    options,
+  });
+}
+
+export function safeActivityPrintId(value: string | undefined) {
+  return safePrintId(value, "activities");
 }

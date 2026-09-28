@@ -12,6 +12,7 @@ import {
 import { logActivity } from './lib/activityLog';
 import { createAuthObserver } from './lib/authObserver';
 import type { GradebookSession, TeacherAssignmentView } from './lib/teacherGradebooks';
+import type { StudentActivityClassroomOption, StudentActivitySession } from './lib/studentActivityRecords';
 import {
   CheckCircle2, AlertCircle, Loader2, LogOut,
 } from 'lucide-react';
@@ -40,6 +41,19 @@ const Pap5CoverPreviewPage = lazy(() =>
 const Pap5PrintRoutePage = lazy(() =>
   import('./pages/teacher/Pap5PrintRoutePage').then((module) => ({ default: module.Pap5PrintRoutePage })),
 );
+const StudentActivityPrintRoutePage = lazy(() =>
+  import('./pages/teacher/StudentActivityPrintRoutePage').then((module) => ({ default: module.StudentActivityPrintRoutePage })),
+);
+const StudentActivityEditor = lazy(() =>
+  import('./pages/teacher/StudentActivityEditor').then((module) => ({ default: module.StudentActivityEditor })),
+);
+/** หน้าตัวอย่างบันทึกกิจกรรมพัฒนาผู้เรียนใช้ข้อมูลทดสอบ เปิดได้เฉพาะตอนพัฒนา (npm run dev) และไม่ถูกรวมใน build จริง */
+const StudentActivityPreviewPage = import.meta.env.DEV
+  ? lazy(() =>
+      import('./pages/teacher/StudentActivityPreviewPage').then((module) => ({ default: module.StudentActivityPreviewPage })),
+    )
+  : null;
+const STUDENT_ACTIVITY_PREVIEW_ENABLED = Boolean(StudentActivityPreviewPage);
 
 function readPreviewMode(): string | null {
   return new URLSearchParams(window.location.search).get('preview');
@@ -47,6 +61,10 @@ function readPreviewMode(): string | null {
 
 function isPap5PrintRoute(): boolean {
   return window.location.pathname.startsWith('/print/pap5/');
+}
+
+function isStudentActivityPrintRoute(): boolean {
+  return window.location.pathname.startsWith('/print/activities/');
 }
 
 function shouldOpenAdminFromUrl(): boolean {
@@ -92,7 +110,13 @@ function PreviewOnlyApp() {
 
   return (
     <Suspense fallback={<RouteFallback />}>
-      {previewMode === 'pap5-cover' ? <Pap5CoverPreviewPage /> : <CurriculumPreviewPage />}
+      {previewMode === 'pap5-cover' ? (
+        <Pap5CoverPreviewPage />
+      ) : previewMode === 'student-activities' && StudentActivityPreviewPage ? (
+        <StudentActivityPreviewPage />
+      ) : (
+        <CurriculumPreviewPage />
+      )}
     </Suspense>
   );
 }
@@ -107,7 +131,19 @@ export default function App() {
     );
   }
 
-  if (previewMode === 'curriculum' || previewMode === 'pap5-cover') {
+  if (isStudentActivityPrintRoute()) {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <StudentActivityPrintRoutePage />
+      </Suspense>
+    );
+  }
+
+  if (
+    previewMode === 'curriculum' ||
+    previewMode === 'pap5-cover' ||
+    (previewMode === 'student-activities' && STUDENT_ACTIVITY_PREVIEW_ENABLED)
+  ) {
     return <PreviewOnlyApp />;
   }
 
@@ -124,6 +160,7 @@ function ConfiguredApp() {
   const [authLoading, setAuthLoading] = useState(true);
   const [activeView, setActiveView] = useState<AppView>(readInitialAppView);
   const [gradebookSession, setGradebookSession] = useState<GradebookSession | null>(null);
+  const [activitySession, setActivitySession] = useState<StudentActivitySession | null>(null);
   const [gradebookReturnView, setGradebookReturnView] = useState<AppView>('teacher');
   const [openingGradebook, setOpeningGradebook] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -142,6 +179,7 @@ function ConfiguredApp() {
     if (!activeUser) {
       setActiveView('teacher');
       setGradebookSession(null);
+      setActivitySession(null);
       setTeacherReturnPeriodKey(null);
       return;
     }
@@ -232,6 +270,7 @@ function ConfiguredApp() {
     resolvedIdentity.current = `${user.id}:${user.role}:${user.schoolId}`;
     setCurrentUser(user);
     setGradebookSession(null);
+    setActivitySession(null);
     setTeacherReturnPeriodKey(null);
     setActiveView(canAccessAdminDashboard(user) ? 'admin' : 'teacher');
   };
@@ -242,6 +281,7 @@ function ConfiguredApp() {
     await signOut();
     setCurrentUser(null);
     setGradebookSession(null);
+    setActivitySession(null);
     setTeacherReturnPeriodKey(null);
     setActiveView('teacher');
     setShowLogoutConfirm(false);
@@ -250,6 +290,7 @@ function ConfiguredApp() {
   const openAdminView = () => {
     if (!currentUser || !isAdmin(currentUser)) return;
     setGradebookSession(null);
+    setActivitySession(null);
     setActiveView('admin');
   };
 
@@ -260,7 +301,18 @@ function ConfiguredApp() {
     setTeacherReturnPeriodKey(null);
     clearAdminTabFromUrl();
     setGradebookSession(null);
+    setActivitySession(null);
     setActiveView('teacher');
+  };
+
+  // Errors are rethrown so the dashboard can show them beside the classroom list.
+  const handleOpenActivityRecord = async (classroom: StudentActivityClassroomOption) => {
+    const { loadStudentActivitySession } = await import('./lib/studentActivityRecords');
+    const session = await loadStudentActivitySession(classroom.classroomId);
+    setTeacherReturnPeriodKey(null);
+    setGradebookSession(null);
+    setActiveView('teacher');
+    setActivitySession(session);
   };
 
   const handleOpenGradebook = async (
@@ -385,6 +437,23 @@ function ConfiguredApp() {
     );
   }
 
+  if (activitySession) {
+    return (
+      <>
+        {renderSyncStatus()}
+        <Suspense fallback={<RouteFallback />}>
+          <StudentActivityEditor
+            key={activitySession.id || activitySession.classroomId}
+            session={activitySession}
+            onBack={() => setActivitySession(null)}
+            onSyncStatusChange={setSyncStatus}
+          />
+        </Suspense>
+        {logoutModal}
+      </>
+    );
+  }
+
   if (gradebookSession) {
     return (
       <>
@@ -415,6 +484,7 @@ function ConfiguredApp() {
           viewedTeacher={viewedTeacher}
           initialPeriodKey={teacherReturnPeriodKey}
           onOpenGradebook={handleOpenGradebook}
+          onOpenActivityRecord={handleOpenActivityRecord}
           onLogout={handleLogout}
           onSettings={openAdminView}
         />

@@ -62,6 +62,39 @@ function pap5PdfDevApiPlugin(): Plugin {
 
       server.middlewares.use('/api/pap5-pdf', handlePap5PdfRequest);
       server.middlewares.use('/api/export/pap5/preview', handlePap5PdfRequest);
+
+      server.middlewares.use('/api/student-activity-pdf', async (req, res) => {
+        if (req.method !== 'POST') {
+          res.statusCode = 405;
+          res.setHeader('content-type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ error: 'Method not allowed' }));
+          return;
+        }
+
+        try {
+          const rawBody = await readRequestBody(req);
+          const { createStudentActivityPdfHttpResult, parseStudentActivityPdfRequestPayload } = await import(
+            './src/server/studentActivityPdfHttp'
+          );
+          const contentType = Array.isArray(req.headers['content-type'])
+            ? req.headers['content-type'].join('; ')
+            : req.headers['content-type'] ?? '';
+          const payload = parseStudentActivityPdfRequestPayload(rawBody, contentType);
+          const origin = `http://${req.headers.host ?? '127.0.0.1:3000'}`;
+          const result = await createStudentActivityPdfHttpResult({ payload, origin });
+
+          res.statusCode = result.status;
+          Object.entries(result.headers).forEach(([key, value]) => {
+            res.setHeader(key, value);
+          });
+          res.end(result.body);
+        } catch (error) {
+          console.error('Student activity PDF export failed', error);
+          res.statusCode = 500;
+          res.setHeader('content-type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ error: getErrorMessage(error) }));
+        }
+      });
     },
   };
 }
