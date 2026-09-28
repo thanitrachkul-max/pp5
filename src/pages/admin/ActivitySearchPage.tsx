@@ -131,20 +131,24 @@ export function ActivitySearchPage({ currentUser, yearId, radio, pap5Actions, in
   const table = all || Boolean(search || level || room || status);
   if (session) return <StudentActivityEditor session={session} onBack={() => setSession(null)} />;
   return <div className="space-y-5">
-    <section className="mx-auto max-w-5xl text-center">
+    <section className={table ? "rounded-xl border border-slate-200 bg-white p-3 shadow-sm" : "mx-auto max-w-5xl text-center"}>
+      {!table && <>
       <img src="/logo1.png" alt="กิจกรรมพัฒนาผู้เรียน" className="mx-auto h-16 w-16 object-contain" />
       <p className="mt-4 text-base text-slate-700">โรงเรียนกาฬสินธุ์ปัญญานุกูล จังหวัดกาฬสินธุ์</p>
       <h1 className="mt-2 text-3xl font-extrabold">ค้นหากิจกรรมพัฒนาผู้เรียน</h1>
       <p className="mt-4 text-xl font-semibold">สวัสดี {currentUser.name}</p>
       <fieldset disabled={busy}>{radio}</fieldset>
-      <label className="mx-auto flex max-w-4xl items-center gap-3 rounded-xl border bg-white px-5 py-3 shadow-sm">
+      </>}
+      <div className={table ? "grid items-center gap-3 md:grid-cols-[1.4fr_repeat(3,minmax(0,1fr))]" : ""}>
+      <label className={table ? "flex h-[42px] min-w-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 shadow-sm" : "mx-auto flex max-w-4xl items-center gap-3 rounded-xl border border-slate-300 bg-white px-5 py-3 shadow-sm"}>
         <Search className="h-5 w-5 text-slate-400" /><input type="search" aria-label="ค้นหากิจกรรมพัฒนาผู้เรียน" placeholder="ค้นหาด้วย ห้องเรียน ชื่อครูประจำชั้น ชื่อนักเรียน หรือเลขประจำตัว"
           value={search} onChange={e => setSearch(e.target.value)} className="w-full bg-transparent outline-none" />
       </label>
-      <div className="mt-5 grid gap-3 sm:grid-cols-3">
-        <select aria-label="ระดับชั้น" value={level} onChange={e => { setLevel(e.target.value); setRoom(''); }} className="rounded-lg border bg-white p-3"><option value="">ทุกระดับชั้น</option>{[...new Set(records.map(r=>r.level))].map(v=><option key={v}>{v}</option>)}</select>
-        <select aria-label="ห้องเรียน" value={room} onChange={e=>setRoom(e.target.value)} className="rounded-lg border bg-white p-3"><option value="">ทุกห้องเรียน</option>{records.filter(r=>!level||r.level===level).map(r=><option key={r.id}>{r.classroom}</option>)}</select>
-        <select aria-label="สถานะกิจกรรม" value={status} onChange={e=>setStatus(e.target.value)} className="rounded-lg border bg-white p-3"><option value="">ทุกสถานะ</option>{Object.entries(statusLabel).map(([v,label])=><option value={v} key={v}>{label}</option>)}</select>
+      <div className={table ? "contents" : "mt-5 grid gap-3 sm:grid-cols-3"}>
+        <select aria-label="ระดับชั้น" value={level} onChange={e => { setLevel(e.target.value); setRoom(''); }} className="rounded-lg border border-slate-200 bg-white p-2.5 text-sm font-semibold"><option value="">ทุกระดับชั้น</option>{[...new Set(records.map(r=>r.level))].map(v=><option key={v}>{v}</option>)}</select>
+        <select aria-label="ห้องเรียน" value={room} onChange={e=>setRoom(e.target.value)} className="rounded-lg border border-slate-200 bg-white p-2.5 text-sm font-semibold"><option value="">ทุกห้องเรียน</option>{records.filter(r=>!level||r.level===level).map(r=><option key={r.id}>{r.classroom}</option>)}</select>
+        <select aria-label="สถานะกิจกรรม" value={status} onChange={e=>setStatus(e.target.value)} className="rounded-lg border border-slate-200 bg-white p-2.5 text-sm font-semibold"><option value="">ทุกสถานะ</option>{Object.entries(statusLabel).map(([v,label])=><option value={v} key={v}>{label}</option>)}</select>
+      </div>
       </div>
     </section>
     {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-red-700">{error}</p>}
@@ -153,17 +157,17 @@ export function ActivitySearchPage({ currentUser, yearId, radio, pap5Actions, in
       <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-extrabold">กิจกรรมพัฒนาผู้เรียนที่ครูส่งแล้ว</h2><span className="text-sm text-slate-500">ปีการศึกษา {year.label || '-'} · {filtered.length} ห้อง</span></div>
       {loading ? <p className="py-12 text-center">กำลังโหลดกิจกรรม…</p> : table ? <>
         <button className="btn btn-secondary" onClick={reset} disabled={busy}><ArrowLeft className="h-4 w-4" /> กลับเลือกระดับชั้น</button>
-        <div className="overflow-x-auto rounded-xl border bg-white shadow-sm"><table className="w-full min-w-[760px] text-sm">
-          <thead className="bg-slate-900 text-white"><tr>{['ระดับชั้น','ห้องเรียน','ครูประจำชั้น','นักเรียน','สถานะ','เอกสาร'].map(h=><th key={h} className="px-4 py-3">{h}</th>)}</tr></thead>
-          <tbody>{filtered.map(r=><tr key={r.id} className="border-t text-center"><td className="p-3">{r.level}</td><td>{r.classroom}</td><td className="max-w-sm p-3 text-left">{r.teachers || '-'}</td><td>{r.students.length}</td><td>{statusLabel[r.approval_status]}</td><td className="p-3"><div className="flex justify-center gap-2"><button className="btn btn-secondary !p-2" disabled={busy} onClick={()=>void run([r],true)}><Eye className="h-4 w-4" />ดู</button><button className="btn btn-secondary !p-2" disabled={busy} onClick={()=>void run([r])}><Download className="h-4 w-4" />PDF</button></div></td></tr>)}
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm"><table className="w-full min-w-[760px] text-sm">
+          <thead className="bg-slate-950 text-white"><tr>{['ระดับชั้น','ห้องเรียน','ครูประจำชั้น','นักเรียน','สถานะ','เอกสาร'].map(h=><th key={h} className="px-4 py-3">{h}</th>)}</tr></thead>
+          <tbody>{filtered.map(r=><tr key={r.id} className="border-t border-slate-100 text-center"><td className="p-3">{r.level}</td><td>{r.classroom}</td><td className="max-w-sm p-3 text-left">{r.teachers || '-'}</td><td>{r.students.length}</td><td>{statusLabel[r.approval_status]}</td><td className="p-3"><div className="flex justify-center gap-2"><button className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-800 bg-slate-950 px-3 text-xs font-extrabold text-white shadow-sm transition hover:bg-slate-800 disabled:opacity-50" disabled={busy} onClick={()=>void run([r],true)}><Eye className="h-4 w-4" />ดู</button><button className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-blue-600 bg-blue-600 px-3 text-xs font-extrabold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-50" disabled={busy} onClick={()=>void run([r])}><Download className="h-4 w-4" />PDF</button></div></td></tr>)}
           {!filtered.length && <tr><td colSpan={6} className="p-12 text-center text-slate-400">ไม่พบกิจกรรมที่ส่งแล้วตามเงื่อนไขที่เลือก</td></tr>}</tbody>
         </table></div>
       </> : renderLevels(setLevel)}
-      <fieldset disabled={busy} className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {!table && <fieldset disabled={busy} className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {pap5Actions}
         <button className="btn btn-primary !text-sm" disabled={loading} onClick={()=>{ reset(); setAll(true); }}><BookOpenCheck className="h-4 w-4" />กิจกรรมพัฒนาผู้เรียนทั้งหมด</button>
         <button className="btn bg-emerald-600 text-white !text-sm" disabled={loading || !records.length} onClick={()=>void run(records)}><Download className="h-4 w-4" />ดาวน์โหลดกิจกรรมพัฒนาผู้เรียนทั้งหมด</button>
-      </fieldset>
+      </fieldset>}
     </section>
   </div>;
 }
