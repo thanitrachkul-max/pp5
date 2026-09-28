@@ -148,7 +148,7 @@ function activitySubmissionBadge(
     const [classroom] = classrooms;
     return {
       kind: 'badge',
-      label: classroom.completionPercent >= 100 ? 'พร้อมส่ง (100%)' : `ยังไม่ส่ง (${classroom.completionPercent}%)`,
+      label: classroom.completionPercent >= 100 ? 'ส่งการประเมิน' : `ยังไม่ส่ง (${classroom.completionPercent}%)`,
       className:
         classroom.completionPercent >= 100
           ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200'
@@ -158,10 +158,11 @@ function activitySubmissionBadge(
     };
   }
   const submitted = approved + pending;
+  const hasReadyRoom = classrooms.some(classroom => !classroom.approvalStatus && classroom.completionPercent >= 100);
   return {
     kind: 'badge',
-    label: `ส่งแล้ว ${submitted}/${total}`,
-    className: submitted > 0 ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' : 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
+    label: hasReadyRoom ? 'ส่งการประเมิน' : `ส่งแล้ว ${submitted}/${total}`,
+    className: hasReadyRoom || submitted > 0 ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' : 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
     icon: 'send',
     revision: null,
   };
@@ -394,6 +395,8 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const [periodChooser, setPeriodChooser] = useState<TeacherPeriod | null>(null);
   const [activityStep, setActivityStep] = useState<ActivityClassroomStep | null>(null);
   const activityRequestId = useRef(0);
+  const [activitySubmitPeriod, setActivitySubmitPeriod] = useState<TeacherPeriod | null>(null);
+  const [activitySubmitting, setActivitySubmitting] = useState(false);
   const [acknowledgingId, setAcknowledgingId] = useState<string | null>(null);
   const [resubmittingId, setResubmittingId] = useState<string | null>(null);
   const [selectedPeriodKey, setSelectedPeriodKey] = useState<string | null>(() => initialPeriodKey);
@@ -606,6 +609,29 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         loading: false,
         error: err instanceof Error ? err.message : 'โหลดห้องเรียนไม่สำเร็จ',
       });
+    }
+  };
+
+  const submitActivities = async () => {
+    if (!activitySubmitPeriod || activitySubmitting) return;
+    setActivitySubmitting(true);
+    setError('');
+    setMessage('');
+    try {
+      const rooms = activityStatuses.byYear.get(activitySubmitPeriod.academicYearId) ?? [];
+      for (const room of rooms) {
+        if (!room.recordId || room.completionPercent < 100 || room.approvalStatus === 'approved' || room.approvalStatus === 'pending') continue;
+        const { error: submitError } = await supabase.rpc('submit_student_activity_record', { p_record_id: room.recordId });
+        if (submitError) throw submitError;
+      }
+      setActivitySubmitPeriod(null);
+      setMessage('ส่งการประเมินกิจกรรมพัฒนาผู้เรียนแล้ว');
+    } catch (err) {
+      setActivitySubmitPeriod(null);
+      setError((err as { message?: string })?.message || 'ส่งการประเมินกิจกรรมไม่สำเร็จ');
+    } finally {
+      await loadActivityStatuses();
+      setActivitySubmitting(false);
     }
   };
 
@@ -1038,6 +1064,11 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                 setActivityRevision({ period, classroom: activity.revision });
                                 return;
                               }
+                              const readyRooms = activityStatuses.byYear.get(period.academicYearId) ?? [];
+                              if (readyRooms.some(room => room.recordId && room.completionPercent >= 100 && !room.approvalStatus)) {
+                                setActivitySubmitPeriod(period);
+                                return;
+                              }
                               setPeriodChooser(period);
                               void showActivityClassrooms(period);
                             }}
@@ -1250,6 +1281,20 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         </ModalPortal>
       )}
 
+      {activitySubmitPeriod && (
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
+            <div role="dialog" aria-modal="true" aria-label="ส่งการประเมินกิจกรรมพัฒนาผู้เรียน" className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+              <h2 className="text-lg font-bold">ส่งการประเมินกิจกรรมพัฒนาผู้เรียน</h2>
+              <p className="mt-3 text-sm text-slate-600">ส่งห้องที่บันทึกครบ 100% ในปีการศึกษา {activitySubmitPeriod.yearBe} ให้ผู้ดูแลระบบพิจารณาอนุมัติ</p>
+              <div className="mt-6 flex justify-end gap-3">
+                <button type="button" disabled={activitySubmitting} onClick={() => setActivitySubmitPeriod(null)} className="rounded-lg border px-4 py-2">ยกเลิก</button>
+                <button type="button" disabled={activitySubmitting} onClick={() => void submitActivities()} className="rounded-lg bg-blue-600 px-4 py-2 font-bold text-white disabled:opacity-50">{activitySubmitting ? 'กำลังส่ง…' : 'ส่งการประเมิน'}</button>
+              </div>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
       {activityRevision && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
           <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">

@@ -1741,6 +1741,20 @@ main table:not(.excel-table) tbody td {
     margin: 0 !important;
   }
 
+  .pap5-original-print-document .activity-attendance-print-page .excel-scroll-area {
+    justify-content: center !important;
+  }
+
+  .attendance-print-page.original-tab-print-page.activity-attendance-print-page {
+    padding-left: 11mm !important;
+    padding-right: 11mm !important;
+    justify-content: center !important;
+  }
+
+  .pap5-original-print-document .activity-attendance-print-page .excel-scroll-content {
+    margin: 0 auto !important;
+  }
+
   .pap5-original-print-document .score-print-page .excel-scroll-content {
     margin: 0 auto !important;
   }

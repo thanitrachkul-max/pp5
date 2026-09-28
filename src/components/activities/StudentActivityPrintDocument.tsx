@@ -88,7 +88,7 @@ function AttendancePrintPage({
   pageNumber?: number;
 }) {
   return (
-    <section className="print-page landscape attendance-print-page original-tab-print-page">
+    <section className="print-page landscape attendance-print-page original-tab-print-page activity-attendance-print-page">
       <PrintPageNumber pageNumber={pageNumber} />
       <StudentsForm
         data={data.students}

@@ -17,6 +17,7 @@ import {
   X,
 } from 'lucide-react';
 import { AssignmentSummaryCards } from '../../components/AssignmentSummaryCards';
+import { AdminActivityStatus, useAdminActivityRecords } from '../../components/activities/AdminActivityStatus';
 import { SearchableTeacherSelect } from '../../components/SearchableTeacherSelect';
 import { FilterBar, FilterClearButton, FilterSearch, FilterSelect } from '../../components/FilterBar';
 import { isSchemaCacheErrorFor } from '../../lib/dbErrors';
@@ -60,6 +61,7 @@ import type {
 } from '../../types';
 
 interface AssignmentsPageProps {
+  onOpenActivityRecord?: (classroomId: string) => Promise<void>;
   currentUser: AppUser;
   onOpenTeacherView?: (teacher: { id: string; name: string }) => void;
   initialYearId?: string;
@@ -330,6 +332,7 @@ function isMissingCoTeacherNameColumn(err: unknown): boolean {
 }
 
 export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
+  onOpenActivityRecord,
   currentUser,
   initialYearId,
   onOpenTeacherView,
@@ -343,6 +346,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
   const [years, setYears] = useState<AcademicYear[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [selectedYearId, setSelectedYearId] = useState(initialYearId ?? '');
+  const activityRecords = useAdminActivityRecords(currentUser.schoolId, selectedYearId);
   const [selectedSemesterId, setSelectedSemesterId] = useState('');
   const [teachers, setTeachers] = useState<Profile[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -2255,6 +2259,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                   <th className="text-center px-5 py-3 font-semibold text-slate-600">ชั้นเรียนที่สอน</th>
                   <th className="text-center px-5 py-3 font-semibold text-slate-600">สถานะ</th>
                   <th className="text-center px-5 py-3 font-semibold text-slate-600">การอนุมัติ</th>
+                  <th className="text-center px-5 py-3 font-semibold text-slate-600">กิจกรรมพัฒนาผู้เรียน</th>
                   <th className="text-center px-5 py-3 font-semibold text-slate-600">จัดการ</th>
                 </tr>
               </thead>
@@ -2305,6 +2310,14 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                       >
                         {approval.label}
                       </span>
+                    </td>
+                    <td className="px-5 py-4 text-center" onClick={event => event.stopPropagation()}>
+                      <AdminActivityStatus {...activityRecords}
+                        classrooms={classrooms.filter(room => room.academic_year_id === selectedYearId &&
+                          [room.homeroom_teacher_id, room.homeroom_teacher_2_id, room.homeroom_teacher_3_id].includes(summary.teacherId))}
+                        onOpen={onOpenActivityRecord ? classroomId => {
+                          void onOpenActivityRecord(classroomId).catch(err => setError(getErrorMessage(err, 'เปิดบันทึกกิจกรรมไม่สำเร็จ')));
+                        } : undefined} />
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex justify-end gap-2">

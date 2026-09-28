@@ -420,7 +420,7 @@ function ConfiguredApp() {
     );
   }
 
-  if (activeView === 'admin' && canAccessAdminDashboard(currentUser)) {
+  if (activeView === 'admin' && !activitySession && canAccessAdminDashboard(currentUser)) {
     return (
       <>
         {renderSyncStatus()}
@@ -429,6 +429,10 @@ function ConfiguredApp() {
             currentUser={currentUser}
             onOpenTeacherView={openTeacherView}
             onOpenGradebook={handleOpenGradebook}
+            onOpenActivityRecord={async (classroomId) => {
+              const { loadStudentActivitySession } = await import('./lib/studentActivityRecords');
+              setActivitySession(await loadStudentActivitySession(classroomId));
+            }}
             onLogout={handleLogout}
           />
         </Suspense>

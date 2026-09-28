@@ -61,6 +61,7 @@ type AdminTab =
   | 'student-roster-edits';
 
 interface AdminWorkspaceProps {
+  onOpenActivityRecord?: (classroomId: string) => Promise<void>;
   currentUser: AppUser;
   onOpenTeacherView: (teacher?: { id: string; name: string }) => void;
   onOpenGradebook: (
@@ -187,6 +188,7 @@ function readAdminDeviceId(): string {
 }
 
 export const AdminWorkspace: React.FC<AdminWorkspaceProps> = ({
+  onOpenActivityRecord,
   currentUser,
   onOpenTeacherView,
   onOpenGradebook,
@@ -220,12 +222,13 @@ export const AdminWorkspace: React.FC<AdminWorkspaceProps> = ({
 
   const contentMaxWidth =
     activeTab === 'students' ||
+    activeTab === 'assignments' ||
     activeTab === 'subjects' ||
     activeTab === 'curriculum' ||
     activeTab === 'student-roster-edits' ||
     activeTab === 'main'
       ? 'max-w-none'
-      : activeTab === 'home' || activeTab === 'assignments'
+      : activeTab === 'home'
         ? 'max-w-7xl'
         : 'max-w-6xl';
 
@@ -588,6 +591,7 @@ export const AdminWorkspace: React.FC<AdminWorkspaceProps> = ({
             )}
             {activeTab === 'assignments' && (
               <AssignmentsPage
+                onOpenActivityRecord={onOpenActivityRecord}
                 currentUser={currentUser}
                 initialYearId={workspaceYearId}
                 readOnly={readOnly}
