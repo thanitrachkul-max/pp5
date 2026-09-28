@@ -29,7 +29,7 @@ function readDownloadFileName(response: Response) {
 }
 
 /** สร้าง PDF ทั้งเล่มจากหน้าพิมพ์เดียวกับปุ่มพิมพ์ แล้วบันทึกลงเครื่อง */
-export async function downloadStudentActivityPdf(request: {
+export async function createStudentActivityPdfFile(request: {
   id: string;
   data: StudentActivityData;
   approvalStatus?: ActivityApprovalStatus | null;
@@ -56,5 +56,10 @@ export async function downloadStudentActivityPdf(request: {
   }
 
   const blob = new Blob([await response.arrayBuffer()], { type: "application/pdf" });
-  savePap5PdfBlob(blob, readDownloadFileName(response));
+  return { blob, fileName: readDownloadFileName(response) };
+}
+
+export async function downloadStudentActivityPdf(request: Parameters<typeof createStudentActivityPdfFile>[0]) {
+  const { blob, fileName } = await createStudentActivityPdfFile(request);
+  savePap5PdfBlob(blob, fileName);
 }

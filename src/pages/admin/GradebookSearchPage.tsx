@@ -1,4 +1,5 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import { ActivitySearchPage } from './ActivitySearchPage';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { AlertCircle, ArrowLeft, BookOpenCheck, CheckCircle2, ChevronRight, Download, Eye, Loader2, Printer, Search, X } from 'lucide-react';
 import { FilterDropdown } from '../../components/FilterBar';
@@ -878,6 +879,8 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({
   initialYearId,
   onBackActionChange,
 }) => {
+  const [searchMode, setSearchMode] = useState<'pap5' | 'activities'>('pap5');
+  const [activityAction, setActivityAction] = useState<'browse' | 'all' | 'download'>('browse');
   const [yearLabel, setYearLabel] = useState('');
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [reports, setReports] = useState<CompletedReport[]>([]);
@@ -1517,7 +1520,7 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({
   );
 
   useEffect(() => {
-    if (!onBackActionChange) return undefined;
+    if (!onBackActionChange || searchMode === 'activities') return undefined;
 
     if (pdfPreview) {
       onBackActionChange(closePdfPreview);
@@ -1533,7 +1536,7 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({
     }
 
     return () => onBackActionChange(null);
-  }, [closePdfPreview, onBackActionChange, pdfPreview, returnToClassBrowse, selectedReport, showReportsTable]);
+  }, [closePdfPreview, onBackActionChange, pdfPreview, returnToClassBrowse, selectedReport, showReportsTable, searchMode]);
 
   useEffect(() => {
     if (!bulkDownloadWorking) return undefined;
@@ -1621,6 +1624,25 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({
       </>
     );
   }
+
+  const modeRadio = <fieldset className="mx-auto my-4 flex flex-wrap justify-center gap-5" disabled={actionBusy}>
+    <legend className="sr-only">ประเภทข้อมูลที่ค้นหา</legend>
+    {(['pap5', 'activities'] as const).map(mode => <label key={mode} className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold">
+      <input type="radio" name="document-search-mode" checked={searchMode === mode} onChange={() => { setActivityAction('browse'); setSearchMode(mode); }} />
+      {mode === 'pap5' ? 'ปพ.5' : 'กิจกรรมพัฒนาผู้เรียน'}
+    </label>)}
+  </fieldset>;
+  const pap5Actions = <>
+    <button className="btn btn-primary !text-sm" disabled={loading || actionBusy || !reports.length} onClick={() => { setSearchMode('pap5'); handleShowAllReportsTable(); }}><BookOpenCheck className="h-4 w-4" /> ปพ.5 ทั้งหมด</button>
+    <button className="btn bg-emerald-600 text-white !text-sm" disabled={loading || actionBusy || !reports.length} onClick={() => { setSearchMode('pap5'); void handleDownloadAllReports(); }}><Download className="h-4 w-4" /> ดาวน์โหลด ปพ.5 ทั้งหมด</button>
+  </>;
+  const activityActions = <>
+    <button className="btn btn-primary !text-sm" disabled={actionBusy} onClick={() => { setActivityAction('all'); setSearchMode('activities'); }}><BookOpenCheck className="h-4 w-4" /> กิจกรรมพัฒนาผู้เรียนทั้งหมด</button>
+    <button className="btn bg-emerald-600 text-white !text-sm" disabled={actionBusy} onClick={() => { setActivityAction('download'); setSearchMode('activities'); }}><Download className="h-4 w-4" /> ดาวน์โหลดกิจกรรมพัฒนาผู้เรียนทั้งหมด</button>
+  </>;
+  if (searchMode === 'activities') return <ActivitySearchPage currentUser={currentUser} yearId={initialYearId} radio={modeRadio}
+    pap5Actions={pap5Actions} initialAction={activityAction} onBackActionChange={onBackActionChange}
+    renderLevels={onSelect => <ClassLevelBrowseMenu selectedLevel="" onSelectLevel={onSelect} />} />;
 
   if (selectedReport) {
     const students = normalizeStudents(selectedReport.gradebook.students);
@@ -1759,6 +1781,7 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({
       {documentStatusModal}
       {bulkDownloadModal}
       <div className="w-full space-y-4">
+        {modeRadio}
         <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
           <div className="grid gap-3 md:grid-cols-[1.2fr_repeat(5,minmax(0,1fr))]">
             <label className="flex h-[42px] min-w-0 items-center rounded-xl border border-slate-200 bg-white px-3 shadow-sm focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100">
@@ -1837,18 +1860,19 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({
     <>
     {documentStatusModal}
     {bulkDownloadModal}
-    <div className="space-y-8">
+    <div className="space-y-5">
       <section className="mx-auto max-w-5xl text-center">
-        <img src="/logo1.png" alt="ปพ.5" className="mx-auto h-24 w-24 object-contain" />
+        <img src="/logo1.png" alt="ปพ.5" className="mx-auto h-16 w-16 object-contain" />
         <p className="mt-4 text-base font-medium text-slate-700">โรงเรียนกาฬสินธุ์ปัญญานุกูล จังหวัดกาฬสินธุ์</p>
         <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">
           ค้นหาบันทึกผลการพัฒนาคุณภาพผู้เรียน (ปพ.5)
         </h1>
-        <p className="mt-8 text-2xl font-semibold text-slate-700">
+        <p className="mt-4 text-xl font-semibold text-slate-700">
           สวัสดี {currentUser.name}
         </p>
 
-        <label className="mx-auto mt-5 flex max-w-4xl items-center rounded-xl border border-slate-300 bg-white px-5 py-4 shadow-sm focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-100">
+        {modeRadio}
+        <label className="mx-auto mt-3 flex max-w-4xl items-center rounded-xl border border-slate-300 bg-white px-5 py-4 shadow-sm focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-100">
           <Search className="mr-3 h-5 w-5 shrink-0 text-slate-400" />
           <input
             type="search"
@@ -1929,27 +1953,8 @@ export const GradebookSearchPage: React.FC<GradebookSearchPageProps> = ({
               selectedLevel={classLevelFilter}
               onSelectLevel={handleBrowseLevelSelect}
             />
-            <div className="mt-7 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <button
-                type="button"
-                onClick={handleShowAllReportsTable}
-                disabled={loading || reports.length === 0 || bulkDownloadWorking}
-                className="group flex min-h-[58px] w-full max-w-[300px] items-center justify-center gap-3 rounded-xl border border-blue-700 bg-gradient-to-b from-sky-500 to-blue-700 px-4 py-3 text-white shadow-[0_10px_22px_-14px_rgba(37,99,235,0.9)] transition hover:-translate-y-0.5 hover:from-sky-400 hover:to-blue-700 hover:shadow-[0_16px_30px_-18px_rgba(37,99,235,0.9)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
-              >
-                <BookOpenCheck className="h-5 w-5 shrink-0" />
-                <span className="min-w-0 text-lg font-extrabold leading-tight">ปพ.5 ทั้งหมด</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  void handleDownloadAllReports();
-                }}
-                disabled={loading || reports.length === 0 || actionBusy}
-                className="group flex min-h-[58px] w-full max-w-[300px] items-center justify-center gap-3 rounded-xl border border-emerald-700 bg-gradient-to-b from-emerald-500 to-teal-700 px-4 py-3 text-white shadow-[0_10px_22px_-14px_rgba(5,150,105,0.9)] transition hover:-translate-y-0.5 hover:from-emerald-400 hover:to-teal-700 hover:shadow-[0_16px_30px_-18px_rgba(5,150,105,0.9)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
-              >
-                {bulkDownloadWorking ? <Loader2 className="h-5 w-5 shrink-0 animate-spin" /> : <Download className="h-5 w-5 shrink-0" />}
-                <span className="min-w-0 text-lg font-extrabold leading-tight">บันทึก ปพ.5 ทั้งหมด</span>
-              </button>
+            <div className="mx-auto mt-5 grid max-w-5xl grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {pap5Actions}{activityActions}
             </div>
           </>
         ) : filteredReports.length === 0 ? (
