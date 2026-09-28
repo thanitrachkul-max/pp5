@@ -13,7 +13,7 @@ type ActivityRecord = {
 };
 
 /** One compact request for the selected year, shared by all teacher rows. */
-export function useAdminActivityRecords(schoolId: string | null, yearId: string) {
+export function useAdminActivityRecords(schoolId: string | null, yearId: string, refreshVersion = 0) {
   const [state, setState] = useState<{ yearId: string; records: ActivityRecord[]; error: string; loading: boolean }>({ yearId: '', records: [], error: '', loading: true });
   useEffect(() => {
     let disposed = false;
@@ -36,7 +36,7 @@ export function useAdminActivityRecords(schoolId: string | null, yearId: string)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'student_activity_records', filter: `academic_year_id=eq.${yearId}` }, refresh.schedule)
       .subscribe();
     return () => { disposed = true; refresh.dispose(); void supabase.removeChannel(channel); };
-  }, [schoolId, yearId]);
+  }, [schoolId, yearId, refreshVersion]);
   return state.yearId === yearId ? state : { records: [], error: '', loading: true };
 }
 

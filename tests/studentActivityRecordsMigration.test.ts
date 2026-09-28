@@ -377,3 +377,38 @@ test('homeroom teachers submit a complete record and only admins approve or retu
     await db.close();
   }
 });
+
+test('bulk activity status edits enforce scope, submission, admin permissions and pending-only approval', async () => {
+  const db = await createDatabase();
+  try {
+    await db.exec(readFileSync('supabase/migrations/0056_bulk_student_activity_approval.sql', 'utf8'));
+    await actAs(db, ADMIN);
+    const { rows } = await db.query<{ id: string }>(`insert into public.student_activity_records
+      (school_id, academic_year_id, classroom_id, stats) values ($1,$2,$3,'{"completionPercent":100}'),
+      ($1,$2,$4,'{"completionPercent":100}') returning id`, [SCHOOL, YEAR, CLASSROOM, OTHER_CLASSROOM]);
+    const ids = rows.map(r => r.id);
+    const change = (status: string, reason: string | null = null, only = false, year = YEAR) =>
+      db.query<{ count: number }>('select public.bulk_set_student_activity_approval($1,$2,$3,$4,$5) as count', [year, [...ids, ids[0]], status, reason, only]);
+    assert.equal((await change('approved')).rows[0].count, 0, 'drafts are never approved');
+    await db.query('select public.submit_student_activity_record($1)', [ids[0]]);
+    await actAs(db, HOMEROOM);
+    await assert.rejects(change('approved'), /เฉพาะผู้ดูแลระบบ/);
+    await actAs(db, ADMIN);
+    assert.equal((await change('approved', null, true, OTHER_CLASSROOM)).rows[0].count, 0, 'wrong year is excluded');
+    await assert.rejects(change('revision_requested', ' '), /กรุณาระบุเหตุผล/);
+    assert.equal((await change('approved', null, true)).rows[0].count, 1, 'deduplicates shared room and excludes drafts');
+    assert.equal((await change('approved', null, true)).rows[0].count, 0, 'stale pending-only requests skip already reviewed rows');
+    assert.equal((await change('revision_requested', 'ตรวจเวลาเรียน')).rows[0].count, 1);
+    assert.equal((await change('pending')).rows[0].count, 1);
+    const saved = await db.query<{ approval_reason: string | null; reviewed_at: string | null; submitted_at: string | null }>('select approval_reason, reviewed_at, submitted_at from public.student_activity_records where id=$1', [ids[0]]);
+    assert.equal(saved.rows[0].approval_reason, null);
+    assert.equal(saved.rows[0].reviewed_at, null);
+    assert.ok(saved.rows[0].submitted_at, 'original submission is preserved');
+    await db.exec(`reset role; update profiles set school_id='00000000-0000-0000-0000-000000000999' where id='${ADMIN}'`);
+    await actAs(db, ADMIN);
+    assert.equal((await change('approved')).rows[0].count, 0, 'other school is excluded');
+    await db.exec(`reset role; update profiles set is_active=false where id='${ADMIN}'`);
+    await actAs(db, ADMIN);
+    await assert.rejects(change('approved'), /เฉพาะผู้ดูแลระบบ/);
+  } finally { await db.close(); }
+});

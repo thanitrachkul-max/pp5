@@ -138,6 +138,8 @@ interface ApprovalDialogState {
 }
 
 interface BulkApprovalEditState {
+  activityYearId?: string;
+  pendingOnly?: boolean;
   gradebookIds: string[];
   title: string;
   description: string;
@@ -346,7 +348,8 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
   const [years, setYears] = useState<AcademicYear[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [selectedYearId, setSelectedYearId] = useState(initialYearId ?? '');
-  const activityRecords = useAdminActivityRecords(currentUser.schoolId, selectedYearId);
+  const [activityRefresh, setActivityRefresh] = useState(0);
+  const activityRecords = useAdminActivityRecords(currentUser.schoolId, selectedYearId, activityRefresh);
   const [selectedSemesterId, setSelectedSemesterId] = useState('');
   const [teachers, setTeachers] = useState<Profile[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -648,6 +651,28 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     };
   }).sort((a, b) => (a.teacher?.full_name ?? '').localeCompare(b.teacher?.full_name ?? '', 'th'));
   const selectedTeacherSummaryCount = selectedTeacherSummaryIds.size;
+  const selectedActivityClassroomIds = new Set(classrooms.filter(room =>
+    room.academic_year_id === selectedYearId &&
+    [room.homeroom_teacher_id, room.homeroom_teacher_2_id, room.homeroom_teacher_3_id]
+      .some(id => id && selectedTeacherSummaryIds.has(id)),
+  ).map(room => room.id));
+  const selectedActivityIds = activityRecords.records.filter(record =>
+    record.approval_status && selectedActivityClassroomIds.has(record.classroom_id),
+  ).map(record => record.id);
+  const pendingActivityIds = activityRecords.records.filter(record => record.approval_status === 'pending').map(record => record.id);
+  const openActivityApprovalDialog = (all: boolean) => {
+    const ids = all ? pendingActivityIds : selectedActivityIds;
+    if (readOnly || !ids.length) return;
+    setError('');
+    setBulkApprovalEdit({
+      gradebookIds: [...new Set(ids)], activityYearId: selectedYearId, pendingOnly: all,
+      status: all ? 'approved' : 'pending', reason: '',
+      title: all ? 'อนุมัติกิจกรรมพัฒนาผู้เรียนทั้งหมด' : 'แก้ไขสถานะกิจกรรมพัฒนาผู้เรียน',
+      description: all
+        ? `ยืนยันอนุมัติกิจกรรมที่รออนุมัติทั้งหมด ${ids.length} ห้อง ในปีการศึกษาที่เลือก (รวมครูทุกคน ไม่จำกัดตามตัวกรองตาราง)`
+        : `แก้ไขสถานะกิจกรรมที่เคยส่งแล้วของครูที่เลือก ${ids.length} ห้อง`,
+    });
+  };
   const allTeacherSummariesChecked =
     teacherSummaries.length > 0 &&
     teacherSummaries.every((summary) => selectedTeacherSummaryIds.has(summary.teacherId));
@@ -1211,10 +1236,10 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
   };
 
   const handleBulkApprovalEditSave = async () => {
-    if (!bulkApprovalEdit) return;
+    if (!bulkApprovalEdit || readOnly || approvalSaving) return;
     const reason = bulkApprovalEdit.reason.trim();
     if (bulkApprovalEdit.status === 'revision_requested' && !reason) {
-      setError('กรุณาระบุเหตุผลที่ให้แก้ไข ปพ.5');
+      setError('กรุณาระบุเหตุผลที่ให้แก้ไข');
       return;
     }
 
@@ -1224,6 +1249,17 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
     try {
       const now = new Date().toISOString();
       const nextApprovalReason = bulkApprovalEdit.status === 'revision_requested' ? reason : null;
+      if (bulkApprovalEdit.activityYearId) {
+        const { data: count, error: activityError } = await supabase.rpc('bulk_set_student_activity_approval', {
+          p_year_id: bulkApprovalEdit.activityYearId, p_record_ids: bulkApprovalEdit.gradebookIds,
+          p_status: bulkApprovalEdit.status, p_reason: reason || null, p_pending_only: Boolean(bulkApprovalEdit.pendingOnly),
+        });
+        if (activityError) throw activityError;
+        setMessage(`แก้ไขสถานะกิจกรรมพัฒนาผู้เรียนแล้ว ${count ?? 0} ห้อง`);
+        setBulkApprovalEdit(null);
+        setActivityRefresh(value => value + 1);
+        return;
+      }
       const payload =
         bulkApprovalEdit.status === 'revision_requested'
           ? {
@@ -1269,7 +1305,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
         void loadAssignments(false);
       }, 500);
     } catch (err) {
-      setError(getErrorMessage(err, 'แก้ไขสถานะ ปพ.5 ไม่สำเร็จ'));
+      setError(getErrorMessage(err, bulkApprovalEdit.activityYearId ? 'แก้ไขสถานะกิจกรรมไม่สำเร็จ' : 'แก้ไขสถานะ ปพ.5 ไม่สำเร็จ'));
     } finally {
       setApprovalSaving(false);
     }
@@ -1884,7 +1920,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
               openApprovalDialog(
                 'approve',
                 allPendingApprovalGradebookIds,
-                'อนุมัติทั้งหมด',
+                'อนุมัติ ปพ.5 ทั้งหมด',
                 `ต้องการอนุมัติ ปพ.5 ที่รออนุมัติทั้งหมด ${allPendingApprovalGradebookIds.length} รายการใช่หรือไม่?`,
               )
             }
@@ -1892,8 +1928,13 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
             className="btn border border-emerald-600 bg-gradient-to-b from-emerald-500 to-emerald-600 text-white shadow-sm hover:from-emerald-600 hover:to-emerald-700"
           >
             {approvalSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-            อนุมัติทั้งหมด
+            อนุมัติ ปพ.5 ทั้งหมด
           </button>
+          {!readOnly && <button type="button" onClick={() => openActivityApprovalDialog(true)}
+            disabled={approvalSaving || activityRecords.loading || Boolean(activityRecords.error) || !pendingActivityIds.length}
+            className="btn border border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50">
+            <CheckCircle2 className="h-4 w-4" /> อนุมัติกิจกรรมพัฒนาผู้เรียนทั้งหมด
+          </button>}
         </div>
       </div>
       )}
@@ -2204,6 +2245,11 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
                 เลือกแล้ว {selectedTeacherSummaryCount} / {teacherSummaries.length} รายการ
               </p>
               <div className="flex flex-wrap gap-2">
+                <button type="button" onClick={() => openActivityApprovalDialog(false)}
+                  disabled={readOnly || approvalSaving || activityRecords.loading || Boolean(activityRecords.error) || !selectedActivityIds.length}
+                  className="inline-flex items-center rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 disabled:opacity-50">
+                  <Edit3 className="mr-1 h-3.5 w-3.5" /> แก้ไขสถานะกิจกรรมพัฒนาผู้เรียน
+                </button>
                 <button
                   type="button"
                   onClick={() =>
@@ -2427,6 +2473,7 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-extrabold text-slate-900">{bulkApprovalEdit.title}</h3>
+                {error && <p role="alert" className="mt-2 text-sm text-red-600">{error}</p>}
                 <p className="mt-1 text-sm text-slate-500">{bulkApprovalEdit.description}</p>
               </div>
               <button
@@ -2441,8 +2488,9 @@ export const AssignmentsPage: React.FC<AssignmentsPageProps> = ({
 
             <div className="space-y-4">
               <div>
-                <label className="mb-1.5 block text-sm font-bold text-slate-700">สถานะ ปพ.5</label>
+                <label className="mb-1.5 block text-sm font-bold text-slate-700">{bulkApprovalEdit.activityYearId ? 'สถานะกิจกรรมพัฒนาผู้เรียน' : 'สถานะ ปพ.5'}</label>
                 <select
+                  disabled={approvalSaving || bulkApprovalEdit.pendingOnly}
                   value={bulkApprovalEdit.status}
                   onChange={(event) =>
                     setBulkApprovalEdit((current) =>
