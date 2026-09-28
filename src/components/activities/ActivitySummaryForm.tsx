@@ -71,7 +71,7 @@ export function ActivitySummaryForm({ data, readOnly = false, onChange }: Props)
 
   return (
     <div className="w-full overflow-auto">
-      <div className="w-full min-w-0 bg-white p-4" style={{ minHeight: "calc(100vh - 240px)", fontFamily: "Sarabun" }}>
+      <div className="w-full min-w-0 bg-white p-4" style={{ minHeight: readOnly ? undefined : "calc(100vh - 240px)", fontFamily: "Sarabun" }}>
         <div className="mb-4 text-center">
           <h2 className="text-xl font-bold text-slate-900">สรุปผลการประเมินกิจกรรมพัฒนาผู้เรียน</h2>
           <p className="mt-1 text-sm font-semibold text-slate-600">
@@ -231,11 +231,11 @@ export function ActivitySummaryForm({ data, readOnly = false, onChange }: Props)
           <li>
             • ผลแต่ละกิจกรรมคำนวณจากแท็บกิจกรรมนั้นโดยอัตโนมัติ (ผ่านเมื่อได้ ผ ตั้งแต่ร้อยละ 50 ของรายการประเมิน)
           </li>
-          <li>
+          {!readOnly && <li>
             • คลิกช่อง ผ่าน (✓) หรือ ไม่ผ่าน (✗) เพื่อกำหนดผลเองได้ทุกกิจกรรม ช่องที่กำหนดเองมีกรอบประ
             <span className="mx-1 inline-block h-3.5 w-5 translate-y-0.5 rounded-sm border border-dashed border-violet-500 bg-violet-50" />
             คลิกซ้ำเพื่อกลับไปใช้ผลจากแท็บกิจกรรม
-          </li>
+          </li>}
           <li>
             • ผลการประเมิน "ผ่าน" เมื่อผ่านครบทั้ง 4 กิจกรรม และมีเวลาเข้าร่วมกิจกรรมไม่น้อยกว่าร้อยละ{" "}
             {ACTIVITY_MIN_ATTENDANCE_PERCENT} <span className="text-rose-500">*</span> = เวลาเข้าร่วมกิจกรรมไม่ถึงเกณฑ์

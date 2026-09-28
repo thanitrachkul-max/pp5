@@ -8,7 +8,7 @@ import {
 import { classLevelFromCode, GUIDANCE_OBJECTIVES, SCOUT_UNITS } from '../src/data/studentActivityCurriculum.ts';
 import {
   ACTIVITY_TOTAL_HOURS,
-  activityApprovalLocksEditing,
+  activityApprovalPreventsSubmission,
   activityAssessmentDefinitions,
   activityAttendancePeriod,
   activityCoverSummary,
@@ -301,11 +301,11 @@ test('completion reaches 100 percent only when attendance and every activity res
   assert.equal(computeActivityStats(data).completionPercent, 100, 'a manual result completes the activity');
 });
 
-test('submitted or approved records are locked for editing', () => {
-  assert.equal(activityApprovalLocksEditing(null), false);
-  assert.equal(activityApprovalLocksEditing('revision_requested'), false);
-  assert.equal(activityApprovalLocksEditing('pending'), true);
-  assert.equal(activityApprovalLocksEditing('approved'), true);
+test('submitted or approved records prevent duplicate submission', () => {
+  assert.equal(activityApprovalPreventsSubmission(null), false);
+  assert.equal(activityApprovalPreventsSubmission('revision_requested'), false);
+  assert.equal(activityApprovalPreventsSubmission('pending'), true);
+  assert.equal(activityApprovalPreventsSubmission('approved'), true);
 });
 
 test('print pages follow the ปพ.5 layout: 2 months per attendance page and 12 students per assessment page', () => {

@@ -29,7 +29,7 @@ import { mergeRosterWithSavedState } from "../../lib/studentRoster";
 import {
   ACTIVITY_KINDS,
   ACTIVITY_LABELS,
-  activityApprovalLocksEditing,
+  activityApprovalPreventsSubmission,
   activityAssessmentDefinitions,
   activityAttendancePeriod,
   activityCoverSummary,
@@ -110,9 +110,9 @@ export const StudentActivityEditor: React.FC<StudentActivityEditorProps> = ({
   const latestData = useRef(data);
   latestData.current = data;
 
-  const approvalLocked = activityApprovalLocksEditing(approval.status);
-  const readOnly = session.readOnly || approvalLocked;
-  const canSubmit = !session.readOnly && !approvalLocked;
+  const alreadySubmitted = activityApprovalPreventsSubmission(approval.status);
+  const readOnly = session.readOnly;
+  const canSubmit = !session.readOnly && !alreadySubmitted;
   const canReview = session.canReview && approval.status === "pending";
   const definitions = useMemo(() => activityAssessmentDefinitions(data.generalInfo), [data.generalInfo]);
   const stats = useMemo(() => computeActivityStats(data), [data]);
@@ -526,7 +526,7 @@ export const StudentActivityEditor: React.FC<StudentActivityEditorProps> = ({
                   </div>
                   <p className="mt-4 text-sm leading-6 text-slate-600">
                     {dialog === "submit"
-                      ? "หลังส่งแล้วจะแก้ไขข้อมูลไม่ได้ จนกว่าผู้ดูแลระบบจะส่งกลับให้แก้ไข เมื่ออนุมัติแล้วจึงพิมพ์และบันทึก PDF ได้"
+                      ? "หลังส่งแล้วยังแก้ไขข้อมูลได้ เมื่ออนุมัติแล้วจึงพิมพ์และบันทึก PDF ได้"
                       : "เมื่ออนุมัติแล้ว ครูประจำชั้นจะพิมพ์และบันทึก PDF ได้ และช่อง “อนุมัติ” บนหน้าปกจะถูกทำเครื่องหมาย"}
                   </p>
                   <div className="mt-5 flex justify-end gap-2">
@@ -656,11 +656,6 @@ export const StudentActivityEditor: React.FC<StudentActivityEditorProps> = ({
                 <ArrowLeft className="h-[18px] w-[18px]" />
                 <span>ย้อนกลับ</span>
               </button>
-              {session.readOnly && (
-                <div className="flex h-10 shrink-0 items-center rounded-lg border border-amber-100 bg-amber-50 px-3 text-xs font-semibold text-amber-800 shadow-sm">
-                  เปิดดูอย่างเดียว — แก้ไขได้เฉพาะครูประจำชั้นในปีการศึกษาที่เปิดใช้งาน
-                </div>
-              )}
 
               <button
                 type="button"
@@ -767,7 +762,7 @@ export const StudentActivityEditor: React.FC<StudentActivityEditorProps> = ({
             </div>
           </div>
         )}
-        {approvalLocked && (
+        {alreadySubmitted && (
           <div
             role="status"
             className={`mb-3 flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold ${
@@ -778,11 +773,11 @@ export const StudentActivityEditor: React.FC<StudentActivityEditorProps> = ({
           >
             {approval.status === "approved" ? <CheckCircle2 className="h-4 w-4 shrink-0" /> : <Clock3 className="h-4 w-4 shrink-0" />}
             {approval.status === "approved"
-              ? "อนุมัติแล้ว — เปิดดู พิมพ์ และบันทึก PDF ได้ (แก้ไขข้อมูลไม่ได้)"
-              : "ส่งการประเมินแล้ว รอผู้ดูแลระบบอนุมัติ — แก้ไขข้อมูลไม่ได้ระหว่างรอพิจารณา"}
+              ? "อนุมัติแล้ว — เปิดดู พิมพ์ และบันทึก PDF ได้"
+              : "ส่งการประเมินแล้ว รอผู้ดูแลระบบอนุมัติ"}
           </div>
         )}
-        {notice && !approvalLocked && approval.status !== "revision_requested" && (
+        {notice && !alreadySubmitted && approval.status !== "revision_requested" && (
           <div role="status" className="mb-3 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-800">
             {notice}
           </div>

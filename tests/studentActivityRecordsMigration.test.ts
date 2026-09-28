@@ -118,6 +118,7 @@ async function createDatabase() {
     insert into public.school_learning_area_heads values ('${SCHOOL}', 'กิจกรรม พัฒนาผู้เรียน', '${ACTIVITY_HEAD}');
   `);
   await db.exec(readFileSync('supabase/migrations/0055_student_activity_records.sql', 'utf8'));
+  await db.exec(readFileSync('supabase/migrations/0057_activity_edit_after_submission.sql', 'utf8'));
   await db.exec(`
     grant usage on schema public, auth to authenticated;
     grant select, insert, update on public.students, public.student_enrollments to authenticated;
@@ -312,10 +313,9 @@ test('homeroom teachers submit a complete record and only admins approve or retu
     assert.equal(submitted.rows[0].approval.approval_status, 'pending');
     assert.ok(submitted.rows[0].approval.submitted_at);
 
-    await assert.rejects(
-      db.query(`update public.student_activity_records set assessments = '{"clubName":"แก้หลังส่ง"}' where id = $1`, [recordId]),
-      /ส่งการประเมินกิจกรรมพัฒนาผู้เรียนแล้ว/,
-    );
+    const pendingEdit = await db.query(`update public.student_activity_records set assessments = '{"clubName":"แก้หลังส่ง"}' where id = $1 returning approval_status, assessments`, [recordId]);
+    assert.equal(pendingEdit.rows[0].approval_status, 'pending');
+    assert.equal(pendingEdit.rows[0].assessments.clubName, 'แก้หลังส่ง');
     await assert.rejects(
       db.query('select public.submit_student_activity_record($1)', [recordId]),
       /กำลังรออนุมัติ/,
@@ -363,10 +363,9 @@ test('homeroom teachers submit a complete record and only admins approve or retu
     assert.equal(approved.rows[0].approval.approval_status, 'approved');
 
     await actAs(db, HOMEROOM);
-    await assert.rejects(
-      db.query(`update public.student_activity_records set status = 'in_progress' where id = $1`, [recordId]),
-      /ไม่สามารถแก้ไขได้/,
-    );
+    const approvedEdit = await db.query(`update public.student_activity_records set status = 'in_progress', approval_status = null where id = $1 returning status, approval_status`, [recordId]);
+    assert.equal(approvedEdit.rows[0].status, 'in_progress');
+    assert.equal(approvedEdit.rows[0].approval_status, 'approved', 'editing does not allow forging approval');
     await db.exec('reset role');
     const saved = await db.query<{ approval_status: string; submitted_by: string; reviewed_by: string }>(
       'select approval_status, submitted_by, reviewed_by from public.student_activity_records where id = $1',

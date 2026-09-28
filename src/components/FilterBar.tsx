@@ -24,15 +24,18 @@ export function FilterDropdown({
   onChange,
   children,
   className,
+  ariaLabel,
 }: {
   value: string;
   onChange: (value: string) => void;
   children: React.ReactNode;
   className?: string;
+  ariaLabel?: string;
 }) {
   return (
     <div className={cn(controlBoxClass, className)}>
       <select
+        aria-label={ariaLabel}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className={selectControlClass}

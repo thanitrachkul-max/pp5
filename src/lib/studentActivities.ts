@@ -522,8 +522,8 @@ export function activityStatusFromStats(stats: StudentActivityStats): "not_start
   return stats.hasTeacherInput || stats.completionPercent > 0 ? "in_progress" : "not_started";
 }
 
-/** ส่งแล้วหรืออนุมัติแล้ว ครูแก้ไขไม่ได้จนกว่าจะถูกส่งกลับให้แก้ไข */
-export function activityApprovalLocksEditing(status: ActivityApprovalStatus | null | undefined): boolean {
+/** ป้องกันการส่งซ้ำระหว่างรออนุมัติหรือหลังอนุมัติ โดยยังแก้ไขข้อมูลได้ */
+export function activityApprovalPreventsSubmission(status: ActivityApprovalStatus | null | undefined): boolean {
   return status === "pending" || status === "approved";
 }
 
