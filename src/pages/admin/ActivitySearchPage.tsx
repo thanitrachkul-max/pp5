@@ -227,7 +227,18 @@ export function ActivitySearchPage({ currentUser, yearId, radio, pap5Actions, in
       {loading ? <p className="py-12 text-center">กำลังโหลดกิจกรรม…</p> : table ? <>
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm"><table className="w-full min-w-[760px] text-sm">
           <thead className="bg-slate-950 text-white"><tr>{['ระดับชั้น','ห้องเรียน','ครูประจำชั้น','นักเรียน','สถานะ','เอกสาร'].map(h=><th key={h} className="px-4 py-3">{h}</th>)}</tr></thead>
-          <tbody>{filtered.map(r=><tr key={r.id} className="border-t border-slate-100 text-center"><td className="p-3">{r.level}</td><td>{r.classroom}</td><td className="max-w-sm p-3 text-left">{r.teachers || '-'}</td><td>{r.students.length}</td><td>{statusLabel[r.approval_status]}</td><td className="p-3"><div className="flex justify-center gap-2"><button className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-800 bg-slate-950 px-3 text-xs font-extrabold text-white shadow-sm transition hover:bg-slate-800 disabled:opacity-50" disabled={busy} onClick={()=>void run([r],true)}><Eye className="h-4 w-4" />ดู</button><button className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-blue-600 bg-blue-600 px-3 text-xs font-extrabold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-50" disabled={busy} onClick={()=>void run([r])}><Download className="h-4 w-4" />PDF</button></div></td></tr>)}
+          <tbody>{filtered.map(r=><tr key={r.id}
+            tabIndex={busy ? -1 : 0}
+            aria-disabled={busy}
+            className={`border-t border-slate-100 text-center transition-colors focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:-outline-offset-2 ${busy ? 'cursor-wait' : 'cursor-pointer hover:bg-blue-50 focus-visible:bg-blue-50'}`}
+            onClick={() => void run([r], true)}
+            onKeyDown={event => {
+              if (event.target !== event.currentTarget || busy) return;
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                void run([r], true);
+              }
+            }}><td className="p-3">{r.level}</td><td>{r.classroom}</td><td className="max-w-sm p-3 text-left">{r.teachers || '-'}</td><td>{r.students.length}</td><td>{statusLabel[r.approval_status]}</td><td className="p-3"><div className="flex justify-center gap-2"><button className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-800 bg-slate-950 px-3 text-xs font-extrabold text-white shadow-sm transition hover:bg-slate-800 disabled:opacity-50" disabled={busy} onClick={event => { event.stopPropagation(); void run([r], true); }}><Eye className="h-4 w-4" />ดู</button><button className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-blue-600 bg-blue-600 px-3 text-xs font-extrabold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-50" disabled={busy} onClick={event => { event.stopPropagation(); void run([r]); }}><Download className="h-4 w-4" />PDF</button></div></td></tr>)}
           {!filtered.length && <tr><td colSpan={6} className="p-12 text-center text-slate-400">ไม่พบกิจกรรมที่ส่งแล้วตามเงื่อนไขที่เลือก</td></tr>}</tbody>
         </table></div>
       </> : renderLevels(setLevel)}
